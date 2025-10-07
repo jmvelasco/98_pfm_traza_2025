@@ -154,7 +154,20 @@ contract SupplyChain {
 
         emit UserRoleRequested(msg.sender, _role);
     }
-    function changeStatusUser(address userAddress, UserStatus newStatus) public onlyAdmin { /* ... */ }
+    function changeStatusUser(address userAddress, UserStatus newStatus) public onlyAdmin {
+        uint256 userId = addressToUserId[userAddress];
+
+        // 1. Requerir que el usuario exista
+        require(userId != 0, "SupplyChain: User not registered.");
+        
+        // 2. No permitir cambiar el estado del Admin
+        require(userAddress != admin, "SupplyChain: Cannot change Admin status.");
+
+        // 3. Actualizar el estado y emitir evento
+        users[userId].status = newStatus;
+
+        emit UserStatusChanged(userAddress, newStatus);
+    }
     function getUserInfo(address userAddress) public view returns (User memory) {
         uint256 userId = addressToUserId[userAddress];
         if (userId == 0) {
