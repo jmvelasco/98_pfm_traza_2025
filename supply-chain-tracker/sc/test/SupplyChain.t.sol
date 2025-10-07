@@ -97,4 +97,24 @@ contract SupplyChainTest is Test {
             "Post-condition: User status must be Approved."
         );
     }
+
+    function testOnlyAdminCanChangeStatus() public {
+        address nonAdmin = PRODUCER_ADDRESS;
+        address userToChange = FACTORY_ADDRESS;
+
+        // 1. Arrange: Factory solicita rol.
+        vm.prank(userToChange);
+        supplyChain.requestUserRole("Factory");
+
+        // 2. Act & Assert (Revert esperado): Intentar cambiar el estado como un usuario NO-Admin
+        vm.prank(nonAdmin);
+
+        // Assert que la transacción revierta con el mensaje esperado del modificador 'onlyAdmin'.
+        // Nota: Foundry revierte automáticamente si se usa 'expectRevert' con una llamada.
+        vm.expectRevert("SupplyChain: Only admin can call this function.");
+        supplyChain.changeStatusUser(
+            userToChange,
+            SupplyChain.UserStatus.Approved
+        );
+    }
 }
