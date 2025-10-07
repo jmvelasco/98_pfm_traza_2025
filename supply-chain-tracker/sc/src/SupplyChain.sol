@@ -114,10 +114,58 @@ contract SupplyChain {
     // -----------------------------------------------------------
 
     // Gestión de Usuarios
-    function requestUserRole(string memory role) public { /* ... */ }
+    function requestUserRole(string memory _role) public {
+        // 1. Requerir que el rol sea válido
+        require(
+            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Producer")) ||
+            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Factory")) ||
+            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Retailer")) ||
+            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Consumer")),
+            "SupplyChain: Invalid role specified."
+        );
+
+        // 2. No permitir al Admin cambiar su rol
+        if (msg.sender == admin) {
+            // El admin ya está aprobado por defecto. Podemos ignorar peticiones.
+            revert("SupplyChain: Admin role cannot be requested.");
+        }
+
+        // 3. Crear o actualizar la solicitud
+        uint256 userId = addressToUserId[msg.sender];
+
+        if (userId == 0) {
+            // Nuevo usuario
+            userId = nextUserId;
+            addressToUserId[msg.sender] = userId;
+            nextUserId++;
+        } else {
+            // Usuario existente que cambia de rol o vuelve a solicitar
+            User memory existingUser = users[userId];
+            // No permitir si ya está Aprobado
+            require(existingUser.status != UserStatus.Approved, "SupplyChain: User is already approved.");
+        }
+
+        users[userId] = User(
+            userId,
+            msg.sender,
+            _role,
+            UserStatus.Pending // Siempre inicia en estado Pending
+        );
+
+        emit UserRoleRequested(msg.sender, _role);
+    }
     function changeStatusUser(address userAddress, UserStatus newStatus) public onlyAdmin { /* ... */ }
-    function getUserInfo(address userAddress) public view returns (User memory) { /* ... */ }
-    function isAdmin(address userAddress) public view returns (bool) { /* ... */ }
+    function getUserInfo(address userAddress) public view returns (User memory) {
+        uint256 userId = addressToUserId[userAddress];
+        if (userId == 0) {
+            // Retorna un struct vacío si no existe
+            return User(0, address(0), "", UserStatus.Pending);
+        }
+        return users[userId];
+    }
+    function isAdmin(address userAddress) public view returns (bool) {
+        return userAddress == admin;
+    }
 
     // Gestión de Tokens
     function createToken(string memory name, uint totalSupply, string memory features, uint parentId) public { /* ... */ }

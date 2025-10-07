@@ -15,8 +15,14 @@ contract SupplyChainTest is Test {
     address constant CONSUMER_ADDRESS = address(0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65);
 
     function setUp() public {
-        // Inicializa el contrato. El ADMIN es automáticamente msg.sender.
+        // 1. Decirle a Foundry que el próximo msg.sender será el ADMIN predefinido (0xf39...)
+        vm.startPrank(ADMIN);
+
+        // 2. Inicializa el contrato. Ahora msg.sender es ADMIN.
         supplyChain = new SupplyChain();
+
+        // 3. Detener la suplantación de identidad.
+        vm.stopPrank();
         // Verificar que el constructor haya configurado correctamente el admin
         assertEq(supplyChain.admin(), ADMIN, "Setup: Admin address mismatch.");
     }
@@ -29,12 +35,26 @@ contract SupplyChainTest is Test {
         // 2. Act: Llamamos a la función que aún no está implementada.
         supplyChain.requestUserRole("Producer");
 
-        // 3. Assert (Debe fallar inicialmente porque la lógica no existe)
+        // 3. Assert
         // Verificamos que el usuario ahora esté en estado Pending.
-        SupplyChain.User memory user = supplyChain.getUserInfo(PRODUCER_ADDRESS);
+        SupplyChain.User memory user = supplyChain.getUserInfo(
+            PRODUCER_ADDRESS
+        );
 
-        assertEq(user.userAddress, PRODUCER_ADDRESS, "User address must match.");
-        assertEq(uint8(user.status), uint8(SupplyChain.UserStatus.Pending), "User status must be Pending after request.");
-        assertEq(keccak256(abi.encodePacked(user.role)), keccak256(abi.encodePacked("Producer")), "User role must be Producer.");
+        assertEq(
+            user.userAddress,
+            PRODUCER_ADDRESS,
+            "User address must match."
+        );
+        assertEq(
+            uint8(user.status),
+            uint8(SupplyChain.UserStatus.Pending),
+            "User status must be Pending after request."
+        );
+        assertEq(
+            keccak256(abi.encodePacked(user.role)),
+            keccak256(abi.encodePacked("Producer")),
+            "User role must be Producer."
+        );
     }
 }
