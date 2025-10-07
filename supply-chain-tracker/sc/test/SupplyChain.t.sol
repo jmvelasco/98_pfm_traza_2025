@@ -117,4 +117,39 @@ contract SupplyChainTest is Test {
             SupplyChain.UserStatus.Approved
         );
     }
+
+    function testAdminRejectUser() public {
+        address userToReject = RETAILER_ADDRESS;
+
+        // 1. Arrange: Retailer solicita rol.
+        vm.prank(userToReject);
+        supplyChain.requestUserRole("Retailer");
+
+        // Verificamos que esté en Pending.
+        SupplyChain.User memory userBefore = supplyChain.getUserInfo(
+            userToReject
+        );
+        assertEq(
+            uint8(userBefore.status),
+            uint8(SupplyChain.UserStatus.Pending),
+            "Pre-condition: User must be Pending."
+        );
+
+        // 2. Act: El Admin rechaza la solicitud.
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(
+            userToReject,
+            SupplyChain.UserStatus.Rejected
+        );
+
+        // 3. Assert: Verificamos que el estado del usuario haya cambiado a Rejected.
+        SupplyChain.User memory userAfter = supplyChain.getUserInfo(
+            userToReject
+        );
+        assertEq(
+            uint8(userAfter.status),
+            uint8(SupplyChain.UserStatus.Rejected),
+            "Post-condition: User status must be Rejected."
+        );
+    }
 }
