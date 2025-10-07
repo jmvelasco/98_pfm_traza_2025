@@ -152,4 +152,41 @@ contract SupplyChainTest is Test {
             "Post-condition: User status must be Rejected."
         );
     }
+
+    function testOnlyApprovedUsersCanOperate() public {
+        address producer = PRODUCER_ADDRESS;
+
+        // 1. Caso 1: Usuario No Registrado (ROJO esperado)
+        vm.prank(producer);
+        vm.expectRevert("SupplyChain: User not registered.");
+        supplyChain.createToken("TokenName", 100, "{}", 0);
+
+        // 2. Arrange: Registrar al usuario. Ahora está en PENDING.
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+
+        // 3. Caso 2: Usuario PENDIENTE (ROJO esperado)
+        vm.prank(producer);
+        vm.expectRevert("SupplyChain: User not approved.");
+        supplyChain.createToken("TokenName", 100, "{}", 0);
+
+        // 4. Arrange: Admin aprueba al usuario.
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+
+        // 5. Caso 3: Usuario APROBADO (VERDE esperado)
+        vm.prank(producer);
+        // We don't expect a revert, just a successful call
+        supplyChain.createToken("TokenName", 100, "{}", 0);
+        // Assert on a meaningful state change if the function returns void or something else
+        // For example, check if the token count increased or if the token exists.
+        assertTrue(supplyChain.nextTokenId() > 1, "Token should have been created.");
+        /*
+        // Original assertion - remove if createToken returns void
+        assertTrue(
+            supplyChain.createToken(),
+            "Approved user must be able to operate."
+        );
+        */
+    }
 }

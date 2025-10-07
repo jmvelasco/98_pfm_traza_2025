@@ -6,8 +6,17 @@ contract SupplyChain {
     // ENUMS Y ESTRUCTURAS DE DATOS
     // -----------------------------------------------------------
 
-    enum UserStatus { Pending, Approved, Rejected, Canceled }
-    enum TransferStatus { Pending, Accepted, Rejected }
+    enum UserStatus {
+        Pending,
+        Approved,
+        Rejected,
+        Canceled
+    }
+    enum TransferStatus {
+        Pending,
+        Accepted,
+        Rejected
+    }
 
     struct Token {
         uint256 id;
@@ -73,8 +82,19 @@ contract SupplyChain {
     // EVENTOS
     // -----------------------------------------------------------
 
-    event TokenCreated(uint256 indexed tokenId, address indexed creator, string name, uint256 totalSupply);
-    event TransferRequested(uint256 indexed transferId, address indexed from, address indexed to, uint256 tokenId, uint256 amount);
+    event TokenCreated(
+        uint256 indexed tokenId,
+        address indexed creator,
+        string name,
+        uint256 totalSupply
+    );
+    event TransferRequested(
+        uint256 indexed transferId,
+        address indexed from,
+        address indexed to,
+        uint256 tokenId,
+        uint256 amount
+    );
     event TransferAccepted(uint256 indexed transferId);
     event TransferRejected(uint256 indexed transferId);
     event UserRoleRequested(address indexed user, string role);
@@ -102,11 +122,23 @@ contract SupplyChain {
     // -----------------------------------------------------------
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "SupplyChain: Only admin can call this function.");
+        require(
+            msg.sender == admin,
+            "SupplyChain: Only admin can call this function."
+        );
         _;
     }
 
-    // TODO: Crear un modificador para usuarios aprobados 'onlyApprovedUser'
+    modifier onlyApprovedUser() {
+        uint256 userId = addressToUserId[msg.sender];
+        require(userId != 0, "SupplyChain: User not registered.");
+        require(
+            users[userId].status == UserStatus.Approved,
+            "SupplyChain: User not approved."
+        );
+        _;
+    }
+
     // TODO: Crear un modificador para validar roles en funciones específicas
 
     // -----------------------------------------------------------
@@ -117,10 +149,14 @@ contract SupplyChain {
     function requestUserRole(string memory _role) public {
         // 1. Requerir que el rol sea válido
         require(
-            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Producer")) ||
-            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Factory")) ||
-            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Retailer")) ||
-            keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Consumer")),
+            keccak256(abi.encodePacked(_role)) ==
+                keccak256(abi.encodePacked("Producer")) ||
+                keccak256(abi.encodePacked(_role)) ==
+                keccak256(abi.encodePacked("Factory")) ||
+                keccak256(abi.encodePacked(_role)) ==
+                keccak256(abi.encodePacked("Retailer")) ||
+                keccak256(abi.encodePacked(_role)) ==
+                keccak256(abi.encodePacked("Consumer")),
             "SupplyChain: Invalid role specified."
         );
 
@@ -142,7 +178,10 @@ contract SupplyChain {
             // Usuario existente que cambia de rol o vuelve a solicitar
             User memory existingUser = users[userId];
             // No permitir si ya está Aprobado
-            require(existingUser.status != UserStatus.Approved, "SupplyChain: User is already approved.");
+            require(
+                existingUser.status != UserStatus.Approved,
+                "SupplyChain: User is already approved."
+            );
         }
 
         users[userId] = User(
@@ -154,21 +193,29 @@ contract SupplyChain {
 
         emit UserRoleRequested(msg.sender, _role);
     }
-    function changeStatusUser(address userAddress, UserStatus newStatus) public onlyAdmin {
+    function changeStatusUser(
+        address userAddress,
+        UserStatus newStatus
+    ) public onlyAdmin {
         uint256 userId = addressToUserId[userAddress];
 
         // 1. Requerir que el usuario exista
         require(userId != 0, "SupplyChain: User not registered.");
-        
+
         // 2. No permitir cambiar el estado del Admin
-        require(userAddress != admin, "SupplyChain: Cannot change Admin status.");
+        require(
+            userAddress != admin,
+            "SupplyChain: Cannot change Admin status."
+        );
 
         // 3. Actualizar el estado y emitir evento
         users[userId].status = newStatus;
 
         emit UserStatusChanged(userAddress, newStatus);
     }
-    function getUserInfo(address userAddress) public view returns (User memory) {
+    function getUserInfo(
+        address userAddress
+    ) public view returns (User memory) {
         uint256 userId = addressToUserId[userAddress];
         if (userId == 0) {
             // Retorna un struct vacío si no existe
@@ -181,18 +228,48 @@ contract SupplyChain {
     }
 
     // Gestión de Tokens
-    function createToken(string memory name, uint totalSupply, string memory features, uint parentId) public { /* ... */ }
-    function getToken(uint tokenId) public view returns (Token memory) { /* ... */ }
-    function getTokenBalance(uint tokenId, address userAddress) public view returns (uint) { return tokenBalances[tokenId][userAddress]; }
+    function createToken(
+        string memory /*name*/,
+        uint /*totalSupply*/,
+        string memory /*features*/,
+        uint /*parentId*/
+    ) public onlyApprovedUser {
+        // ... (la implementación real irá aquí)
+        nextTokenId++;
+    }
+    function getToken(uint tokenId) public view returns (Token memory) {
+        /* ... */
+    }
+    function getTokenBalance(
+        uint tokenId,
+        address userAddress
+    ) public view returns (uint) {
+        return tokenBalances[tokenId][userAddress];
+    }
 
     // Gestión de Transferencias
-    function transfer(address to, uint tokenId, uint amount) public { /* ... */ }
-    function acceptTransfer(uint transferId) public { /* ... */ }
-    function rejectTransfer(uint transferId) public { /* ... */ }
-    function getTransfer(uint transferId) public view returns (Transfer memory) { /* ... */ }
+    function transfer(address to, uint tokenId, uint amount) public {
+        /* ... */
+    }
+    function acceptTransfer(uint transferId) public {
+        /* ... */
+    }
+    function rejectTransfer(uint transferId) public {
+        /* ... */
+    }
+    function getTransfer(
+        uint transferId
+    ) public view returns (Transfer memory) {
+        /* ... */
+    }
 
     // Funciones auxiliares
-    function getUserTokens(address userAddress) public view returns (uint256[] memory) { return userTokensList[userAddress]; }
-    function getAllUsers() public view returns (User[] memory) { /* ... */ } // Sugerencia: Añadir para Admin
-
+    function getUserTokens(
+        address userAddress
+    ) public view returns (uint256[] memory) {
+        return userTokensList[userAddress];
+    }
+    function getAllUsers() public view returns (User[] memory) {
+        /* ... */
+    } // Sugerencia: Añadir para Admin
 }
