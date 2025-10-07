@@ -1,0 +1,3 @@
+[submodule "supply-chain-tracker/sc/lib/forge-std"]
+	path = supply-chain-tracker/sc/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
