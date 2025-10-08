@@ -279,9 +279,10 @@ contract SupplyChainTest is Test {
         supplyChain.requestUserRole("Producer");
         vm.prank(factory);
         supplyChain.requestUserRole("Factory");
-        vm.prank(ADMIN);
+        vm.startPrank(ADMIN);
         supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
         supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
 
         // B. El Producer crea la materia prima (Raw Material)
         vm.prank(producer);
