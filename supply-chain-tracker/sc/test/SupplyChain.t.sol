@@ -180,7 +180,10 @@ contract SupplyChainTest is Test {
         supplyChain.createToken("TokenName", 100, "{}", 0);
         // Assert on a meaningful state change if the function returns void or something else
         // For example, check if the token count increased or if the token exists.
-        assertTrue(supplyChain.nextTokenId() > 1, "Token should have been created.");
+        assertTrue(
+            supplyChain.nextTokenId() > 1,
+            "Token should have been created."
+        );
         /*
         // Original assertion - remove if createToken returns void
         assertTrue(
@@ -188,5 +191,59 @@ contract SupplyChainTest is Test {
             "Approved user must be able to operate."
         );
         */
+    }
+
+    function testCreateTokenByProducer() public {
+        address producer = PRODUCER_ADDRESS;
+        string memory tokenName = "Wheat Grain";
+        uint256 initialSupply = 1000;
+        string memory features = '{"country": "Spain", "year": 2025}';
+
+        // 1. Arrange: El Producer solicita y es aprobado (Pre-condición de 'onlyApprovedUser').
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+
+        // 2. Act: El Producer crea el token de materia prima (parentId = 0).
+        vm.prank(producer);
+        // La función aún no está implementada, por lo que este test debería fallar.
+        supplyChain.createToken(tokenName, initialSupply, features, 0);
+
+        // 3. Assert (ROJO esperado inicialmente)
+        uint256 tokenId = 1; // Primer token, id = 1
+
+        // Verificamos el balance del creador y los detalles del token.
+        assertEq(
+            supplyChain.getTokenBalance(tokenId, producer),
+            initialSupply,
+            "Producer balance must equal initial supply."
+        );
+
+        // Verificamos los datos básicos del token usando getToken (que aún debemos implementar).
+        (
+            uint256 id,
+            address creator,
+            string memory name,
+            uint256 totalSupply,
+            string memory feats,
+            uint256 parentId,
+
+        ) = supplyChain.getToken(tokenId);
+
+        assertEq(id, tokenId, "Token ID must be 1.");
+        assertEq(creator, producer, "Creator must be Producer.");
+        assertEq(totalSupply, initialSupply, "Total supply must match.");
+        assertEq(parentId, 0, "Parent ID must be 0 for raw material.");
+        assertEq(
+            keccak256(abi.encodePacked(name)),
+            keccak256(abi.encodePacked(tokenName)),
+            "Token name must match."
+        );
+        assertEq(
+            keccak256(abi.encodePacked(feats)),
+            keccak256(abi.encodePacked(features)),
+            "Features must match."
+        );
     }
 }
