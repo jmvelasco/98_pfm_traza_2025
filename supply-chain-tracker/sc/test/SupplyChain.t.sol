@@ -263,4 +263,77 @@ contract SupplyChainTest is Test {
         );
         supplyChain.createToken("Flour", 500, "{}", 0);
     }
+
+    function testCreateTokenByFactory() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        uint256 rawMaterialId = 1;
+        uint256 rawSupply = 1000;
+        uint256 derivedProductSupply = 500;
+        string memory derivedName = "Processed Flour";
+
+        // 1. Arrange (Pre-condición de la Cadena de Suministro)
+
+        // A. Aprobar Producer y Factory
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+
+        // B. El Producer crea la materia prima (Raw Material)
+        vm.prank(producer);
+        supplyChain.createToken("Wheat", rawSupply, "{}", 0);
+
+        // 🚨 Importante: Para que la Factory use la materia prima,
+        // primero debe recibirla. Esto nos obliga a implementar primero el flujo de transferencia,
+        // o simplificar el test asumiendo que el balance ya está ahí.
+        // Para ser estrictos con el TDD y no saltarnos módulos, debemos simplificar AHORA y asumir que el Factory ya tiene el balance.
+        // Moveremos la lógica de CONSUMO a otro test posterior.
+
+        // MÍNIMO NECESARIO para este test: El Factory crea un token derivado.
+
+        // 2. Act: El Factory crea el producto derivado (parentId = 1).
+        vm.prank(factory);
+        // Este test debería FALLAR porque AÚN no hay lógica de creación con parentId.
+        supplyChain.createToken(
+            derivedName,
+            derivedProductSupply,
+            "{}",
+            rawMaterialId
+        );
+
+        // 3. Assert (ROJO esperado inicialmente)
+        uint256 derivedTokenId = 2; // Segundo token creado
+
+        // Verificamos los datos básicos del token derivado
+        (
+            uint256 id,
+            address creator,
+            string memory name,
+            uint256 totalSupply,
+            ,
+            uint256 parentId,
+
+        ) = supplyChain.getToken(derivedTokenId);
+
+        assertEq(id, derivedTokenId, "Token ID must be 2.");
+        assertEq(creator, factory, "Creator must be Factory.");
+        assertEq(totalSupply, derivedProductSupply, "Total supply must match.");
+        assertEq(parentId, rawMaterialId, "Parent ID must be 1.");
+        assertEq(
+            keccak256(abi.encodePacked(name)),
+            keccak256(abi.encodePacked(derivedName)),
+            "Token name must match."
+        );
+
+        // Verificamos el balance de la Factory
+        assertEq(
+            supplyChain.getTokenBalance(derivedTokenId, factory),
+            derivedProductSupply,
+            "Factory must own the derived supply."
+        );
+    }
 }
