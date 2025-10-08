@@ -254,14 +254,7 @@ contract SupplyChain {
                 "SupplyChain: Producer cannot create derived products (parentId > 0)."
             );
 
-            // Requerimiento: Si parentId > 0, el usuario debe ser Factory o Retailer (futuro test)
-            // Requerimiento: Si parentId > 0, el usuario NO debe ser Producer (se mantiene)
-            require(
-                keccak256(abi.encodePacked(userRole)) !=
-                    keccak256(abi.encodePacked("Producer")),
-                "SupplyChain: Producer cannot create derived products (parentId > 0)."
-            );
-
+            
             // [ROJO -> VERDE] LÓGICA MÍNIMA: AÑADIR RESTRICCIÓN EXPLÍCITA DE ROL.
             bytes32 factoryHash = keccak256(abi.encodePacked("Factory"));
             bytes32 retailerHash = keccak256(abi.encodePacked("Retailer"));
@@ -288,7 +281,7 @@ contract SupplyChain {
         newToken.totalSupply = totalSupply;
         newToken.features = features;
         newToken.parentId = parentId; // Será 0 para el productor
-        // Nota: La fecha de creación y otros campos se inicializan a 0 por defecto. Los tests no los están comprobando todavía, por lo que no hace falta implementar `block.timestamp` aun.
+        newToken.dateCreated = block.timestamp;
 
         // 3. Asignar Balance al creador
         tokenBalances[newId][msg.sender] = totalSupply;
