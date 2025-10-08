@@ -246,4 +246,21 @@ contract SupplyChainTest is Test {
             "Features must match."
         );
     }
+
+    function testOnlyProducerCanCreateRawMaterial() public {
+        address factory = FACTORY_ADDRESS;
+
+        // 1. Arrange: Factory solicita y es aprobado.
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+
+        // 2. Act & Assert (Revert esperado): Intentar crear materia prima (parentId = 0) como Factory.
+        vm.prank(factory);
+        vm.expectRevert(
+            "SupplyChain: Only Producer can create raw material (parentId must be 0)."
+        );
+        supplyChain.createToken("Flour", 500, "{}", 0);
+    }
 }
