@@ -337,4 +337,65 @@ contract SupplyChainTest is Test {
             "Factory must own the derived supply."
         );
     }
+
+    function testCreateTokenByRetailer() public {
+        address producer = PRODUCER_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+        uint256 rawMaterialId = 1; // Usaremos el token creado en el test anterior si se ejecuta con 'forge test'
+        uint256 rawSupply = 1000;
+        uint256 derivedProductSupply = 500;
+        string memory derivedName = "Packaged Goods";
+
+        // 1. Arrange: Configurar roles y crear token padre.
+
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // Aseguramos que el Producer ya tiene un token que transferir (esto ya lo valida testCreateTokenByProducer)
+        vm.prank(producer);
+        supplyChain.createToken("Raw Plastic", rawSupply, "{}", 0);
+
+        // 🚨 PRE-CONDICIÓN FALTANTE:
+        // Al igual que con Factory, el Retailer debe tener el balance del token padre.
+        // Puesto que AÚN NO HEMOS IMPLEMENTADO TRANSFERENCIAS, debemos SIMULAR que el Retailer
+        // ya tiene el balance del token #1 para poder "consumirlo" y crear el token #2.
+        // Omitiremos la lógica de consumo por ahora, validando solo la creación.
+
+        // 2. Act: El Retailer crea el producto derivado (parentId = 1).
+        vm.prank(retailer);
+        // Este test debería FALLAR inicialmente si no hemos puesto la lógica de Retailer en createToken
+        supplyChain.createToken(
+            derivedName,
+            derivedProductSupply,
+            "{}",
+            rawMaterialId
+        );
+
+        // 3. Assert (ROJO esperado inicialmente si la lógica de creación era incompleta)
+        uint256 derivedTokenId = 2;
+
+        // Verificamos los datos básicos del token derivado
+        (
+            uint256 id,
+            address creator,
+            string memory name,
+            uint256 totalSupply,
+            ,
+            uint256 parentId,
+
+        ) = supplyChain.getToken(derivedTokenId);
+
+        assertEq(id, derivedTokenId, "Token ID must be 2.");
+        assertEq(creator, retailer, "Creator must be Retailer.");
+        assertEq(name, derivedName, "Name must match.");
+        assertEq(totalSupply, derivedProductSupply, "Total supply must match.");
+        assertEq(parentId, rawMaterialId, "Parent ID must be 1.");
+    }
 }
