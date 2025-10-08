@@ -235,12 +235,31 @@ contract SupplyChain {
         string memory features,
         uint256 parentId
     ) public onlyApprovedUser {
-        // [ROJO -> VERDE] Paso Mínimo:
-        // Requerimiento: El productor debe crear tokens sin parentId.
-        require(
-            parentId == 0,
-            "SupplyChain: Producers can only create raw materials (parentId must be 0)."
-        );
+        // Obtenemos el rol del usuario (necesario para las validaciones)
+        uint256 userId = addressToUserId[msg.sender];
+        string memory userRole = users[userId].role;
+        // 1. [ROJO -> VERDE] Implementar restricción de Rol para materia prima
+        if (parentId == 0) {
+            require(
+                keccak256(abi.encodePacked(userRole)) ==
+                    keccak256(abi.encodePacked("Producer")),
+                "SupplyChain: Only Producer can create raw material (parentId must be 0)."
+            );
+        } else {
+            // Requerimiento implícito de la historia de usuario:
+            // Si el parentId > 0, el usuario NO debe ser Producer (refinamiento)
+            require(
+                keccak256(abi.encodePacked(userRole)) !=
+                    keccak256(abi.encodePacked("Producer")),
+                "SupplyChain: Producer cannot create derived products (parentId > 0)."
+            );
+
+            // Requerimiento: Si parentId > 0, el usuario debe ser Factory o Retailer (futuro test)
+
+            // Requerimiento: El token padre debe existir (futuro test)
+
+            // Lógica de refinamiento: Consumo y Asignación (futuro test)
+        }
 
         // 1. Asignar ID
         uint256 newId = nextTokenId;
