@@ -398,4 +398,37 @@ contract SupplyChainTest is Test {
         assertEq(totalSupply, derivedProductSupply, "Total supply must match.");
         assertEq(parentId, rawMaterialId, "Parent ID must be 1.");
     }
+
+    function testOnlyFactoryAndRetailerCanCreateDerivedTokens() public {
+        address consumer = CONSUMER_ADDRESS;
+        address producer = PRODUCER_ADDRESS;
+        uint256 rawMaterialId = 1;
+
+        // 1. Arrange: Aprobar Consumer, Producer.
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(consumer);
+        supplyChain.requestUserRole("Consumer");
+
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(consumer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // 2. Arrange: Crear token padre.
+        vm.prank(producer);
+        supplyChain.createToken("Raw Plastic", 1000, "{}", 0); // Token #1
+
+        // 3. Act & Assert (ROJO esperado/fallo deseado): Intentar crear un token derivado como Consumer.
+        vm.prank(consumer);
+
+        // El Consumer NO es Producer, por lo que el require(rol != Producer) PASA.
+        // Pero el test debe REVERTIR para forzar la implementación restrictiva.
+        vm.expectRevert(
+            "SupplyChain: Only Factory or Retailer can create derived products (parentId > 0)."
+        );
+        supplyChain.createToken("Consumer Item", 10, "{}", rawMaterialId);
+
+        // 4. Verificación Implícita: Factory y Retailer (ya probados) deben seguir funcionando.
+    }
 }

@@ -255,6 +255,22 @@ contract SupplyChain {
             );
 
             // Requerimiento: Si parentId > 0, el usuario debe ser Factory o Retailer (futuro test)
+            // Requerimiento: Si parentId > 0, el usuario NO debe ser Producer (se mantiene)
+            require(
+                keccak256(abi.encodePacked(userRole)) !=
+                    keccak256(abi.encodePacked("Producer")),
+                "SupplyChain: Producer cannot create derived products (parentId > 0)."
+            );
+
+            // [ROJO -> VERDE] LÓGICA MÍNIMA: AÑADIR RESTRICCIÓN EXPLÍCITA DE ROL.
+            bytes32 factoryHash = keccak256(abi.encodePacked("Factory"));
+            bytes32 retailerHash = keccak256(abi.encodePacked("Retailer"));
+
+            require(
+                keccak256(abi.encodePacked(userRole)) == factoryHash ||
+                    keccak256(abi.encodePacked(userRole)) == retailerHash,
+                "SupplyChain: Only Factory or Retailer can create derived products (parentId > 0)."
+            );
 
             // Requerimiento: El token padre debe existir (futuro test)
 
