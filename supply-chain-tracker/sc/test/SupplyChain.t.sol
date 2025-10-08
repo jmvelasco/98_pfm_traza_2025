@@ -197,7 +197,7 @@ contract SupplyChainTest is Test {
         address producer = PRODUCER_ADDRESS;
         string memory tokenName = "Wheat Grain";
         uint256 initialSupply = 1000;
-        string memory features = '{"country": "Spain", "year": 2025}';
+        string memory tokenFeatures = '{"country": "Spain", "year": 2025}';
 
         // 1. Arrange: El Producer solicita y es aprobado (Pre-condición de 'onlyApprovedUser').
         vm.prank(producer);
@@ -208,7 +208,7 @@ contract SupplyChainTest is Test {
         // 2. Act: El Producer crea el token de materia prima (parentId = 0).
         vm.prank(producer);
         // La función aún no está implementada, por lo que este test debería fallar.
-        supplyChain.createToken(tokenName, initialSupply, features, 0);
+        supplyChain.createToken(tokenName, initialSupply, tokenFeatures, 0);
 
         // 3. Assert (ROJO esperado inicialmente)
         uint256 tokenId = 1; // Primer token, id = 1
@@ -226,7 +226,7 @@ contract SupplyChainTest is Test {
             address creator,
             string memory name,
             uint256 totalSupply,
-            string memory feats,
+            string memory features,
             uint256 parentId,
 
         ) = supplyChain.getToken(tokenId);
@@ -241,8 +241,8 @@ contract SupplyChainTest is Test {
             "Token name must match."
         );
         assertEq(
-            keccak256(abi.encodePacked(feats)),
             keccak256(abi.encodePacked(features)),
+            keccak256(abi.encodePacked(tokenFeatures)),
             "Features must match."
         );
     }

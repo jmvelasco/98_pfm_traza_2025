@@ -228,17 +228,72 @@ contract SupplyChain {
     }
 
     // Gestión de Tokens
+    // Gestión de Tokens
     function createToken(
-        string memory /*name*/,
-        uint /*totalSupply*/,
-        string memory /*features*/,
-        uint /*parentId*/
+        string memory name,
+        uint256 totalSupply,
+        string memory features,
+        uint256 parentId
     ) public onlyApprovedUser {
-        // ... (la implementación real irá aquí)
+        // [ROJO -> VERDE] Paso Mínimo:
+        // Requerimiento: El productor debe crear tokens sin parentId.
+        require(
+            parentId == 0,
+            "SupplyChain: Producers can only create raw materials (parentId must be 0)."
+        );
+
+        // 1. Asignar ID
+        uint256 newId = nextTokenId;
+
+        // 2. Crear el Token (solo con los datos que necesita el test)
+        Token storage newToken = tokens[newId];
+        newToken.id = newId;
+        newToken.creator = msg.sender;
+        newToken.name = name;
+        newToken.totalSupply = totalSupply;
+        newToken.features = features;
+        newToken.parentId = parentId; // Será 0 para el productor
+        // Nota: La fecha de creación y otros campos se inicializan a 0 por defecto. Los tests no los están comprobando todavía, por lo que no hace falta implementar `block.timestamp` aun.
+
+        // 3. Asignar Balance al creador
+        tokenBalances[newId][msg.sender] = totalSupply;
+
+        // 4. Actualizar estado y emitir evento (paso necesario aunque el test no lo compruebe)
         nextTokenId++;
+        // Emitimos el evento (aunque el test aún no lo verifica, es buena práctica)
+        emit TokenCreated(newId, msg.sender, name, totalSupply);
+
+        // 5. Actualizar lista de tokens del usuario (Necesario para getUserTokens)
+        userTokensList[msg.sender].push(newId);
     }
-    function getToken(uint tokenId) public view returns (Token memory) {
-        /* ... */
+    function getToken(
+        uint tokenId
+    )
+        public
+        view
+        returns (
+            uint256 id,
+            address creator,
+            string memory name,
+            uint256 totalSupply,
+            string memory features,
+            uint256 parentId,
+            uint256 dateCreated
+        )
+    {
+        require(tokens[tokenId].id != 0, "SupplyChain: Token does not exist.");
+        Token storage token = tokens[tokenId];
+
+        // Devolvemos el struct Token, pero desestructurado como tuple
+        return (
+            token.id,
+            token.creator,
+            token.name,
+            token.totalSupply,
+            token.features,
+            token.parentId,
+            token.dateCreated
+        );
     }
     function getTokenBalance(
         uint tokenId,
