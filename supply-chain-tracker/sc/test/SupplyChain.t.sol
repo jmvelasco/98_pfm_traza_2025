@@ -431,4 +431,79 @@ contract SupplyChainTest is Test {
 
         // 4. Verificación Implícita: Factory y Retailer (ya probados) deben seguir funcionando.
     }
+
+    function testFactoryConsumesParentToken() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        uint256 rawSupply = 1000;
+        uint256 derivedSupply = 300;
+
+        // 1. Arrange: Configuración de roles y aprobación
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // A. Producer crea la materia prima (Token #1)
+        vm.prank(producer);
+        supplyChain.createToken("Wood", rawSupply, "{}", 0);
+        uint256 rawTokenId = 1;
+
+        // B. SIMULACIÓN DE TRANSFERENCIA: La Factory recibe la materia prima del Producer.
+        // 🚨 PRE-CONDICIÓN: Esto requiere la función auxiliar 'setTokenBalance(..)'
+        // y que 'tokenBalances' sea 'internal'/'public' para poder testear el consumo.
+        vm.startPrank(ADMIN);
+        // Transferir el balance del Producer al Factory
+        supplyChain.setTokenBalance(rawTokenId, producer, 0); // Producer pierde 1000
+        supplyChain.setTokenBalance(rawTokenId, factory, rawSupply); // Factory gana 1000
+        vm.stopPrank();
+
+        // 2. Arrange: Verificar balance ANTES del consumo
+        uint256 balanceBefore = supplyChain.getTokenBalance(
+            rawTokenId,
+            factory
+        );
+        assertEq(
+            balanceBefore,
+            rawSupply,
+            "Pre-condition: Factory must have full raw supply before consumption."
+        );
+
+        // 3. Act: Factory crea el producto derivado (Token #2), que consume 300 del Token #1.
+        vm.prank(factory);
+        supplyChain.createToken("Table", derivedSupply, "{}", rawTokenId); // Token #2
+
+        // 4. Assert (FALLO ESPERADO): Verificar la deducción de balance.
+        // Esperamos 700 (1000 - 300), pero el contrato dará 1000 (porque no hay lógica de consumo aún).
+        uint256 expectedBalanceAfter = rawSupply - derivedSupply; // 1000 - 300 = 700
+        uint256 actualBalanceAfter = supplyChain.getTokenBalance(
+            rawTokenId,
+            factory
+        );
+
+        // ESTE ASSERT FALLARÁ (ROJO) hasta que implementes la deducción en createToken.
+        assertEq(
+            actualBalanceAfter,
+            expectedBalanceAfter,
+            "Post-condition: Balance of parent token must be consumed (Deduction logic missing)."
+        );
+
+        // 5. Assert de Restricción (ROJO ESPERADO): Intentar consumir más de lo que se tiene.
+        uint256 excessiveSupply = 800; // El balance restante es 700.
+        vm.prank(factory);
+        // ESTE REVERT FALLARÁ (ROJO) si aún no tienes la validación de balance en createToken.
+        vm.expectRevert(
+            "SupplyChain: Insufficient parent token balance to create derived product."
+        );
+        supplyChain.createToken(
+            "Large Table",
+            excessiveSupply,
+            "{}",
+            rawTokenId
+        );
+    }
 }

@@ -73,7 +73,7 @@ contract SupplyChain {
     // Mapping: User Address => User ID (Para búsqueda rápida)
     mapping(address => uint256) public addressToUserId;
     // Mapping: Token ID => User Address => Balance
-    mapping(uint256 => mapping(address => uint256)) private tokenBalances;
+    mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
 
     // Mapping: User Address => List of Token IDs owned
     mapping(address => uint256[]) private userTokensList;
@@ -228,34 +228,32 @@ contract SupplyChain {
     }
 
     // Gestión de Tokens
-    // Gestión de Tokens
     function createToken(
         string memory name,
         uint256 totalSupply,
         string memory features,
         uint256 parentId
     ) public onlyApprovedUser {
-        // Obtenemos el rol del usuario (necesario para las validaciones)
         uint256 userId = addressToUserId[msg.sender];
         string memory userRole = users[userId].role;
-        // 1. [ROJO -> VERDE] Implementar restricción de Rol para materia prima
+
+        // Validaciones de Rol y Origen
         if (parentId == 0) {
+            // Regla: Materia Prima debe ser creada por Producer
             require(
                 keccak256(abi.encodePacked(userRole)) ==
                     keccak256(abi.encodePacked("Producer")),
                 "SupplyChain: Only Producer can create raw material (parentId must be 0)."
             );
         } else {
-            // Requerimiento implícito de la historia de usuario:
-            // Si el parentId > 0, el usuario NO debe ser Producer (refinamiento)
+            // Regla: Productos derivados no pueden ser creados por Producers
             require(
                 keccak256(abi.encodePacked(userRole)) !=
                     keccak256(abi.encodePacked("Producer")),
                 "SupplyChain: Producer cannot create derived products (parentId > 0)."
             );
 
-            
-            // [ROJO -> VERDE] LÓGICA MÍNIMA: AÑADIR RESTRICCIÓN EXPLÍCITA DE ROL.
+            // Regla: Productos derivados solo pueden ser creados por Factory o Retailer
             bytes32 factoryHash = keccak256(abi.encodePacked("Factory"));
             bytes32 retailerHash = keccak256(abi.encodePacked("Retailer"));
 
@@ -265,33 +263,40 @@ contract SupplyChain {
                 "SupplyChain: Only Factory or Retailer can create derived products (parentId > 0)."
             );
 
-            // Requerimiento: El token padre debe existir (futuro test)
+            // Requerimiento: El token padre debe existir
+            require(
+                tokens[parentId].id != 0,
+                "SupplyChain: Parent token does not exist."
+            );
 
-            // Lógica de refinamiento: Consumo y Asignación (futuro test)
+            // Lógica de Consumo de Stock
+            // 1. Validar que el creador tiene suficiente stock del token padre.
+            require(
+                tokenBalances[parentId][msg.sender] >= totalSupply, // totalSupply es la cantidad a CONSUMIR
+                "SupplyChain: Insufficient parent token balance to create derived product."
+            );
+
+            // 2. Deducir la cantidad consumida del balance del creador
+            tokenBalances[parentId][msg.sender] -= totalSupply;
         }
 
-        // 1. Asignar ID
+        // Creación del Token
         uint256 newId = nextTokenId;
-
-        // 2. Crear el Token (solo con los datos que necesita el test)
         Token storage newToken = tokens[newId];
         newToken.id = newId;
         newToken.creator = msg.sender;
         newToken.name = name;
         newToken.totalSupply = totalSupply;
         newToken.features = features;
-        newToken.parentId = parentId; // Será 0 para el productor
+        newToken.parentId = parentId;
         newToken.dateCreated = block.timestamp;
 
-        // 3. Asignar Balance al creador
+        // Asignar Balance al creador del nuevo token
         tokenBalances[newId][msg.sender] = totalSupply;
 
-        // 4. Actualizar estado y emitir evento (paso necesario aunque el test no lo compruebe)
+        // Actualizar estado
         nextTokenId++;
-        // Emitimos el evento (aunque el test aún no lo verifica, es buena práctica)
         emit TokenCreated(newId, msg.sender, name, totalSupply);
-
-        // 5. Actualizar lista de tokens del usuario (Necesario para getUserTokens)
         userTokensList[msg.sender].push(newId);
     }
     function getToken(
@@ -328,6 +333,13 @@ contract SupplyChain {
         address userAddress
     ) public view returns (uint) {
         return tokenBalances[tokenId][userAddress];
+    }
+    function setTokenBalance(
+        uint256 tokenId,
+        address user,
+        uint256 amount
+    ) public onlyAdmin {
+        tokenBalances[tokenId][user] = amount;
     }
 
     // Gestión de Transferencias
