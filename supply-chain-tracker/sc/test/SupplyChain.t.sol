@@ -269,7 +269,7 @@ contract SupplyChainTest is Test {
         address factory = FACTORY_ADDRESS;
         uint256 rawMaterialId = 1;
         uint256 rawSupply = 1000;
-        uint256 derivedProductSupply = 500;
+        uint256 derivedProductSupply = 500; // La Factory consumirá 500 para producir
         string memory derivedName = "Processed Flour";
 
         // 1. Arrange (Pre-condición de la Cadena de Suministro)
@@ -286,27 +286,26 @@ contract SupplyChainTest is Test {
 
         // B. El Producer crea la materia prima (Raw Material)
         vm.prank(producer);
-        supplyChain.createToken("Wheat", rawSupply, "{}", 0);
+        supplyChain.createToken("Wheat", rawSupply, "{}", 0); // Token #1 creado con 1000 stock
 
-        // 🚨 Importante: Para que la Factory use la materia prima,
-        // primero debe recibirla. Esto nos obliga a implementar primero el flujo de transferencia,
-        // o simplificar el test asumiendo que el balance ya está ahí.
-        // Para ser estrictos con el TDD y no saltarnos módulos, debemos simplificar AHORA y asumir que el Factory ya tiene el balance.
-        // Moveremos la lógica de CONSUMO a otro test posterior.
-
-        // MÍNIMO NECESARIO para este test: El Factory crea un token derivado.
+        // 🟢 INYECCIÓN DE LA SOLUCIÓN: SIMULACIÓN DE TRANSFERENCIA DE STOCK
+        // Para que la Factory pueda consumir 500, primero debe tener el stock de Token #1.
+        vm.startPrank(ADMIN);
+        // Transferir el stock del Producer (1000) al Factory.
+        supplyChain.setTokenBalance(rawMaterialId, producer, 0); // Producer pierde 1000
+        supplyChain.setTokenBalance(rawMaterialId, factory, rawSupply); // Factory gana 1000
+        vm.stopPrank();
 
         // 2. Act: El Factory crea el producto derivado (parentId = 1).
         vm.prank(factory);
-        // Este test debería FALLAR porque AÚN no hay lógica de creación con parentId.
         supplyChain.createToken(
             derivedName,
-            derivedProductSupply,
+            derivedProductSupply, // Consume 500 del stock que acaba de recibir
             "{}",
             rawMaterialId
         );
 
-        // 3. Assert (ROJO esperado inicialmente)
+        // 3. Assert (VERDE esperado)
         uint256 derivedTokenId = 2; // Segundo token creado
 
         // Verificamos los datos básicos del token derivado
@@ -330,20 +329,29 @@ contract SupplyChainTest is Test {
             "Token name must match."
         );
 
-        // Verificamos el balance de la Factory
+        // Verificamos el balance del token derivado
         assertEq(
             supplyChain.getTokenBalance(derivedTokenId, factory),
             derivedProductSupply,
             "Factory must own the derived supply."
+        );
+
+        // 🟢 NUEVO ASSERT DE LIMPIEZA: Verificar que el balance del token padre fue deducido
+        // Balance esperado: 1000 (inicial) - 500 (consumido) = 500
+        uint256 expectedRemainingRawSupply = rawSupply - derivedProductSupply;
+        assertEq(
+            supplyChain.getTokenBalance(rawMaterialId, factory),
+            expectedRemainingRawSupply,
+            "Raw material balance must be correctly deducted after production."
         );
     }
 
     function testCreateTokenByRetailer() public {
         address producer = PRODUCER_ADDRESS;
         address retailer = RETAILER_ADDRESS;
-        uint256 rawMaterialId = 1; // Usaremos el token creado en el test anterior si se ejecuta con 'forge test'
+        uint256 rawMaterialId = 1;
         uint256 rawSupply = 1000;
-        uint256 derivedProductSupply = 500;
+        uint256 derivedProductSupply = 500; // El Retailer consumirá 500 para producir
         string memory derivedName = "Packaged Goods";
 
         // 1. Arrange: Configurar roles y crear token padre.
@@ -358,28 +366,29 @@ contract SupplyChainTest is Test {
         supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
         vm.stopPrank();
 
-        // Aseguramos que el Producer ya tiene un token que transferir (esto ya lo valida testCreateTokenByProducer)
+        // Aseguramos que el Producer ya tiene un token que transferir
         vm.prank(producer);
-        supplyChain.createToken("Raw Plastic", rawSupply, "{}", 0);
+        supplyChain.createToken("Raw Plastic", rawSupply, "{}", 0); // Token #1 creado con 1000 stock
 
-        // 🚨 PRE-CONDICIÓN FALTANTE:
-        // Al igual que con Factory, el Retailer debe tener el balance del token padre.
-        // Puesto que AÚN NO HEMOS IMPLEMENTADO TRANSFERENCIAS, debemos SIMULAR que el Retailer
-        // ya tiene el balance del token #1 para poder "consumirlo" y crear el token #2.
-        // Omitiremos la lógica de consumo por ahora, validando solo la creación.
+        // 🟢 INYECCIÓN DE LA SOLUCIÓN: SIMULACIÓN DE TRANSFERENCIA DE STOCK
+        // El Retailer debe tener el balance del token padre (Token #1) para poder consumirlo.
+        vm.startPrank(ADMIN);
+        // Transferir el stock del Producer (1000) al Retailer.
+        supplyChain.setTokenBalance(rawMaterialId, producer, 0); // Producer pierde 1000
+        supplyChain.setTokenBalance(rawMaterialId, retailer, rawSupply); // Retailer gana 1000
+        vm.stopPrank();
 
         // 2. Act: El Retailer crea el producto derivado (parentId = 1).
         vm.prank(retailer);
-        // Este test debería FALLAR inicialmente si no hemos puesto la lógica de Retailer en createToken
         supplyChain.createToken(
             derivedName,
-            derivedProductSupply,
+            derivedProductSupply, // Consume 500 del stock que acaba de recibir
             "{}",
             rawMaterialId
         );
 
-        // 3. Assert (ROJO esperado inicialmente si la lógica de creación era incompleta)
-        uint256 derivedTokenId = 2;
+        // 3. Assert (VERDE esperado)
+        uint256 derivedTokenId = 2; // Token derivado
 
         // Verificamos los datos básicos del token derivado
         (
@@ -389,14 +398,27 @@ contract SupplyChainTest is Test {
             uint256 totalSupply,
             ,
             uint256 parentId,
-
+            
         ) = supplyChain.getToken(derivedTokenId);
 
         assertEq(id, derivedTokenId, "Token ID must be 2.");
         assertEq(creator, retailer, "Creator must be Retailer.");
-        assertEq(name, derivedName, "Name must match.");
+        assertEq(
+            keccak256(abi.encodePacked(name)),
+            keccak256(abi.encodePacked(derivedName)),
+            "Token name must match."
+        );
         assertEq(totalSupply, derivedProductSupply, "Total supply must match.");
         assertEq(parentId, rawMaterialId, "Parent ID must be 1.");
+
+        // 🟢 NUEVO ASSERT DE LIMPIEZA: Verificar que el balance del token padre fue deducido
+        // Balance esperado: 1000 (inicial) - 500 (consumido) = 500
+        uint256 expectedRemainingRawSupply = rawSupply - derivedProductSupply;
+        assertEq(
+            supplyChain.getTokenBalance(rawMaterialId, retailer),
+            expectedRemainingRawSupply,
+            "Raw material balance must be correctly deducted after production."
+        );
     }
 
     function testOnlyFactoryAndRetailerCanCreateDerivedTokens() public {
