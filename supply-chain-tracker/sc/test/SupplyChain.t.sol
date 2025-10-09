@@ -645,4 +645,36 @@ contract SupplyChainTest is Test {
         );
         supplyChain.transferToken(derivedTokenId, retailer, transferAmount);
     }
+
+    function testTransferFailsInsufficientBalance() public {
+        address producer = PRODUCER_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+        uint256 tokenId = 1;
+        uint256 initialSupply = 100;
+        uint256 transferAmount = 101; // Cantidad mayor al balance inicial (100)
+
+        // 1. Arrange: Configuración y creación del token.
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // Producer crea el token con 100 unidades.
+        vm.prank(producer);
+        supplyChain.createToken("Small Batch", initialSupply, "{}", 0);
+
+        // 2. Act & Assert: Producer intenta transferir 101 unidades (más de lo que tiene).
+        vm.prank(producer);
+        // 🚨 ROJO ESPERADO: Aunque la lógica ya existe, el test valida que el revert sea correcto.
+        vm.expectRevert("SupplyChain: Insufficient balance.");
+        supplyChain.transferToken(
+            tokenId,
+            retailer,
+            transferAmount
+        );
+    }
 }
