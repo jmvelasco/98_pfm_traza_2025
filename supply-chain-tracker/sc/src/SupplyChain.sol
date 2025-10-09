@@ -396,6 +396,58 @@ contract SupplyChain {
         /* ... */
     }
 
+    // Visibilidad y Trazabilidad: Historial del Token
+    /**
+     * @notice Devuelve el linaje (árbol genealógico) de un token, rastreando los IDs de sus padres hasta el origen (parentId = 0).
+     * @param tokenId El ID del token a consultar.
+     * @return Una matriz de uint256 que contiene los IDs de los tokens padres, empezando por el padre inmediato.
+     */
+    function getTokenLineage(uint256 tokenId) public view returns (uint256[] memory) {
+        // La lista de linaje se construirá aquí. Inicialmente, no sabemos su tamaño.
+        uint256[] memory lineage; 
+        
+        // En Solidity, es más eficiente usar un array temporal con un tamaño máximo conocido 
+        // o determinar la longitud primero. Pero lo haremos iterativamente para mayor claridad.
+        
+        uint256 currentId = tokenId;
+        uint256 currentParentId = tokens[currentId].parentId;
+
+        // Primero, contamos el número de padres para dimensionar el array de forma eficiente.
+        uint256 lineageCount = 0;
+        uint256 tempId = tokenId;
+        while (tokens[tempId].parentId != 0) {
+            lineageCount++;
+            tempId = tokens[tempId].parentId;
+        }
+
+        // Si no hay padres (es un token raw), devolvemos un array vacío.
+        if (lineageCount == 0) {
+            return new uint256[](0);
+        }
+        
+        // Creamos el array de linaje con el tamaño exacto.
+        lineage = new uint256[](lineageCount);
+        uint256 index = 0;
+
+        // Volvemos al token original e iteramos para llenar el array.
+        currentId = tokenId;
+        currentParentId = tokens[currentId].parentId;
+
+        while (currentParentId != 0) {
+            // El padre actual es el ID que rastreamos
+            lineage[index] = currentParentId;
+            
+            // Movemos el puntero al padre del padre (siguiente eslabón de la cadena)
+            currentId = currentParentId;
+            currentParentId = tokens[currentId].parentId;
+            
+            index++;
+        }
+        
+        return lineage;
+    }
+
+
     // Funciones auxiliares
     function getUserTokens(
         address userAddress
