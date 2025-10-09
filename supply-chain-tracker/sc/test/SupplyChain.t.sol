@@ -760,4 +760,75 @@ contract SupplyChainTest is Test {
         assertEq(factoryTokens[0], derivedTokenId, "Factory's first created token must be Token #2.");
         
     }
+
+    function testTokenLineageTracing() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+        
+        // IDs que esperamos
+        uint256 rawTokenId = 1;
+        uint256 intermediateId = 2;
+        uint256 finalProductId = 3;
+        
+        uint256 supply = 1000;
+        
+        // 1. Arrange: Configuración de Roles
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // 2. Arrange: Cadena de Producción
+        
+        // A. Token #1: Materia Prima (Producer)
+        vm.prank(producer);
+        supplyChain.createToken("Cotton", supply, "{}", 0); 
+
+        // B. Simulación de Transferencia (Producer -> Factory)
+        vm.startPrank(ADMIN);
+        supplyChain.setTokenBalance(rawTokenId, producer, 0);
+        supplyChain.setTokenBalance(rawTokenId, factory, supply);
+        vm.stopPrank();
+        
+        // C. Token #2: Producto Intermedio (Factory)
+        vm.prank(factory);
+        uint256 consumedSupply = 500;
+        supplyChain.createToken("Yarn", consumedSupply, "{}", rawTokenId);
+        // Factory ahora tiene 500 de Yarn (Token #2)
+
+        // D. Simulación de Transferencia (Factory -> Retailer)
+        vm.startPrank(ADMIN);
+        supplyChain.setTokenBalance(intermediateId, factory, 0);
+        supplyChain.setTokenBalance(intermediateId, retailer, consumedSupply);
+        vm.stopPrank();
+
+        // E. Token #3: Producto Final (Retailer)
+        vm.prank(retailer);
+        uint256 finalSupply = 100;
+        supplyChain.createToken("T-shirt", finalSupply, "{}", intermediateId);
+        // Retailer ahora tiene 100 de T-shirt (Token #3)
+
+        // 3. Act & Assert: Obtener el historial completo del Token #3.
+        
+        // 🚨 ROJO ESPERADO: Fallará porque la función 'getTokenLineage' no existe.
+        uint256[] memory lineage = supplyChain.getTokenLineage(finalProductId);
+
+        // La línea de tiempo esperada es: [Token #2 (Yarn), Token #1 (Cotton)]
+        // Queremos excluir el Token #3 (el que se consulta).
+        uint256[] memory expectedLineage = new uint256[](2);
+        expectedLineage[0] = intermediateId; // Token #2 (Yarn)
+        expectedLineage[1] = rawTokenId;     // Token #1 (Cotton)
+
+        assertEq(lineage.length, expectedLineage.length, "Lineage must have 2 parent tokens.");
+        assertEq(lineage[0], expectedLineage[0], "The immediate parent must be Token #2 (Yarn).");
+        assertEq(lineage[1], expectedLineage[1], "The grandparent must be Token #1 (Cotton).");
+    }
 }
