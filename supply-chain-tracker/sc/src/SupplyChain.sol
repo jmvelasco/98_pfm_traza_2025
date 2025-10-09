@@ -348,8 +348,15 @@ contract SupplyChain {
         address to,
         uint256 amount
     ) public onlyApprovedUser {
-        // 1. RESTRICCIÓN DE ROL PARA TRANSFERENCIAS (Para pasar el test a VERDE)
         uint256 parentId = tokens[tokenId].parentId;
+
+        // Verificamos si el destinatario es un usuario aprobado
+        uint256 recipientId = addressToUserId[to];
+        // Asumimos que si no está registrado, addressToUserId[to] devuelve 0 (Invalid/Pending).
+        require(
+            users[recipientId].status == SupplyChain.UserStatus.Approved,
+            "SupplyChain: Recipient must be an approved user."
+        );
 
         // Si el token a transferir NO es materia prima (parentId > 0)
         if (parentId > 0) {
