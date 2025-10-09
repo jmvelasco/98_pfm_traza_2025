@@ -831,4 +831,28 @@ contract SupplyChainTest is Test {
         assertEq(lineage[0], expectedLineage[0], "The immediate parent must be Token #2 (Yarn).");
         assertEq(lineage[1], expectedLineage[1], "The grandparent must be Token #1 (Cotton).");
     }
+
+    function testAdminCannotBeDeactivatedBySelf() public {
+        address nonAdmin = PRODUCER_ADDRESS;
+
+        // 1. Act & Assert: El ADMIN intenta rechazarse a sí mismo.
+        vm.startPrank(ADMIN);
+        
+        // 🚨 ROJO ESPERADO: Si la lógica no impide que el Admin cambie su propio estado.
+        vm.expectRevert("SupplyChain: Admin cannot change own status.");
+        supplyChain.changeStatusUser(ADMIN, SupplyChain.UserStatus.Rejected); // Intentar rechazar al Admin
+        
+        vm.stopPrank();
+
+        // Verificación de estado (debería seguir siendo Approved)
+        uint256 adminUserId = supplyChain.addressToUserId(ADMIN);
+        
+        // CORRECCIÓN: Desestructuramos la tupla devuelta por users()
+        // Los guiones bajos '_' se usan para omitir los campos que no necesitamos (id, userAddress, role)
+        ( , , , SupplyChain.UserStatus actualStatus) = supplyChain.users(adminUserId);
+        
+        // Asumiendo que 1 es Approved (el valor del enum UserStatus.Approved)
+        assertEq(uint256(actualStatus), 1, "Admin status must remain Approved.");
+    }
+
 }
