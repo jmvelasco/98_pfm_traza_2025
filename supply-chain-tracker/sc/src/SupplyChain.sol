@@ -197,6 +197,14 @@ contract SupplyChain {
         address userAddress,
         UserStatus newStatus
     ) public onlyAdmin {
+
+        // 1. RESTRICCIÓN DE SEGURIDAD DEL ADMIN (Para pasar el test a VERDE)
+        // El administrador no puede cambiar su propio estado para evitar un bloqueo del sistema.
+        require(
+            msg.sender != userAddress,
+            "SupplyChain: Admin cannot change own status."
+        );
+
         uint256 userId = addressToUserId[userAddress];
 
         // 1. Requerir que el usuario exista

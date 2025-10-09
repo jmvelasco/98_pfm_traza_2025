@@ -833,8 +833,6 @@ contract SupplyChainTest is Test {
     }
 
     function testAdminCannotBeDeactivatedBySelf() public {
-        address nonAdmin = PRODUCER_ADDRESS;
-
         // 1. Act & Assert: El ADMIN intenta rechazarse a sí mismo.
         vm.startPrank(ADMIN);
         
