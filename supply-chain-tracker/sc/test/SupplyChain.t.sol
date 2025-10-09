@@ -745,7 +745,7 @@ contract SupplyChainTest is Test {
         // 2. Act & Assert: Verificar los tokens que posee cada usuario.
         
         // Producer (Ahora no debería tener ninguno ya que lo transfirió)
-        uint256[] memory producerTokens = supplyChain.getUserOwnedTokens(producer);
+        uint256[] memory producerTokens = supplyChain.getUserTokens(producer);
         // El test de creación ya llena userTokensList[msg.sender].
         // 🚨 Por diseño, tu `userTokensList` rastrea **CREACIÓN**, no **POSESIÓN/BALANCE**.
         // Vamos a asumir que quieres listar los que **creó** para fines de trazabilidad de su origen.
@@ -755,10 +755,9 @@ contract SupplyChainTest is Test {
         assertEq(producerTokens[0], rawTokenId, "Producer's first created token must be Token #1.");
         
         // Factory (Debería haber creado solo el Token #2)
-        uint256[] memory factoryTokens = supplyChain.getUserOwnedTokens(factory);
+        uint256[] memory factoryTokens = supplyChain.getUserTokens(factory);
         assertEq(factoryTokens.length, 1, "Factory should have 1 token in its creation list.");
         assertEq(factoryTokens[0], derivedTokenId, "Factory's first created token must be Token #2.");
         
-        // 🚨 ROJO ESPERADO: Si la función 'getUserOwnedTokens' no existe.
     }
 }
