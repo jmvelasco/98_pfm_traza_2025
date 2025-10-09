@@ -554,9 +554,7 @@ contract SupplyChainTest is Test {
 
         // 2.1 Act: Se revierte cuando el Producer transfiere mas unidades al Retailer de las que dispone.
         vm.prank(producer);
-        vm.expectRevert(
-            "SupplyChain: Insufficient balance."
-        );
+        vm.expectRevert("SupplyChain: Insufficient balance.");
         supplyChain.transferToken(
             tokenId,
             retailer, // Dirección de destino
@@ -594,5 +592,57 @@ contract SupplyChainTest is Test {
             expectedRetailerBalance,
             "Post-condition: Receiver balance must be increased by the transfer amount."
         );
+    }
+
+    function testProducerCannotTransferDerivedToken() public {
+        address producer = PRODUCER_ADDRESS; // Intentará transferir el derivado
+        address factory = FACTORY_ADDRESS; // Crea el derivado (lo posee inicialmente)
+        address retailer = RETAILER_ADDRESS; // Receptor (no importa mucho en este test)
+
+        uint256 rawTokenId = 1;
+        uint256 derivedTokenId = 2;
+        uint256 rawSupply = 1000;
+        uint256 derivedSupply = 500;
+        uint256 transferAmount = 100;
+
+        // 1. Arrange: Configuración de roles y creación de tokens.
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // A. Producer crea la Materia Prima (Token #1)
+        vm.prank(producer);
+        supplyChain.createToken("Raw Metal", rawSupply, "{}", 0);
+
+        // B. Factory compra/recibe el stock (simulación de transferencia)
+        vm.startPrank(ADMIN);
+        supplyChain.setTokenBalance(rawTokenId, producer, 0);
+        supplyChain.setTokenBalance(rawTokenId, factory, rawSupply);
+        vm.stopPrank();
+
+        // C. Factory crea el Producto Derivado (Token #2) consumiendo Materia Prima
+        vm.prank(factory);
+        supplyChain.createToken("Metal Parts", derivedSupply, "{}", rawTokenId);
+
+        // D. SIMULACIÓN: El Factory transfiere el Producto Derivado al Producer (para que lo tenga e intente enviarlo)
+        vm.startPrank(factory);
+        supplyChain.transferToken(derivedTokenId, producer, derivedSupply);
+        vm.stopPrank();
+
+        // 2. Act & Assert: El Producer intenta transferir el token derivado (Token #2)
+        // 🚨 ROJO ESPERADO: Esto fallará si la restricción de rol no existe.
+        vm.prank(producer);
+        vm.expectRevert(
+            "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
+        );
+        supplyChain.transferToken(derivedTokenId, retailer, transferAmount);
     }
 }
