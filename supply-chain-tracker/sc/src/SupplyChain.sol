@@ -343,14 +343,38 @@ contract SupplyChain {
     }
 
     // Gestión de Transferencias
-    function transferToken(uint256 tokenId, address to, uint256 amount) public onlyApprovedUser {
+    function transferToken(
+        uint256 tokenId,
+        address to,
+        uint256 amount
+    ) public onlyApprovedUser {
+        // 1. RESTRICCIÓN DE ROL PARA TRANSFERENCIAS (Para pasar el test a VERDE)
+        uint256 parentId = tokens[tokenId].parentId;
+
+        // Si el token a transferir NO es materia prima (parentId > 0)
+        if (parentId > 0) {
+            // Obtenemos el rol del usuario que intenta transferir (msg.sender)
+            uint256 userId = addressToUserId[msg.sender];
+            string memory userRole = users[userId].role;
+
+            // Verificamos si el usuario es Producer
+            require(
+                keccak256(abi.encodePacked(userRole)) !=
+                    keccak256(abi.encodePacked("Producer")),
+                "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
+            );
+            // Nota: Con esta lógica, Factory y Retailer pueden transferir derivados sin problema.
+        }
+
+        // 2. VERIFICACIÓN DE BALANCE Y EJECUCIÓN
         uint256 balance = getTokenBalance(tokenId, msg.sender);
         require(balance >= amount, "SupplyChain: Insufficient balance.");
+        // Ejecución de la transferencia
         tokenBalances[tokenId][msg.sender] -= amount;
         tokenBalances[tokenId][to] += amount;
 
         emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
-        
+
         nextTransferId++;
     }
     function acceptTransfer(uint transferId) public {
