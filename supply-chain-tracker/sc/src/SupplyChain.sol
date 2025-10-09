@@ -351,52 +351,136 @@ contract SupplyChain {
     }
 
     // Gestión de Transferencias
-    function transferToken(
-        uint256 tokenId,
-        address to,
-        uint256 amount
-    ) public onlyApprovedUser {
-        uint256 parentId = tokens[tokenId].parentId;
+    // function transferToken(
+    //     uint256 tokenId,
+    //     address to,
+    //     uint256 amount
+    // ) public onlyApprovedUser {
+    //     uint256 parentId = tokens[tokenId].parentId;
 
-        // Verificamos si el destinatario es un usuario aprobado
+    //     // Verificamos si el destinatario es un usuario aprobado
+    //     uint256 recipientId = addressToUserId[to];
+    //     // Asumimos que si no está registrado, addressToUserId[to] devuelve 0 (Invalid/Pending).
+    //     require(
+    //         users[recipientId].status == SupplyChain.UserStatus.Approved,
+    //         "SupplyChain: Recipient must be an approved user."
+    //     );
+
+    //     // Si el token a transferir NO es materia prima (parentId > 0)
+    //     if (parentId > 0) {
+    //         // Obtenemos el rol del usuario que intenta transferir (msg.sender)
+    //         uint256 userId = addressToUserId[msg.sender];
+    //         string memory userRole = users[userId].role;
+
+    //         // Verificamos si el usuario es Producer
+    //         require(
+    //             keccak256(abi.encodePacked(userRole)) !=
+    //                 keccak256(abi.encodePacked("Producer")),
+    //             "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
+    //         );
+    //         // Nota: Con esta lógica, Factory y Retailer pueden transferir derivados sin problema.
+    //     }
+
+    //     // 2. VERIFICACIÓN DE BALANCE Y EJECUCIÓN
+    //     uint256 balance = getTokenBalance(tokenId, msg.sender);
+    //     require(balance >= amount, "SupplyChain: Insufficient balance.");
+    //     // Ejecución de la transferencia
+    //     tokenBalances[tokenId][msg.sender] -= amount;
+    //     tokenBalances[tokenId][to] += amount;
+
+    //     emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
+
+    //     nextTransferId++;
+    // }
+    // Gestión de Transferencias (Refactorizado de Transferencia Directa a Solicitud)
+    function requestTransfer(uint256 tokenId, address to, uint256 amount) public onlyApprovedUser {
+        
+        // 1. RESTRICCIONES (Mantenemos las mismas validaciones de seguridad)
+        
+        // A. Restricción de Rol para Transferencias
+        uint256 parentId = tokens[tokenId].parentId;
+        if (parentId > 0) {
+            uint256 userId = addressToUserId[msg.sender];
+            string memory userRole = users[userId].role;
+            require(
+                keccak256(abi.encodePacked(userRole)) != keccak256(abi.encodePacked("Producer")),
+                "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
+            );
+        }
+        
+        // B. Validación del estado del receptor
         uint256 recipientId = addressToUserId[to];
-        // Asumimos que si no está registrado, addressToUserId[to] devuelve 0 (Invalid/Pending).
         require(
             users[recipientId].status == SupplyChain.UserStatus.Approved,
             "SupplyChain: Recipient must be an approved user."
         );
-
-        // Si el token a transferir NO es materia prima (parentId > 0)
-        if (parentId > 0) {
-            // Obtenemos el rol del usuario que intenta transferir (msg.sender)
-            uint256 userId = addressToUserId[msg.sender];
-            string memory userRole = users[userId].role;
-
-            // Verificamos si el usuario es Producer
-            require(
-                keccak256(abi.encodePacked(userRole)) !=
-                    keccak256(abi.encodePacked("Producer")),
-                "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
-            );
-            // Nota: Con esta lógica, Factory y Retailer pueden transferir derivados sin problema.
-        }
-
-        // 2. VERIFICACIÓN DE BALANCE Y EJECUCIÓN
+        
+        // C. Verificación de Balance (Sigue siendo necesario para evitar solicitar más de lo que se tiene)
         uint256 balance = getTokenBalance(tokenId, msg.sender);
         require(balance >= amount, "SupplyChain: Insufficient balance.");
-        // Ejecución de la transferencia
-        tokenBalances[tokenId][msg.sender] -= amount;
-        tokenBalances[tokenId][to] += amount;
+        
+        // 2. CREACIÓN DEL OBJETO TRANSFER (Reemplaza la lógica de balance)
+        
+        transfers[nextTransferId] = Transfer({
+            id: nextTransferId,
+            from: msg.sender,
+            to: to,
+            tokenId: tokenId,
+            dateCreated: block.timestamp,
+            amount: amount,
+            status: TransferStatus.Pending // Estado inicial: Pendiente (0)
+        });
 
+        // 3. EVENTO Y CONTADOR
         emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
-
         nextTransferId++;
+        
+        // 🚨 Eliminamos:
+        // tokenBalances[tokenId][msg.sender] -= amount;
+        // tokenBalances[tokenId][to] += amount;
     }
-    function acceptTransfer(uint transferId) public {
-        /* ... */
+    /**
+     * @notice Permite al receptor aceptar una transferencia pendiente, moviendo los balances.
+     * @param transferId El ID de la transferencia solicitada.
+     */
+    function acceptTransfer(uint256 transferId) public onlyApprovedUser {
+        Transfer storage t = transfers[transferId];
+
+        // 1. VALIDACIÓN
+        require(t.id != 0, "SupplyChain: Transfer does not exist.");
+        require(t.to == msg.sender, "SupplyChain: Only the recipient can accept this transfer.");
+        require(t.status == TransferStatus.Pending, "SupplyChain: Transfer is not Pending.");
+        
+        // 2. EJECUCIÓN DEL MOVIMIENTO DE STOCK
+        
+        // Se duplica la verificación de balance para seguridad, aunque ya se verificó en requestTransfer.
+        uint256 senderBalance = getTokenBalance(t.tokenId, t.from);
+        require(senderBalance >= t.amount, "SupplyChain: Insufficient balance on sender side.");
+        
+        // Ejecución de la transferencia (movimiento de balances)
+        tokenBalances[t.tokenId][t.from] -= t.amount;
+        tokenBalances[t.tokenId][t.to] += t.amount;
+
+        // 3. ACTUALIZACIÓN DE ESTADO Y EVENTO
+        t.status = TransferStatus.Accepted;
+        emit TransferAccepted(transferId);
     }
-    function rejectTransfer(uint transferId) public {
-        /* ... */
+    /**
+     * @notice Permite al receptor rechazar una transferencia pendiente.
+     * @param transferId El ID de la transferencia solicitada.
+     */
+    function rejectTransfer(uint256 transferId) public onlyApprovedUser {
+        Transfer storage t = transfers[transferId];
+
+        // 1. VALIDACIÓN
+        require(t.id != 0, "SupplyChain: Transfer does not exist.");
+        require(t.to == msg.sender, "SupplyChain: Only the recipient can reject this transfer.");
+        require(t.status == TransferStatus.Pending, "SupplyChain: Transfer is not Pending.");
+        
+        // 2. ACTUALIZACIÓN DE ESTADO Y EVENTO
+        // No hay manipulación de balances, ya que la solicitud no los movió.
+        t.status = TransferStatus.Rejected;
+        emit TransferRejected(transferId);
     }
     function getTransfer(
         uint transferId

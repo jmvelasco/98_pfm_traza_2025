@@ -32,6 +32,8 @@ contract SupplyChainTest is Test {
         assertEq(supplyChain.admin(), ADMIN, "Setup: Admin address mismatch.");
     }
 
+    event TransferAccepted(uint256 indexed transferId);
+
     // Tests de gestión de usuarios
     function testUserRegistration() public {
         // 1. Arrange: Cambiamos el remitente a una dirección de prueba (Producer).
@@ -529,70 +531,71 @@ contract SupplyChainTest is Test {
         );
     }
 
-    function testTokenTransferSuccess() public {
-        address producer = PRODUCER_ADDRESS; // Remitente (Sender)
-        address retailer = RETAILER_ADDRESS; // Receptor (Receiver)
-        uint256 tokenId = 1;
-        uint256 initialSupply = 1000;
-        uint256 transferAmount = 300;
+    // Obosleto por ahora, ya que transferToken fue renombrado a requestTransfer
+    // function testTokenTransferSuccess() public {
+    //     address producer = PRODUCER_ADDRESS; // Remitente (Sender)
+    //     address retailer = RETAILER_ADDRESS; // Receptor (Receiver)
+    //     uint256 tokenId = 1;
+    //     uint256 initialSupply = 1000;
+    //     uint256 transferAmount = 300;
 
-        // 1. Arrange: Configuración de roles y creación del token.
-        // A. Aprobar Producer y Retailer
-        vm.prank(producer);
-        supplyChain.requestUserRole("Producer");
-        vm.prank(retailer);
-        supplyChain.requestUserRole("Retailer");
-        vm.startPrank(ADMIN);
-        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
-        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
-        vm.stopPrank();
+    //     // 1. Arrange: Configuración de roles y creación del token.
+    //     // A. Aprobar Producer y Retailer
+    //     vm.prank(producer);
+    //     supplyChain.requestUserRole("Producer");
+    //     vm.prank(retailer);
+    //     supplyChain.requestUserRole("Retailer");
+    //     vm.startPrank(ADMIN);
+    //     supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+    //     supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+    //     vm.stopPrank();
 
-        // B. El Producer crea la materia prima (Raw Material).
-        vm.prank(producer);
-        supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
-        // Producer ahora tiene 1000 unidades del Token #1.
+    //     // B. El Producer crea la materia prima (Raw Material).
+    //     vm.prank(producer);
+    //     supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
+    //     // Producer ahora tiene 1000 unidades del Token #1.
 
-        // 2.1 Act: Se revierte cuando el Producer transfiere mas unidades al Retailer de las que dispone.
-        vm.prank(producer);
-        vm.expectRevert("SupplyChain: Insufficient balance.");
-        supplyChain.transferToken(
-            tokenId,
-            retailer, // Dirección de destino
-            transferAmount * 100 // Cantidad a transferir
-        );
+    //     // 2.1 Act: Se revierte cuando el Producer transfiere mas unidades al Retailer de las que dispone.
+    //     vm.prank(producer);
+    //     vm.expectRevert("SupplyChain: Insufficient balance.");
+    //     supplyChain.transferToken(
+    //         tokenId,
+    //         retailer, // Dirección de destino
+    //         transferAmount * 100 // Cantidad a transferir
+    //     );
 
-        // 2.2 Act: El Producer transfiere 300 unidades al Retailer.
-        vm.prank(producer);
-        supplyChain.transferToken(
-            tokenId,
-            retailer, // Dirección de destino
-            transferAmount // Cantidad a transferir
-        );
+    //     // 2.2 Act: El Producer transfiere 300 unidades al Retailer.
+    //     vm.prank(producer);
+    //     supplyChain.transferToken(
+    //         tokenId,
+    //         retailer, // Dirección de destino
+    //         transferAmount // Cantidad a transferir
+    //     );
 
-        // Verificación de balance del Remitente (Producer)
-        uint256 expectedProducerBalance = initialSupply - transferAmount; // 1000 - 300 = 700
-        uint256 actualProducerBalance = supplyChain.getTokenBalance(
-            tokenId,
-            producer
-        );
-        assertEq(
-            actualProducerBalance,
-            expectedProducerBalance,
-            "Post-condition: Sender balance must be reduced by the transfer amount."
-        );
+    //     // Verificación de balance del Remitente (Producer)
+    //     uint256 expectedProducerBalance = initialSupply - transferAmount; // 1000 - 300 = 700
+    //     uint256 actualProducerBalance = supplyChain.getTokenBalance(
+    //         tokenId,
+    //         producer
+    //     );
+    //     assertEq(
+    //         actualProducerBalance,
+    //         expectedProducerBalance,
+    //         "Post-condition: Sender balance must be reduced by the transfer amount."
+    //     );
 
-        // Verificación de balance del Receptor (Retailer)
-        uint256 expectedRetailerBalance = transferAmount; // 0 + 300 = 300
-        uint256 actualRetailerBalance = supplyChain.getTokenBalance(
-            tokenId,
-            retailer
-        );
-        assertEq(
-            actualRetailerBalance,
-            expectedRetailerBalance,
-            "Post-condition: Receiver balance must be increased by the transfer amount."
-        );
-    }
+    //     // Verificación de balance del Receptor (Retailer)
+    //     uint256 expectedRetailerBalance = transferAmount; // 0 + 300 = 300
+    //     uint256 actualRetailerBalance = supplyChain.getTokenBalance(
+    //         tokenId,
+    //         retailer
+    //     );
+    //     assertEq(
+    //         actualRetailerBalance,
+    //         expectedRetailerBalance,
+    //         "Post-condition: Receiver balance must be increased by the transfer amount."
+    //     );
+    // }
 
     function testProducerCannotTransferDerivedToken() public {
         address producer = PRODUCER_ADDRESS; // Intentará transferir el derivado
@@ -634,7 +637,8 @@ contract SupplyChainTest is Test {
 
         // D. SIMULACIÓN: El Factory transfiere el Producto Derivado al Producer (para que lo tenga e intente enviarlo)
         vm.startPrank(factory);
-        supplyChain.transferToken(derivedTokenId, producer, derivedSupply);
+        // requestTransfer previously transferToken
+        supplyChain.requestTransfer(derivedTokenId, producer, derivedSupply);
         vm.stopPrank();
 
         // 2. Act & Assert: El Producer intenta transferir el token derivado (Token #2)
@@ -643,7 +647,8 @@ contract SupplyChainTest is Test {
         vm.expectRevert(
             "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
         );
-        supplyChain.transferToken(derivedTokenId, retailer, transferAmount);
+        // requestTransfer previously transferToken
+        supplyChain.requestTransfer(derivedTokenId, retailer, transferAmount);
     }
 
     function testTransferFailsInsufficientBalance() public {
@@ -671,7 +676,8 @@ contract SupplyChainTest is Test {
         vm.prank(producer);
         // 🚨 ROJO ESPERADO: Aunque la lógica ya existe, el test valida que el revert sea correcto.
         vm.expectRevert("SupplyChain: Insufficient balance.");
-        supplyChain.transferToken(
+        // requestTransfer previously transferToken
+        supplyChain.requestTransfer(
             tokenId,
             retailer,
             transferAmount
@@ -701,7 +707,8 @@ contract SupplyChainTest is Test {
         vm.prank(producer);
         // 🚨 ROJO ESPERADO: Si no hay validación del estado del receptor.
         vm.expectRevert("SupplyChain: Recipient must be an approved user.");
-        supplyChain.transferToken(
+        // requestTransfer previously transferToken
+        supplyChain.requestTransfer(
             tokenId,
             malicious,
             transferAmount
@@ -851,6 +858,117 @@ contract SupplyChainTest is Test {
         
         // Asumiendo que 1 es Approved (el valor del enum UserStatus.Approved)
         assertEq(uint256(actualStatus), 1, "Admin status must remain Approved.");
+    }
+
+    // Modificaremos este test para reflejar que la transferencia AHORA SOLO SOLICITA
+    function testTransferRequestCreatesPendingTransfer() public {
+        address producer = PRODUCER_ADDRESS; // Remitente
+        address retailer = RETAILER_ADDRESS; // Receptor
+        uint256 tokenId = 1;
+        uint256 initialSupply = 1000;
+        uint256 transferAmount = 300;
+        uint256 expectedTransferId = 1;
+
+        // 1. Arrange: Configuración de roles y creación del token.
+        // ... (Configuración de roles y creación de Token #1 por Producer, igual que antes) ...
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        vm.prank(producer);
+        supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
+        // Producer tiene 1000.
+
+        // 2. Act: El Producer solicita la transferencia de 300 unidades al Retailer.
+        vm.prank(producer);
+        // 🚨 Llamaremos a la función refactorizada, manteniendo el nombre por ahora.
+        // Después del refactor, esta función NO DEBE CAMBIAR EL BALANCE.
+        // requestTransfer previously transferToken
+        supplyChain.requestTransfer(
+            tokenId,
+            retailer,
+            transferAmount
+        );
+
+        // 3. Assert (ROJO esperado si la lógica de transferencia directa sigue):
+
+        // A. Verificar que el balance del productor NO se ha deducido (Debe seguir siendo 1000)
+        uint256 actualProducerBalance = supplyChain.getTokenBalance(tokenId, producer);
+        // Debe ser el INITIAL SUPPLY, no el saldo reducido.
+        assertEq(
+            actualProducerBalance,
+            initialSupply,
+            "Post-condition: Sender balance must NOT be reduced, as it's only a request."
+        );
+        
+        // B. Verificar que el objeto Transfer se ha creado y está en estado Pending.
+        (
+            uint256 id, 
+            address from, 
+            address to, 
+            , 
+            , 
+            uint256 amount, 
+            SupplyChain.TransferStatus status
+        ) = supplyChain.transfers(expectedTransferId); // Asumo que tienes un getter público para 'transfers'
+
+        assertEq(id, expectedTransferId, "Transfer ID must be 1.");
+        assertEq(from, producer, "Transfer 'from' must be Producer.");
+        assertEq(to, retailer, "Transfer 'to' must be Retailer.");
+        assertEq(amount, transferAmount, "Transfer amount must match.");
+        assertEq(uint256(status), uint256(SupplyChain.TransferStatus.Pending), "Transfer status must be Pending (0).");
+    }
+
+    function testAcceptTransferMovesBalance() public {
+        address producer = PRODUCER_ADDRESS; // Remitente
+        address retailer = RETAILER_ADDRESS; // Receptor
+        uint256 tokenId = 1;
+        uint256 initialSupply = 1000;
+        uint256 transferAmount = 300;
+        uint256 transferId = 1;
+
+        // 1. Arrange: Configuración de roles y solicitud de transferencia.
+        // ... (Configuración de roles) ...
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        vm.prank(producer);
+        supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
+        // Producer tiene 1000.
+
+        // A. Producer solicita la transferencia.
+        vm.prank(producer);
+        supplyChain.requestTransfer(tokenId, retailer, transferAmount);
+
+        // 2. Act: El Retailer (receptor) acepta la transferencia.
+        vm.prank(retailer); // 🚨 El Receptor debe ser quien acepta
+        vm.expectEmit(true, false, false, false, address(supplyChain));
+        emit TransferAccepted(transferId); 
+        supplyChain.acceptTransfer(transferId);
+
+        // 3. Assert: Verificar que el balance se ha movido y el estado es Accepted.
+        uint256 producerBalance = supplyChain.getTokenBalance(tokenId, producer);
+        uint256 retailerBalance = supplyChain.getTokenBalance(tokenId, retailer);
+        
+        // A. Balance Verificación
+        assertEq(producerBalance, 700, "Producer balance must be 700 after acceptance.");
+        assertEq(retailerBalance, 300, "Retailer balance must be 300 after acceptance.");
+
+        // B. Estado de Transferencia Verificación
+        ( , , , , , , SupplyChain.TransferStatus status) = supplyChain.transfers(transferId);
+        assertEq(uint256(status), uint256(SupplyChain.TransferStatus.Accepted), "Transfer status must be Accepted (1).");
+        
     }
 
 }
