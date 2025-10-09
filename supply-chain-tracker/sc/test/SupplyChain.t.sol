@@ -677,4 +677,34 @@ contract SupplyChainTest is Test {
             transferAmount
         );
     }
+
+    function testTransferFailsToUnapprovedUser() public {
+        address producer = PRODUCER_ADDRESS; // Remitente aprobado
+        address malicious = address(0xAA);    // Receptor NO registrado ni aprobado
+        uint256 tokenId = 1;
+        uint256 initialSupply = 100;
+        uint256 transferAmount = 10;
+
+        // 1. Arrange: Configuración (solo Producer aprobado).
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        // 'malicious' NUNCA se registra ni se aprueba.
+        vm.stopPrank();
+
+        // Producer crea el token.
+        vm.prank(producer);
+        supplyChain.createToken("Safe Goods", initialSupply, "{}", 0);
+
+        // 2. Act & Assert: Producer intenta transferir a un usuario no aprobado (malicious).
+        vm.prank(producer);
+        // 🚨 ROJO ESPERADO: Si no hay validación del estado del receptor.
+        vm.expectRevert("SupplyChain: Recipient must be an approved user.");
+        supplyChain.transferToken(
+            tokenId,
+            malicious,
+            transferAmount
+        );
+    }
 }
