@@ -552,17 +552,24 @@ contract SupplyChainTest is Test {
         supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
         // Producer ahora tiene 1000 unidades del Token #1.
 
-        // 2. Act: El Producer transfiere 300 unidades al Retailer.
+        // 2.1 Act: Se revierte cuando el Producer transfiere mas unidades al Retailer de las que dispone.
         vm.prank(producer);
-        // 🚨 La función 'transferToken' aún no existe, o no tiene la lógica.
-        // Esto causará el fallo inicial (ROJO).
+        vm.expectRevert(
+            "SupplyChain: Insufficient balance."
+        );
+        supplyChain.transferToken(
+            tokenId,
+            retailer, // Dirección de destino
+            transferAmount * 100 // Cantidad a transferir
+        );
+
+        // 2.2 Act: El Producer transfiere 300 unidades al Retailer.
+        vm.prank(producer);
         supplyChain.transferToken(
             tokenId,
             retailer, // Dirección de destino
             transferAmount // Cantidad a transferir
         );
-
-        // 3. Assert (ROJO esperado inicialmente)
 
         // Verificación de balance del Remitente (Producer)
         uint256 expectedProducerBalance = initialSupply - transferAmount; // 1000 - 300 = 700

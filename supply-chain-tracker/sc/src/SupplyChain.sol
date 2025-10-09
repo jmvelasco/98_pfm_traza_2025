@@ -343,8 +343,15 @@ contract SupplyChain {
     }
 
     // Gestión de Transferencias
-    function transferToken(uint tokenId, address to, uint amount) public {
-        /* ... */
+    function transferToken(uint256 tokenId, address to, uint256 amount) public onlyApprovedUser {
+        uint256 balance = getTokenBalance(tokenId, msg.sender);
+        require(balance >= amount, "SupplyChain: Insufficient balance.");
+        tokenBalances[tokenId][msg.sender] -= amount;
+        tokenBalances[tokenId][to] += amount;
+
+        emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
+        
+        nextTransferId++;
     }
     function acceptTransfer(uint transferId) public {
         /* ... */
