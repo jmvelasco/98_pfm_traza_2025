@@ -707,4 +707,58 @@ contract SupplyChainTest is Test {
             transferAmount
         );
     }
+
+    function testGetUserOwnedTokens() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        uint256 rawSupply = 1000;
+        uint256 derivedSupply = 500;
+        uint256 rawTokenId = 1;
+        uint256 derivedTokenId = 2;
+        
+        // 1. Arrange: Configuración y Creación de Tokens.
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // A. Producer crea Materia Prima (Token #1)
+        vm.prank(producer);
+        supplyChain.createToken("Wheat", rawSupply, "{}", 0); 
+        // Producer posee: Token #1 (Wheat)
+
+        // B. Simulación de Transferencia: Factory recibe stock del Token #1
+        vm.startPrank(ADMIN);
+        supplyChain.setTokenBalance(rawTokenId, producer, 0);
+        supplyChain.setTokenBalance(rawTokenId, factory, rawSupply);
+        vm.stopPrank();
+
+        // C. Factory crea Producto Derivado (Token #2)
+        vm.prank(factory);
+        supplyChain.createToken("Flour", derivedSupply, "{}", rawTokenId);
+        // Factory posee: Token #2 (Flour)
+
+        // 2. Act & Assert: Verificar los tokens que posee cada usuario.
+        
+        // Producer (Ahora no debería tener ninguno ya que lo transfirió)
+        uint256[] memory producerTokens = supplyChain.getUserOwnedTokens(producer);
+        // El test de creación ya llena userTokensList[msg.sender].
+        // 🚨 Por diseño, tu `userTokensList` rastrea **CREACIÓN**, no **POSESIÓN/BALANCE**.
+        // Vamos a asumir que quieres listar los que **creó** para fines de trazabilidad de su origen.
+        
+        // Si quieres listar los que creó (origen):
+        assertEq(producerTokens.length, 1, "Producer should have 1 token in its creation list.");
+        assertEq(producerTokens[0], rawTokenId, "Producer's first created token must be Token #1.");
+        
+        // Factory (Debería haber creado solo el Token #2)
+        uint256[] memory factoryTokens = supplyChain.getUserOwnedTokens(factory);
+        assertEq(factoryTokens.length, 1, "Factory should have 1 token in its creation list.");
+        assertEq(factoryTokens[0], derivedTokenId, "Factory's first created token must be Token #2.");
+        
+        // 🚨 ROJO ESPERADO: Si la función 'getUserOwnedTokens' no existe.
+    }
 }
