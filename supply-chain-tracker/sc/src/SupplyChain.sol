@@ -343,7 +343,7 @@ contract SupplyChain {
     }
 
     // Gestión de Transferencias
-    function transfer(address to, uint tokenId, uint amount) public {
+    function transferToken(uint tokenId, address to, uint amount) public {
         /* ... */
     }
     function acceptTransfer(uint transferId) public {
