@@ -398,7 +398,7 @@ contract SupplyChainTest is Test {
             uint256 totalSupply,
             ,
             uint256 parentId,
-            
+
         ) = supplyChain.getToken(derivedTokenId);
 
         assertEq(id, derivedTokenId, "Token ID must be 2.");
@@ -526,6 +526,66 @@ contract SupplyChainTest is Test {
             excessiveSupply,
             "{}",
             rawTokenId
+        );
+    }
+
+    function testTokenTransferSuccess() public {
+        address producer = PRODUCER_ADDRESS; // Remitente (Sender)
+        address retailer = RETAILER_ADDRESS; // Receptor (Receiver)
+        uint256 tokenId = 1;
+        uint256 initialSupply = 1000;
+        uint256 transferAmount = 300;
+
+        // 1. Arrange: Configuración de roles y creación del token.
+        // A. Aprobar Producer y Retailer
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // B. El Producer crea la materia prima (Raw Material).
+        vm.prank(producer);
+        supplyChain.createToken("Raw Cotton", initialSupply, "{}", 0);
+        // Producer ahora tiene 1000 unidades del Token #1.
+
+        // 2. Act: El Producer transfiere 300 unidades al Retailer.
+        vm.prank(producer);
+        // 🚨 La función 'transferToken' aún no existe, o no tiene la lógica.
+        // Esto causará el fallo inicial (ROJO).
+        supplyChain.transferToken(
+            tokenId,
+            retailer, // Dirección de destino
+            transferAmount // Cantidad a transferir
+        );
+
+        // 3. Assert (ROJO esperado inicialmente)
+
+        // Verificación de balance del Remitente (Producer)
+        uint256 expectedProducerBalance = initialSupply - transferAmount; // 1000 - 300 = 700
+        uint256 actualProducerBalance = supplyChain.getTokenBalance(
+            tokenId,
+            producer
+        );
+        assertEq(
+            actualProducerBalance,
+            expectedProducerBalance,
+            "Post-condition: Sender balance must be reduced by the transfer amount."
+        );
+
+        // Verificación de balance del Receptor (Retailer)
+        uint256 expectedRetailerBalance = transferAmount; // 0 + 300 = 300
+        uint256 actualRetailerBalance = supplyChain.getTokenBalance(
+            tokenId,
+            retailer
+        );
+        assertEq(
+            actualRetailerBalance,
+            expectedRetailerBalance,
+            "Post-condition: Receiver balance must be increased by the transfer amount."
         );
     }
 }
