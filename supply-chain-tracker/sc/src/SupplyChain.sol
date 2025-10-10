@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 contract SupplyChain {
     // -----------------------------------------------------------
-    // ENUMS Y ESTRUCTURAS DE DATOS
+    // ESTRUCTURAS DE DATOS
     // -----------------------------------------------------------
 
     enum UserStatus {
@@ -26,16 +26,8 @@ contract SupplyChain {
         string features; // JSON string para metadatos
         uint256 parentId;
         uint256 dateCreated;
-        // El balance individual se gestionará a nivel de mapping fuera del struct
-        // para ahorrar gas, o se mapea de otra forma. Dejaremos la estructura
-        // como está en el README para seguir el plan, aunque es ineficiente:
-        // mapping(address => uint256) balance; // Esta línea no se puede poner en un struct
+        // struct no puede contener mappings, el balance se maneja externamente en tokenBalances
     }
-
-    // Adaptación del struct Token: Los mappings no pueden estar dentro de structs
-    // que se usan en mappings o arrays dinámicos públicos.
-    // Vamos a ajustar el diseño para que el balance sea un mapping externo:
-    // mapping(uint256 => mapping(address => uint256)) public tokenBalances;
 
     struct Transfer {
         uint256 id;
@@ -55,7 +47,7 @@ contract SupplyChain {
     }
 
     // -----------------------------------------------------------
-    // VARIABLES DE ESTADO Y MAPPINGS
+    // VARIABLES DE ESTADO
     // -----------------------------------------------------------
 
     address public admin;
@@ -74,7 +66,6 @@ contract SupplyChain {
     mapping(address => uint256) public addressToUserId;
     // Mapping: Token ID => User Address => Balance
     mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
-
     // Mapping: User Address => List of Token IDs owned
     mapping(address => uint256[]) private userTokensList;
 
@@ -139,15 +130,21 @@ contract SupplyChain {
         _;
     }
 
-    // TODO: Crear un modificador para validar roles en funciones específicas
-
     // -----------------------------------------------------------
-    // FUNCIONES A IMPLEMENTAR
-    // -----------------------------------------------------------
-
     // Gestión de Usuarios
+    // -----------------------------------------------------------
+
+    /**
+     * @notice Solicita un rol de usuario en el sistema de cadena de suministro
+     * @dev Permite a una dirección solicitar uno de los roles válidos: Producer, Factory, Retailer, Consumer
+     * @param _role El rol solicitado como string ("Producer", "Factory", "Retailer", "Consumer")
+     * @custom:emits UserRoleRequested Emitido cuando se solicita un rol
+     * @custom:require El rol debe ser válido (Producer, Factory, Retailer, Consumer)
+     * @custom:require El admin no puede solicitar roles
+     * @custom:require Un usuario aprobado no puede volver a solicitar un rol
+     */
     function requestUserRole(string memory _role) public {
-        // 1. Requerir que el rol sea válido
+        // Validar que el rol sea válido
         require(
             keccak256(abi.encodePacked(_role)) ==
                 keccak256(abi.encodePacked("Producer")) ||
@@ -160,13 +157,12 @@ contract SupplyChain {
             "SupplyChain: Invalid role specified."
         );
 
-        // 2. No permitir al Admin cambiar su rol
+        // Restringir que Admin cambie su rol
         if (msg.sender == admin) {
-            // El admin ya está aprobado por defecto. Podemos ignorar peticiones.
             revert("SupplyChain: Admin role cannot be requested.");
         }
 
-        // 3. Crear o actualizar la solicitud
+        // Crear o actualizar la solicitud
         uint256 userId = addressToUserId[msg.sender];
 
         if (userId == 0) {
@@ -184,6 +180,7 @@ contract SupplyChain {
             );
         }
 
+        // Registrar o actualizar el usuario  
         users[userId] = User(
             userId,
             msg.sender,
@@ -191,15 +188,27 @@ contract SupplyChain {
             UserStatus.Pending // Siempre inicia en estado Pending
         );
 
+        // Emitir evento
         emit UserRoleRequested(msg.sender, _role);
     }
+
+    /**
+     * @notice Cambia el estado de un usuario en el sistema (solo Admin)
+     * @dev Permite al administrador aprobar, rechazar o cancelar solicitudes de usuarios
+     * @param userAddress La dirección del usuario cuyo estado se va a cambiar
+     * @param newStatus El nuevo estado del usuario (Pending, Approved, Rejected, Canceled)
+     * @custom:emits UserStatusChanged Emitido cuando se cambia el estado de un usuario
+     * @custom:require Solo el administrador puede llamar esta función
+     * @custom:require El administrador no puede cambiar su propio estado
+     * @custom:require El usuario debe estar registrado en el sistema
+     * @custom:require No se puede cambiar el estado del administrador principal
+     */
     function changeStatusUser(
         address userAddress,
         UserStatus newStatus
     ) public onlyAdmin {
 
-        // 1. RESTRICCIÓN DE SEGURIDAD DEL ADMIN (Para pasar el test a VERDE)
-        // El administrador no puede cambiar su propio estado para evitar un bloqueo del sistema.
+        // El administrador no puede cambiar su propio estado
         require(
             msg.sender != userAddress,
             "SupplyChain: Admin cannot change own status."
@@ -207,20 +216,29 @@ contract SupplyChain {
 
         uint256 userId = addressToUserId[userAddress];
 
-        // 1. Requerir que el usuario exista
+        // El usuario debe existir
         require(userId != 0, "SupplyChain: User not registered.");
 
-        // 2. No permitir cambiar el estado del Admin
+        // No permitir cambiar el estado del Admin
         require(
             userAddress != admin,
             "SupplyChain: Cannot change Admin status."
         );
 
-        // 3. Actualizar el estado y emitir evento
+        // Actualizar el estado
         users[userId].status = newStatus;
 
+        // Emitir evento
         emit UserStatusChanged(userAddress, newStatus);
     }
+
+    /**
+     * @notice Obtiene la información completa de un usuario por su dirección
+     * @dev Retorna los datos del usuario incluyendo ID, dirección, rol y estado
+     * @param userAddress La dirección del usuario a consultar
+     * @return User struct con la información del usuario (id, userAddress, role, status)
+     * @custom:return Si el usuario no existe, retorna un struct vacío con valores por defecto
+     */
     function getUserInfo(
         address userAddress
     ) public view returns (User memory) {
@@ -231,11 +249,37 @@ contract SupplyChain {
         }
         return users[userId];
     }
+
+    /**
+     * @notice Verifica si una dirección corresponde al administrador del sistema
+     * @dev Compara la dirección proporcionada con la dirección del administrador
+     * @param userAddress La dirección a verificar
+     * @return bool true si la dirección es del administrador, false en caso contrario
+     */
     function isAdmin(address userAddress) public view returns (bool) {
         return userAddress == admin;
     }
 
+    // -----------------------------------------------------------
     // Gestión de Tokens
+    // -----------------------------------------------------------
+
+    /**
+     * @notice Crea un nuevo token en el sistema de cadena de suministro
+     * @dev Permite a usuarios aprobados crear tokens según su rol y consume stock de tokens padre si aplica
+     * @param name Nombre del token a crear
+     * @param totalSupply Cantidad total del token (para materias primas) o cantidad a consumir (para productos derivados)
+     * @param features Metadatos del token en formato JSON string
+     * @param parentId ID del token padre (0 para materias primas, >0 para productos derivados)
+     * @custom:emits TokenCreated Emitido cuando se crea un token exitosamente
+     * @custom:require Solo usuarios aprobados pueden crear tokens
+     * @custom:require Solo Producers pueden crear materias primas (parentId = 0)
+     * @custom:require Solo Factory y Retailer pueden crear productos derivados (parentId > 0)
+     * @custom:require El token padre debe existir para productos derivados
+     * @custom:require El creador debe tener suficiente stock del token padre para productos derivados
+     * @custom:effect Consume stock del token padre si es un producto derivado
+     * @custom:effect Asigna el totalSupply del nuevo token al creador
+     */
     function createToken(
         string memory name,
         uint256 totalSupply,
@@ -247,37 +291,36 @@ contract SupplyChain {
 
         // Validaciones de Rol y Origen
         if (parentId == 0) {
-            // Regla: Materia Prima debe ser creada por Producer
+            // Una materia prima solo puede ser creada el Producer
             require(
                 keccak256(abi.encodePacked(userRole)) ==
                     keccak256(abi.encodePacked("Producer")),
                 "SupplyChain: Only Producer can create raw material (parentId must be 0)."
             );
         } else {
-            // Regla: Productos derivados no pueden ser creados por Producers
+            // Productos derivados no pueden ser creados por Producers
             require(
                 keccak256(abi.encodePacked(userRole)) !=
                     keccak256(abi.encodePacked("Producer")),
                 "SupplyChain: Producer cannot create derived products (parentId > 0)."
             );
 
-            // Regla: Productos derivados solo pueden ser creados por Factory o Retailer
+            // 2b. Productos derivados solo pueden ser creados por Factory o Retailer
             bytes32 factoryHash = keccak256(abi.encodePacked("Factory"));
             bytes32 retailerHash = keccak256(abi.encodePacked("Retailer"));
-
             require(
                 keccak256(abi.encodePacked(userRole)) == factoryHash ||
                     keccak256(abi.encodePacked(userRole)) == retailerHash,
                 "SupplyChain: Only Factory or Retailer can create derived products (parentId > 0)."
             );
 
-            // Requerimiento: El token padre debe existir
+            // El token padre debe existir
             require(
                 tokens[parentId].id != 0,
                 "SupplyChain: Parent token does not exist."
             );
 
-            // Lógica de Consumo de Stock
+            // Lógica de Consumo de Stock:
             // 1. Validar que el creador tiene suficiente stock del token padre.
             require(
                 tokenBalances[parentId][msg.sender] >= totalSupply, // totalSupply es la cantidad a CONSUMIR
@@ -288,7 +331,7 @@ contract SupplyChain {
             tokenBalances[parentId][msg.sender] -= totalSupply;
         }
 
-        // Creación del Token
+        // Se han pasado todas las validaciones: Creación del Token
         uint256 newId = nextTokenId;
         Token storage newToken = tokens[newId];
         newToken.id = newId;
@@ -304,9 +347,27 @@ contract SupplyChain {
 
         // Actualizar estado
         nextTokenId++;
+
+        // Emitir evento
         emit TokenCreated(newId, msg.sender, name, totalSupply);
+        
+        // Añadir a la lista de tokens del usuario
         userTokensList[msg.sender].push(newId);
     }
+
+    /**
+     * @notice Obtiene la información completa de un token por su ID
+     * @dev Retorna todos los datos del token incluyendo metadatos y información de creación
+     * @param tokenId El ID del token a consultar
+     * @return id ID del token
+     * @return creator Dirección del creador del token
+     * @return name Nombre del token
+     * @return totalSupply Suministro total del token
+     * @return features Metadatos del token en formato JSON
+     * @return parentId ID del token padre (0 si es materia prima)
+     * @return dateCreated Timestamp de creación del token
+     * @custom:require El token debe existir en el sistema
+     */
     function getToken(
         uint tokenId
     )
@@ -324,8 +385,6 @@ contract SupplyChain {
     {
         require(tokens[tokenId].id != 0, "SupplyChain: Token does not exist.");
         Token storage token = tokens[tokenId];
-
-        // Devolvemos el struct Token, pero desestructurado como tuple
         return (
             token.id,
             token.creator,
@@ -336,12 +395,30 @@ contract SupplyChain {
             token.dateCreated
         );
     }
+
+    /**
+     * @notice Obtiene el balance de un token específico para una dirección de usuario
+     * @dev Consulta cuántas unidades de un token posee una dirección específica
+     * @param tokenId El ID del token a consultar
+     * @param userAddress La dirección del usuario cuyo balance se consulta
+     * @return uint Cantidad de tokens que posee la dirección especificada
+     */
     function getTokenBalance(
         uint tokenId,
         address userAddress
     ) public view returns (uint) {
         return tokenBalances[tokenId][userAddress];
     }
+
+    /**
+     * @notice Ajusta el balance de un token para un usuario específico (solo Admin)
+     * @dev Función administrativa para simular transferencias o ajustar balances en pruebas
+     * @param tokenId El ID del token cuyo balance se va a ajustar
+     * @param user La dirección del usuario cuyo balance se va a modificar
+     * @param amount La nueva cantidad del token para el usuario
+     * @custom:require Solo el administrador puede llamar esta función
+     * @custom:warning Esta función debe usarse con precaución ya que puede modificar balances arbitrariamente
+     */
     function setTokenBalance(
         uint256 tokenId,
         address user,
@@ -349,55 +426,26 @@ contract SupplyChain {
     ) public onlyAdmin {
         tokenBalances[tokenId][user] = amount;
     }
-
+    
+    // -----------------------------------------------------------
     // Gestión de Transferencias
-    // function transferToken(
-    //     uint256 tokenId,
-    //     address to,
-    //     uint256 amount
-    // ) public onlyApprovedUser {
-    //     uint256 parentId = tokens[tokenId].parentId;
+    // -----------------------------------------------------------
 
-    //     // Verificamos si el destinatario es un usuario aprobado
-    //     uint256 recipientId = addressToUserId[to];
-    //     // Asumimos que si no está registrado, addressToUserId[to] devuelve 0 (Invalid/Pending).
-    //     require(
-    //         users[recipientId].status == SupplyChain.UserStatus.Approved,
-    //         "SupplyChain: Recipient must be an approved user."
-    //     );
-
-    //     // Si el token a transferir NO es materia prima (parentId > 0)
-    //     if (parentId > 0) {
-    //         // Obtenemos el rol del usuario que intenta transferir (msg.sender)
-    //         uint256 userId = addressToUserId[msg.sender];
-    //         string memory userRole = users[userId].role;
-
-    //         // Verificamos si el usuario es Producer
-    //         require(
-    //             keccak256(abi.encodePacked(userRole)) !=
-    //                 keccak256(abi.encodePacked("Producer")),
-    //             "SupplyChain: Producer role cannot transfer derived products (parentId > 0)."
-    //         );
-    //         // Nota: Con esta lógica, Factory y Retailer pueden transferir derivados sin problema.
-    //     }
-
-    //     // 2. VERIFICACIÓN DE BALANCE Y EJECUCIÓN
-    //     uint256 balance = getTokenBalance(tokenId, msg.sender);
-    //     require(balance >= amount, "SupplyChain: Insufficient balance.");
-    //     // Ejecución de la transferencia
-    //     tokenBalances[tokenId][msg.sender] -= amount;
-    //     tokenBalances[tokenId][to] += amount;
-
-    //     emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
-
-    //     nextTransferId++;
-    // }
-    // Gestión de Transferencias (Refactorizado de Transferencia Directa a Solicitud)
-    function requestTransfer(uint256 tokenId, address to, uint256 amount) public onlyApprovedUser {
-        
-        // 1. RESTRICCIONES (Mantenemos las mismas validaciones de seguridad)
-        
-        // A. Restricción de Rol para Transferencias
+    /**
+     * @notice Solicita una transferencia de tokens a otro usuario
+     * @dev Crea una solicitud de transferencia que debe ser aceptada por el receptor
+     * @param tokenId El ID del token a transferir
+     * @param to La dirección del usuario receptor
+     * @param amount La cantidad de tokens a transferir
+     * @custom:emits TransferRequested Emitido cuando se solicita una transferencia
+     * @custom:require Solo usuarios aprobados pueden solicitar transferencias
+     * @custom:require Los Producers no pueden transferir productos derivados (parentId > 0)
+     * @custom:require El receptor debe ser un usuario aprobado
+     * @custom:require El solicitante debe tener suficiente balance del token
+     * @custom:effect Crea una transferencia en estado Pending
+     */
+    function requestTransfer(uint256 tokenId, address to, uint256 amount) public onlyApprovedUser {        
+        // Restricción de Rol para Transferencias
         uint256 parentId = tokens[tokenId].parentId;
         if (parentId > 0) {
             uint256 userId = addressToUserId[msg.sender];
@@ -408,19 +456,18 @@ contract SupplyChain {
             );
         }
         
-        // B. Validación del estado del receptor
+        // Validación del estado del receptor
         uint256 recipientId = addressToUserId[to];
         require(
             users[recipientId].status == SupplyChain.UserStatus.Approved,
             "SupplyChain: Recipient must be an approved user."
         );
         
-        // C. Verificación de Balance (Sigue siendo necesario para evitar solicitar más de lo que se tiene)
+        // Verificación de Balance
         uint256 balance = getTokenBalance(tokenId, msg.sender);
         require(balance >= amount, "SupplyChain: Insufficient balance.");
         
-        // 2. CREACIÓN DEL OBJETO TRANSFER (Reemplaza la lógica de balance)
-        
+        // Registro de la solicitud de transferencia
         transfers[nextTransferId] = Transfer({
             id: nextTransferId,
             from: msg.sender,
@@ -431,29 +478,35 @@ contract SupplyChain {
             status: TransferStatus.Pending // Estado inicial: Pendiente (0)
         });
 
-        // 3. EVENTO Y CONTADOR
+        // Emitir evento
         emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
+
+        // Actualizar el id de la siguiente transferencia
         nextTransferId++;
-        
-        // 🚨 Eliminamos:
-        // tokenBalances[tokenId][msg.sender] -= amount;
-        // tokenBalances[tokenId][to] += amount;
     }
+
     /**
-     * @notice Permite al receptor aceptar una transferencia pendiente, moviendo los balances.
-     * @param transferId El ID de la transferencia solicitada.
+     * @notice Permite al receptor aceptar una transferencia pendiente, moviendo los balances
+     * @dev Ejecuta la transferencia moviendo tokens del remitente al receptor
+     * @param transferId El ID de la transferencia a aceptar
+     * @custom:emits TransferAccepted Emitido cuando se acepta una transferencia
+     * @custom:require Solo usuarios aprobados pueden aceptar transferencias
+     * @custom:require La transferencia debe existir
+     * @custom:require Solo el receptor puede aceptar la transferencia
+     * @custom:require La transferencia debe estar en estado Pending
+     * @custom:require El remitente debe tener suficiente balance
+     * @custom:effect Transfiere tokens del remitente al receptor
+     * @custom:effect Cambia el estado de la transferencia a Accepted
      */
     function acceptTransfer(uint256 transferId) public onlyApprovedUser {
         Transfer storage t = transfers[transferId];
 
-        // 1. VALIDACIÓN
+        // Validaciones
         require(t.id != 0, "SupplyChain: Transfer does not exist.");
         require(t.to == msg.sender, "SupplyChain: Only the recipient can accept this transfer.");
         require(t.status == TransferStatus.Pending, "SupplyChain: Transfer is not Pending.");
         
-        // 2. EJECUCIÓN DEL MOVIMIENTO DE STOCK
-        
-        // Se duplica la verificación de balance para seguridad, aunque ya se verificó en requestTransfer.
+        // Verificación de balance
         uint256 senderBalance = getTokenBalance(t.tokenId, t.from);
         require(senderBalance >= t.amount, "SupplyChain: Insufficient balance on sender side.");
         
@@ -461,43 +514,75 @@ contract SupplyChain {
         tokenBalances[t.tokenId][t.from] -= t.amount;
         tokenBalances[t.tokenId][t.to] += t.amount;
 
-        // 3. ACTUALIZACIÓN DE ESTADO Y EVENTO
+        // Actualizar estado de la transferencia
         t.status = TransferStatus.Accepted;
+
+        // Emitir evento
         emit TransferAccepted(transferId);
     }
+
     /**
-     * @notice Permite al receptor rechazar una transferencia pendiente.
-     * @param transferId El ID de la transferencia solicitada.
+     * @notice Permite al receptor rechazar una transferencia pendiente
+     * @dev Cancela la transferencia sin mover tokens
+     * @param transferId El ID de la transferencia a rechazar
+     * @custom:emits TransferRejected Emitido cuando se rechaza una transferencia
+     * @custom:require Solo usuarios aprobados pueden rechazar transferencias
+     * @custom:require La transferencia debe existir
+     * @custom:require Solo el receptor puede rechazar la transferencia
+     * @custom:require La transferencia debe estar en estado Pending
+     * @custom:effect Cambia el estado de la transferencia a Rejected
+     * @custom:note No se mueven tokens al rechazar una transferencia
      */
     function rejectTransfer(uint256 transferId) public onlyApprovedUser {
         Transfer storage t = transfers[transferId];
 
-        // 1. VALIDACIÓN
+        // Validaciones
         require(t.id != 0, "SupplyChain: Transfer does not exist.");
         require(t.to == msg.sender, "SupplyChain: Only the recipient can reject this transfer.");
         require(t.status == TransferStatus.Pending, "SupplyChain: Transfer is not Pending.");
         
-        // 2. ACTUALIZACIÓN DE ESTADO Y EVENTO
-        // No hay manipulación de balances, ya que la solicitud no los movió.
+        // // Actualizar estado de la transferencia
         t.status = TransferStatus.Rejected;
+
+        // Emitir evento
         emit TransferRejected(transferId);
     }
+
+    /**
+     * @notice Obtiene la información completa de una transferencia por su ID
+     * @dev Retorna todos los datos de la transferencia incluyendo estado y participantes
+     * @param transferId El ID de la transferencia a consultar
+     * @return Transfer struct con la información completa de la transferencia
+     * @custom:require La transferencia debe existir en el sistema
+     */
     function getTransfer(
         uint transferId
     ) public view returns (Transfer memory) {
-        /* ... */
+        Transfer storage t = transfers[transferId];
+
+        // Validación de existencia
+        require(t.id != 0, "SupplyChain: Transfer does not exist.");
+
+        return t;
     }
 
-    // Visibilidad y Trazabilidad: Historial del Token
+    // -----------------------------------------------------------
+    // Historial del Token
+    // -----------------------------------------------------------
+
     /**
-     * @notice Devuelve el linaje (árbol genealógico) de un token, rastreando los IDs de sus padres hasta el origen (parentId = 0).
-     * @param tokenId El ID del token a consultar.
-     * @return Una matriz de uint256 que contiene los IDs de los tokens padres, empezando por el padre inmediato.
+     * @notice Devuelve el linaje (árbol genealógico) de un token, rastreando los IDs de sus padres hasta el origen
+     * @dev Recorre la cadena de tokens padre hasta encontrar la materia prima original (parentId = 0)
+     * @param tokenId El ID del token a consultar
+     * @return uint256[] Array con los IDs de los tokens padre, empezando por el padre inmediato hasta la materia prima
+     * @custom:return Array vacío si el token es una materia prima (parentId = 0)
+     * @custom:return Array ordenado desde el padre inmediato hasta el origen de la cadena
      */
     function getTokenLineage(uint256 tokenId) public view returns (uint256[] memory) {
         // La lista de linaje se construirá aquí. Inicialmente, no sabemos su tamaño.
         uint256[] memory lineage; 
         
+        // TODO: Mejorar la eficiencia
         // En Solidity, es más eficiente usar un array temporal con un tamaño máximo conocido 
         // o determinar la longitud primero. Pero lo haremos iterativamente para mayor claridad.
         
@@ -535,18 +620,40 @@ contract SupplyChain {
             
             index++;
         }
-        
+
+        // Devolver linaje completo desde el padre inmediato hasta el origen.        
         return lineage;
     }
 
-
+    // -----------------------------------------------------------
     // Funciones auxiliares
+    // -----------------------------------------------------------
+    
+    /**
+     * @notice Obtiene la lista de tokens creados por un usuario
+     * @dev Retorna los IDs de todos los tokens que ha creado la dirección especificada
+     * @param userAddress La dirección del usuario cuyos tokens se consultan
+     * @return uint256[] Array con los IDs de los tokens creados por el usuario
+     * @custom:note Esta función rastrea tokens creados, no tokens poseídos (balance)
+     */
     function getUserTokens(
         address userAddress
     ) public view returns (uint256[] memory) {
         return userTokensList[userAddress];
     }
-    function getAllUsers() public view returns (User[] memory) {
-        /* ... */
-    } // Sugerencia: Añadir para Admin
+
+    /**
+     * @notice Obtiene la lista completa de todos los usuarios registrados en el sistema (solo Admin)
+     * @dev Retorna un array con todos los usuarios incluyendo sus roles y estados
+     * @return User[] Array con todos los usuarios registrados en el sistema
+     * @custom:require Solo el administrador puede llamar esta función
+     * @custom:return Incluye todos los usuarios desde el ID 1 hasta el último registrado
+     */
+    function getAllUsers() public onlyAdmin view returns (User[] memory) {
+        User[] memory allUsers = new User[](nextUserId - 1);
+        for (uint256 i = 1; i < nextUserId; i++) {
+            allUsers[i - 1] = users[i];
+        }
+        return allUsers;
+    }
 }
