@@ -1,8 +1,8 @@
-import { ethers } from 'ethers'
-import type { ReactNode } from 'react'
-import { createContext, useContext, useEffect, useState } from 'react'
-import { CONTRACT_CONFIG } from '../config/contracts'
-import type { SupplyChain } from '../types/SupplyChain' // TypeChain types
+import { ethers } from 'ethers';
+import type { ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { CONTRACT_CONFIG } from '../config/contracts';
+import type { SupplyChain } from '../types/SupplyChain'; // TypeChain types
 
 // Extend the Window interface to include the ethereum property
 declare global {
@@ -33,11 +33,21 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
       alert('MetaMask no está instalado')
       return
     }
+    // Get accounts from MetaMask and prefer first account for state
+    const accounts: string[] = await window.ethereum.request({ method: 'eth_requestAccounts' })
+    const selected = accounts[0]
+
     const browserProvider = new ethers.BrowserProvider(window.ethereum)
     setProvider(browserProvider)
     const signer = await browserProvider.getSigner()
     setSigner(signer)
-    setAddress(await signer.getAddress())
+
+    // Use the selected account for address state
+    setAddress(selected)
+    // Persist session
+    try {
+      localStorage.setItem('web3:address', selected)
+    } catch {}
 
     // Instanciar el contrato con TypeChain
     const contractInstance = new ethers.Contract(
@@ -50,10 +60,83 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
 
   // Conectar automáticamente si MetaMask ya está autorizado
   useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
-        if (accounts.length > 0) connect()
-      })
+    if (!window.ethereum) return
+
+    let removed = false
+
+    const handleAccountsChanged = async (accounts: string[]) => {
+      if (accounts && accounts.length > 0) {
+        const next = accounts[0]
+        setAddress(next)
+        try {
+          localStorage.setItem('web3:address', next)
+        } catch {}
+      } else {
+        // No accounts: reset state
+        setAddress(null)
+        setSigner(null)
+        setContract(null)
+        setProvider(null)
+        try {
+          localStorage.removeItem('web3:address')
+        } catch {}
+      }
+    }
+
+    const handleChainChanged = (_chainId: string) => {
+      // Simplest behavior: reset state (tests expect reset)
+      setAddress(null)
+      setSigner(null)
+      setContract(null)
+      setProvider(null)
+      try {
+        localStorage.removeItem('web3:address')
+      } catch {}
+    }
+
+    // Auto-connect if authorized or persisted
+    const init = async () => {
+      const [accounts, persisted] = await Promise.all([
+        window.ethereum.request({ method: 'eth_accounts' }) as Promise<string[]>,
+        Promise.resolve<string | null>(typeof localStorage !== 'undefined' ? localStorage.getItem('web3:address') : null),
+      ])
+
+      if (accounts && accounts.length > 0) {
+        // Establish provider/signer/contract but avoid prompting
+        const browserProvider = new ethers.BrowserProvider(window.ethereum)
+        setProvider(browserProvider)
+        const signer = await browserProvider.getSigner()
+        setSigner(signer)
+        const selected = accounts[0]
+        setAddress(selected)
+        try {
+          localStorage.setItem('web3:address', selected)
+        } catch {}
+        const contractInstance = new ethers.Contract(
+          CONTRACT_CONFIG.address,
+          CONTRACT_CONFIG.abi,
+          signer
+        ) as unknown as SupplyChain
+        setContract(contractInstance)
+      } else if (persisted) {
+        // Clear stale persistence if no accounts actually connected
+        try {
+          localStorage.removeItem('web3:address')
+        } catch {}
+      }
+
+      if (!removed) {
+        window.ethereum.on?.('accountsChanged', handleAccountsChanged)
+        window.ethereum.on?.('chainChanged', handleChainChanged)
+      }
+    }
+
+    init()
+
+    return () => {
+      removed = true
+      window.ethereum?.removeListener?.('accountsChanged', handleAccountsChanged)
+      window.ethereum?.removeListener?.('chainChanged', handleChainChanged)
     }
     // eslint-disable-next-line
   }, [])
