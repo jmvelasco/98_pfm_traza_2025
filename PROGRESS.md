@@ -182,3 +182,63 @@ Tests  4 passed (4)
 _Sesión completada: 13 octubre 2025, 22:05 GMT_  
 _Metodología: Test-Driven Development (TDD)_  
 _Resultado: ✅ Todos los objetivos de persistencia y eventos completados_
+
+---
+
+## ➕ Fase 2 — Web3 Service (ethers v6) con TDD
+
+### 🎯 Objetivo
+Implementar un servicio `web/src/lib/web3.ts` que provea utilidades Web3 neutrales a UI (conexión, balance, red) usando ethers v6 y EIP-1193, siguiendo TDD con commits estratégicos.
+
+### 🔴 RED — Tests Fallando
+- Creado `web/src/__tests__/web3.service.test.ts` con 12 tests cubriendo:
+  - `connectWallet()`: conexión y errores (incluye rechazo de usuario)
+  - `getBalance(address)`: validación de address y formateo de balance
+  - `switchNetwork(chainId)`: cambio de red y rechazo de usuario
+  - `getCurrentNetwork()`: nombre de red por chainId y caso desconocido
+  - `isMetaMaskAvailable()`: detección de MetaMask
+
+Commit: `red: Web3 service comprehensive tests (connect, balance, network, MetaMask detection)`
+
+### 🟢 GREEN — Implementación Mínima (ethers v6)
+- Creado `web/src/lib/web3.ts` con API:
+  - `connectWallet(): Promise<{ address, chainId, isConnected }>`
+  - `getBalance(address: string): Promise<string>` usando `ethers.formatEther`
+  - `switchNetwork(chainId: number): Promise<void>` usando `wallet_switchEthereumChain`
+  - `getCurrentNetwork(): Promise<{ chainId, name }>`
+  - `isMetaMaskAvailable(): boolean`
+- Confirmada sintaxis ethers v6: `import { ethers }`, `ethers.isAddress`, `ethers.formatEther`.
+
+Commit: `green: Web3 service implementation with ethers v6 (connect, balance, network switch, detection)`
+
+### 🧹 REFACTOR — Tipos, Helpers y Errores Normalizados
+- Extraído mapeo de redes a `web/src/config/networks.ts`.
+- Añadidos helpers y tipos en `web/src/lib/web3.ts`:
+  - `Eip1193Provider`, `Eip1193RequestArgs` (forma mínima de EIP-1193)
+  - `getEthereum()` y `ensureMetaMask()`
+  - `toHexChainId()` (conversión manual 0x… test-friendly)
+  - `parseChainId()` robusto (hex/decimal/number)
+  - Normalización de errores y código 4001 → "User rejected the request"
+- API pública sin cambios; todos los tests verdes.
+
+Commit: `refactor: web3 service helpers, EIP-1193 typing, normalized errors, config networks; keep API stable`
+
+### ✅ Verificación
+```
+✓ Web3 Service (12 tests) — 12/12 pasando
+```
+
+### 📌 Notas Técnicas
+- Ethers v6 verificado (versión ^6.15.0 y APIs v6 en uso).
+- EIP-1193 aplicado para el tipado del provider inyectado por MetaMask.
+- Diseño SSR-friendly en helpers (evitan fallos en entornos sin `window`).
+
+---
+
+## 🚀 Siguiente Fase — Hook useWallet (TDD)
+Implementar `web/src/hooks/useWallet.ts` como una capa de ergonomía sobre el contexto Web3 y `web3Service`:
+- API esperada del hook (borrador):
+  - Estado: `{ address, chainId, isConnected, networkName }`
+  - Acciones: `{ connect(), switchNetwork(target), getBalance(address?) }`
+  - Errores normalizados (4001 → rechazo usuario, invalid address, etc.)
+- Metodología: RED → GREEN → REFACTOR con commits separados.
