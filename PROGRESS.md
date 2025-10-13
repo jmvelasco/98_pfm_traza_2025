@@ -259,17 +259,56 @@ Commit: `red: useWallet hook tests (state, connect, balance, switch network, net
 
 Commit: `green: implement minimal useWallet hook using web3Service and Web3Provider`
 
-### 🧹 REFACTOR — Pendiente
-Próximas mejoras planificadas:
-1. **Tipos específicos**: interfaces para estado del hook y respuestas
-2. **Manejo de errores**: captura y normalización de errores del servicio
-3. **Estados derivados**: chainId, networkName directamente disponibles
-4. **Optimización renders**: memoización más granular
-5. **Validaciones**: verificar direcciones antes de operaciones
+### 🧹 REFACTOR — Implementado
+Refactoring completo con 5 mejoras aplicadas:
 
-### ✅ Verificación
+1. **✅ Tipos específicos**: 
+   - Creadas interfaces `WalletState`, `WalletActions`, `UseWalletReturn`
+   - Tipado completo del hook con return type explícito
+   - Import de tipos del servicio web3 (`NetworkInfo`)
+
+2. **✅ Manejo de errores mejorado**:
+   - Try/catch en todos los métodos del hook
+   - Normalización de errores con mensajes descriptivos  
+   - Preservación del mensaje original cuando es posible
+
+3. **✅ Estados derivados adicionales**:
+   - Añadidos `chainId` y `networkName` al estado del hook
+   - Auto-fetch de información de red cuando está conectado
+   - Refresh automático de network info tras cambio de red
+
+4. **✅ Optimización de renders**:
+   - Mantenidos `useCallback` y `useMemo` existentes
+   - Auto-actualización de network info tras `switchNetwork`
+   - Dependencias optimizadas en hooks
+
+5. **✅ Validaciones**:
+   - Validación de direcciones Ethereum con `ethers.isAddress`
+   - Validación de chainId (entero positivo) antes de switch
+   - Mensajes de error descriptivos para validaciones fallidas
+
+Commit: `refactor: useWallet hook with types, error handling, network state, validation and optimizations`
+
+### ✅ Verificación Final
 ```
-✓ useWallet hook (4 tests) — 4/4 pasando
+✓ useWallet hook (4 tests) — 4/4 pasando tras refactor
+```
+
+**API final del hook**:
+```typescript
+{
+  // Estado
+  address: string | null;
+  isConnected: boolean; 
+  chainId: number | null;
+  networkName: string | null;
+  
+  // Acciones  
+  connect: () => Promise<void>;
+  getBalance: (address?: string) => Promise<string>;
+  switchNetwork: (chainId: number) => Promise<void>;
+  getCurrentNetwork: () => Promise<NetworkInfo>;
+}
 ```
 
 ---
@@ -300,6 +339,45 @@ web/vitest.setup.ts                 # Setup global de tests
 ```
 
 ### 📈 **Progreso vs STATUS_06**:
-- ✅ Persistencia localStorage + eventos MetaMask (completado)
-- ✅ Servicio Web3 y hook useWallet (completado)
+- ✅ Persistencia localStorage + eventos MetaMask (completado con TDD)
+- ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
+- ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)
 - ⚠️ Pendiente: estructura carpetas (`components/`, `pages/`) y páginas funcionales
+
+---
+
+## 🏆 Resumen Ejecutivo de la Sesión TDD
+
+### 🎯 **Objetivo Cumplido al 100%**
+✅ **Persistencia Web3 + Eventos MetaMask**: Implementación completa y robusta  
+✅ **Servicio Web3**: API completa con ethers v6, tipos EIP-1193, helpers  
+✅ **Hook useWallet**: Capa de ergonomía con validaciones, manejo de errores y estado derivado
+
+### 📊 **Métricas Finales**
+- **Total Tests**: 20/20 pasando (100% éxito)
+- **Commits TDD**: 9 commits estratégicos (3 ciclos RED→GREEN→REFACTOR)  
+- **Coverage**: Persistencia, servicios, hooks, errores, validaciones
+- **Metodología**: TDD puro con commits separados por fase
+
+### 💻 **Código Entregado**
+```
+📁 Servicios y Utilidades
+├── src/config/networks.ts        # Mapeo centralizado de redes
+├── src/lib/web3.ts              # Servicio Web3 (ethers v6 + EIP-1193)  
+└── src/hooks/useWallet.ts       # Hook ergonómico con estado completo
+
+📁 Testing Infrastructure  
+├── src/__tests__/*.test.{tsx,ts} # Suite completa TDD (20 tests)
+├── vite.config.ts               # Configuración Vitest + jsdom
+└── vitest.setup.ts              # Setup global con jest-dom
+
+📁 Context Mejorado
+└── src/contexts/Web3Provider.tsx # Persistencia + eventos + cleanup
+```
+
+### 🚀 **Valor Entregado**
+- **Para Desarrolladores**: API limpia, tipada, con manejo de errores
+- **Para Usuarios**: Persistencia automática, reconexión, estados actualizados  
+- **Para Proyecto**: Base sólida, testeada, mantenible para desarrollo futuro
+
+**Estado del Proyecto**: Listo para implementación de UI y páginas funcionales
