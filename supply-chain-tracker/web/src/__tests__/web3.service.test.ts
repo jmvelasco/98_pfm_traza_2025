@@ -32,6 +32,12 @@ describe('Web3 Service', () => {
 
   describe('connectWallet', () => {
     it('should connect to MetaMask and return account info', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+      
       const mockAccounts = ['0x1234567890123456789012345678901234567890'];
       const mockChainId = '0x1';
       
@@ -67,6 +73,12 @@ describe('Web3 Service', () => {
     });
 
     it('should throw error when user rejects connection', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+
       mockEthereum.request.mockRejectedValueOnce(
         new Error('User rejected the request')
       );
@@ -86,6 +98,7 @@ describe('Web3 Service', () => {
       
       const { ethers } = await import('ethers');
       (ethers.formatEther as any).mockReturnValue('1.0');
+      (ethers.isAddress as any).mockReturnValue(true);
 
       const balance = await web3Service.getBalance(mockAddress);
 
@@ -109,6 +122,12 @@ describe('Web3 Service', () => {
 
   describe('switchNetwork', () => {
     it('should switch to specified network', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+
       const targetChainId = 1; // Mainnet
       const hexChainId = '0x1';
 
@@ -123,6 +142,12 @@ describe('Web3 Service', () => {
     });
 
     it('should handle network switch rejection', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+
       const targetChainId = 1;
       
       mockEthereum.request.mockRejectedValueOnce(
@@ -137,6 +162,12 @@ describe('Web3 Service', () => {
 
   describe('getCurrentNetwork', () => {
     it('should return current network info', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+
       const mockChainId = '0x1';
       
       mockEthereum.request.mockResolvedValueOnce(mockChainId);
@@ -153,6 +184,12 @@ describe('Web3 Service', () => {
     });
 
     it('should return unknown network for unrecognized chain ID', async () => {
+      // Reset ethereum mock for this test
+      Object.defineProperty(window, 'ethereum', {
+        value: mockEthereum,
+        writable: true,
+      });
+
       const mockChainId = '0x999'; // Unknown network
       
       mockEthereum.request.mockResolvedValueOnce(mockChainId);
