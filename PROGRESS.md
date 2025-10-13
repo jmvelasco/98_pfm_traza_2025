@@ -235,10 +235,71 @@ Commit: `refactor: web3 service helpers, EIP-1193 typing, normalized errors, con
 
 ---
 
-## 🚀 Siguiente Fase — Hook useWallet (TDD)
-Implementar `web/src/hooks/useWallet.ts` como una capa de ergonomía sobre el contexto Web3 y `web3Service`:
-- API esperada del hook (borrador):
-  - Estado: `{ address, chainId, isConnected, networkName }`
-  - Acciones: `{ connect(), switchNetwork(target), getBalance(address?) }`
-  - Errores normalizados (4001 → rechazo usuario, invalid address, etc.)
-- Metodología: RED → GREEN → REFACTOR con commits separados.
+## ➕ Fase 3 — Hook useWallet (TDD)
+
+### 🎯 Objetivo
+Crear `web/src/hooks/useWallet.ts` como capa de ergonomía que combine `useWeb3` context y `web3Service`, proporcionando una API unificada y simplificada para componentes.
+
+### 🔴 RED — Tests Fallando
+- Creado `web/src/__tests__/useWallet.test.tsx` con 4 tests cubriendo:
+  - `{ address, isConnected, connect }`: estado de conexión y acción de conectar
+  - `getBalance(address)`: obtención de balance via servicio web3
+  - `switchNetwork(chainId)`: cambio de red via servicio web3
+  - `getCurrentNetwork()`: información de red actual via servicio web3
+
+Commit: `red: useWallet hook tests (state, connect, balance, switch network, network info)`
+
+### 🟢 GREEN — Implementación Mínima
+- Creado `web/src/hooks/useWallet.ts` con API:
+  - Estado derivado: `address`, `isConnected` desde contexto Web3
+  - Proxy a contexto: `connect()` desde `useWeb3`
+  - Proxy a servicio: `getBalance()`, `switchNetwork()`, `getCurrentNetwork()` desde `web3Service`
+  - Optimización: `useMemo` y `useCallback` para evitar re-renders innecesarios
+- Tests actualizados sin indicadores de estado TDD en descripciones (mejor práctica de mantenimiento).
+
+Commit: `green: implement minimal useWallet hook using web3Service and Web3Provider`
+
+### 🧹 REFACTOR — Pendiente
+Próximas mejoras planificadas:
+1. **Tipos específicos**: interfaces para estado del hook y respuestas
+2. **Manejo de errores**: captura y normalización de errores del servicio
+3. **Estados derivados**: chainId, networkName directamente disponibles
+4. **Optimización renders**: memoización más granular
+5. **Validaciones**: verificar direcciones antes de operaciones
+
+### ✅ Verificación
+```
+✓ useWallet hook (4 tests) — 4/4 pasando
+```
+
+---
+
+## 🚀 Estado Final de la Sesión TDD
+
+### ✅ **Completado Exitosamente**:
+- [x] **Configuración TDD**: Vitest, Testing Library, jsdom configurados
+- [x] **Persistencia Web3**: localStorage y auto-reconexión implementados y testeados
+- [x] **Eventos MetaMask**: accountsChanged/chainChanged con cleanup de listeners
+- [x] **Servicio Web3**: API completa con ethers v6, EIP-1193, helpers y tipos
+- [x] **Hook useWallet**: Capa de ergonomía combinando contexto y servicio
+
+### 📊 **Métricas de Testing**:
+- **Web3Provider**: 4/4 tests pasando (persistencia + eventos)
+- **Web3 Service**: 12/12 tests pasando (conexión + balance + red)
+- **useWallet Hook**: 4/4 tests pasando (estado + servicios)
+- **Total**: 20/20 tests pasando ✅
+
+### 🔧 **Archivos Creados/Modificados**:
+```
+web/src/config/networks.ts          # Mapeo de nombres de redes
+web/src/lib/web3.ts                 # Servicio Web3 con ethers v6
+web/src/hooks/useWallet.ts          # Hook de ergonomía
+web/src/__tests__/*.test.{tsx,ts}   # Suite completa de tests TDD
+web/vite.config.ts                  # Configuración Vitest
+web/vitest.setup.ts                 # Setup global de tests
+```
+
+### 📈 **Progreso vs STATUS_06**:
+- ✅ Persistencia localStorage + eventos MetaMask (completado)
+- ✅ Servicio Web3 y hook useWallet (completado)
+- ⚠️ Pendiente: estructura carpetas (`components/`, `pages/`) y páginas funcionales
