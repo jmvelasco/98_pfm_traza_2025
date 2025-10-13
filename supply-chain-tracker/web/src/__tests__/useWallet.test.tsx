@@ -8,8 +8,8 @@ vi.mock('../lib/web3', () => ({
   web3Service: {
     connectWallet: vi.fn(),
     getBalance: vi.fn(),
-    switchNetwork: vi.fn(),
-    getCurrentNetwork: vi.fn(),
+    switchNetwork: vi.fn().mockResolvedValue(undefined),
+    getCurrentNetwork: vi.fn().mockResolvedValue({ chainId: 1, name: 'Ethereum Mainnet' }),
     isMetaMaskAvailable: vi.fn(),
   },
 }));
@@ -21,6 +21,7 @@ vi.mock('ethers', () => ({
       getSigner: vi.fn().mockResolvedValue({}),
     })),
     Contract: vi.fn(),
+    isAddress: vi.fn().mockReturnValue(true), // Mock isAddress for validation
   },
 }));
 
