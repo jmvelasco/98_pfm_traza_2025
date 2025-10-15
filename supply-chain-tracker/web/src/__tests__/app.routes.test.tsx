@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
 import '@testing-library/jest-dom'
+import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
 import { Web3Provider } from '../contexts/Web3Provider'
 
 // RED: AppRoutes does not exist yet; this test will fail until routes are implemented
