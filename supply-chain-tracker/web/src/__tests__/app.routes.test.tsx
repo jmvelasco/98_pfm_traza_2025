@@ -1,0 +1,33 @@
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import '@testing-library/jest-dom'
+import { MemoryRouter } from 'react-router-dom'
+
+// RED: AppRoutes does not exist yet; this test will fail until routes are implemented
+import AppRoutes from '../routes/AppRoutes'
+
+
+describe('AppRoutes', () => {
+  it('renders Home at "/" with header and Connect button when disconnected (mocked via WalletConnect)', () => {
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <AppRoutes />
+      </MemoryRouter>
+    )
+
+    // Header title link
+    expect(screen.getByRole('link', { name: /supply chain tracker/i })).toBeInTheDocument()
+    // Link to Admin Users
+    expect(screen.getByRole('link', { name: /admin users/i })).toBeInTheDocument()
+  })
+
+  it('renders Admin Users page at "/admin/users"', () => {
+    render(
+      <MemoryRouter initialEntries={["/admin/users"]}>
+        <AppRoutes />
+      </MemoryRouter>
+    )
+
+    expect(screen.getByRole('heading', { name: /admin users/i })).toBeInTheDocument()
+  })
+})

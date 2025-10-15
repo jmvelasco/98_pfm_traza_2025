@@ -381,3 +381,27 @@ web/vitest.setup.ts                 # Setup global de tests
 - **Para Proyecto**: Base sólida, testeada, mantenible para desarrollo futuro
 
 **Estado del Proyecto**: Listo para implementación de UI y páginas funcionales
+
+---
+
+## 🧭 Sesión UI (15 octubre 2025) — Semana 1: Routing + Header (RED)
+
+### 🎯 Objetivo
+Alinear con PLANNING.md (Semana 1, días 6-7) creando infraestructura mínima de UI:
+- Routing con React Router (Vite)
+- Layout con Header y componentes WalletConnect/NetworkStatus
+- Preparación de Home y Admin Users
+
+### 🔴 RED — Tests creados y fallando inicialmente
+- Añadido `src/__tests__/routing.layout.test.tsx` comprobando que Header muestra "Connect" cuando no hay wallet conectada (mock de `useWallet`).
+- Estructura esperada: `Header` con enlace "Admin Users" y `WalletConnect`.
+
+Archivos añadidos (stubs):
+- `src/components/layout/Header.tsx` (usa `<WalletConnect />` y enlaces)
+- `src/components/wallet/WalletConnect.tsx` (render mínimo con estado o botón Connect)
+- `src/components/network/NetworkStatus.tsx` (cadena y chainId)
+
+Estado actual de la fase:
+- Tests en ROJO hasta completar wiring de Router y página.
+
+Siguiente: Implementar Router en `App.tsx` y terminar layout para pasar a GREEN.
