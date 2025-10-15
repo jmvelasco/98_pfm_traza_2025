@@ -405,3 +405,18 @@ Estado actual de la fase:
 - Tests en ROJO hasta completar wiring de Router y página.
 
 Siguiente: Implementar Router en `App.tsx` y terminar layout para pasar a GREEN.
+
+### 🟢 GREEN — Routing/Layout implementados y tests pasando
+- Creado `src/routes/AppRoutes.tsx` con rutas `/` y `/admin/users` bajo `AppLayout`.
+- Creado `src/layouts/AppLayout.tsx` (Header + Outlet + container).
+- Pages placeholder: `src/pages/Home.tsx`, `src/pages/admin/Users.tsx`.
+- Actualizado `src/App.tsx` para usar `<BrowserRouter><AppRoutes/></BrowserRouter>`.
+- Actualizado test: `app.routes.test.tsx` envuelto en `Web3Provider`.
+
+Resultado de tests:
+```
+✓ app.routes.test.tsx (2 tests) — PASS
+Total: 23/23 tests passing
+```
+
+Siguiente: RED de Home (formulario `requestUserRole`) y definición de helpers de contrato.
