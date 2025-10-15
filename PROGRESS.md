@@ -420,3 +420,153 @@ Total: 23/23 tests passing
 ```
 
 Siguiente: RED de Home (formulario `requestUserRole`) y definición de helpers de contrato.
+
+---
+
+## ➕ Fase 4 — Home Page Registration (TDD) + Refactors (16 octubre 2025)
+
+### 🎯 Objetivo
+Implementar la lógica de registro de usuario en Home page usando TDD:
+- Mostrar CTA de conexión si no está conectado
+- Formulario de selección de rol (Producer/Factory/Retailer/Consumer)
+- Llamada a `requestUserRole()` del contrato
+- Mostrar estado actual del usuario (Pending/Approved/Rejected)
+- Manejo de errores y loading
+
+### 🔴 RED — Tests de Home Registration
+Creado `src/__tests__/home.registration.test.tsx` con 4 tests:
+1. **"shows connect CTA if not connected"**: Verifica botón de conexión cuando wallet no conectada
+2. **"shows role request form if connected and no role"**: Muestra formulario de selección de rol
+3. **"shows current user status if already requested"**: Muestra rol y estado (Pending/Approved/Rejected)
+4. **"shows error if contract call fails"**: Manejo de errores en llamadas al contrato
+
+**Resultado inicial**: ❌ 4/4 tests fallando (comportamiento esperado en TDD)
+
+Commit: `red: Home page registration tests (connect CTA, role request, status, error)`
+
+### 🟢 GREEN — Implementación Mínima
+Implementados los archivos necesarios para pasar los tests:
+
+**Archivos creados**:
+- `src/lib/contract.ts`: Helpers `getUserInfo()` y `requestUserRole()` (placeholders)
+- `src/lib/enums.ts`: Arrays de roles y mapeo de labels para status
+- `src/pages/Home.tsx`: Lógica completa de registro con estados loading/error
+
+**Funcionalidad implementada**:
+- Detección de conexión y mostrar CTA si no conectado
+- Formulario de selección de rol con dropdown
+- Llamada a `requestUserRole()` al submit
+- Fetch de `getUserInfo()` al conectar
+- Mostrar rol y estado actual si ya solicitado
+- Manejo de estados de loading y error
+
+**Ajustes en tests**: 
+- Corregidos mocks para usar `vi.mocked()` en vez de `require().mockReturnValue()`
+- Añadidos campos `chainId` y `networkName` a mocks de `useWallet`
+- Tipos estrictos para `UserInfo`
+
+**Resultado**: ✅ 4/4 tests pasando
+
+Commit: `green: Home page registration logic and helpers (tests passing)`
+
+### 🧹 REFACTOR — 5 Refactors Incrementales con Commits Separados
+
+#### **Refactor 1: Extraer hook useUserInfo**
+- Creado `src/hooks/useUserInfo.ts` para aislar lógica de fetch, loading y error
+- Home.tsx ahora usa el hook en vez de gestionar estado manualmente
+- Separación de responsabilidades: Home solo renderiza, hook gestiona data fetching
+
+Commit: `refactor: extract useUserInfo hook for user info logic in Home page`
+
+#### **Refactor 2: Enums y tipos estrictos**
+- Convertidos strings a enums `UserRole` y `UserStatus` (usando `as const` pattern)
+- Actualizado tipo `UserInfo` para usar `UserRole | null` y `UserStatus | null`
+- Actualizada firma de `requestUserRole()` para aceptar `UserRole`
+- Añadido type guard `isValidStatus()` en Home.tsx para validación segura
+- Actualizado test para usar enums en mocks
+
+**Resultado**: Tipado estricto end-to-end, sin strings mágicos
+
+Commit: `refactor: strict enums and types for UserRole/UserStatus, type guard for status in Home page`
+
+#### **Refactor 3: Feedback visual y UX**
+- Creado componente `Spinner` SVG minimalista con animación Tailwind
+- Reemplazado texto "Loading..." por spinner visual
+- Botón de submit ya deshabilitado durante loading (implementado en GREEN)
+
+Commit: `refactor: add minimal SVG spinner for loading state in Home page`
+
+#### **Refactor 4: Helpers de contrato centralizados**
+- Añadida documentación JSDoc a funciones de contrato
+- Comentarios explicando que estos helpers encapsulan interacción con contrato
+- Tipos estrictos usando `UserRole` y `UserStatus`
+- Preparación para integración futura con contrato real (TypeChain)
+
+Commit: `refactor: centralize contract helpers with strict types and documentation`
+
+#### **Refactor 5: Limpieza y DRY en tests**
+- Creada factory function `createMockWalletState()` para generar mocks con defaults
+- Eliminada duplicación de objetos mock en cada test
+- Uso de `getByRole` en vez de `getByText` para mejor semántica
+- Import de tipo `UseWalletReturn` para tipado correcto
+
+**Resultado**: Tests más limpios, mantenibles y semánticos
+
+Commit: `refactor: DRY tests with mock wallet factory and use getByRole for better semantics`
+
+### ✅ Verificación Final Post-Refactors
+```
+✓ home.registration.test.tsx (4 tests) — 4/4 pasando
+✓ Total suite: 27/27 tests pasando
+```
+
+### 📊 Resumen de Commits Estratégicos
+1. **RED**: Tests fallando definiendo comportamiento esperado
+2. **GREEN**: Implementación mínima para pasar tests
+3. **REFACTOR 1-5**: Mejoras incrementales sin cambiar funcionalidad
+4. **CHORE**: Auto-format de imports y regeneración de contracts.ts
+
+**Total**: 8 commits coherentes reflejando el ciclo TDD completo
+
+### 🔧 Archivos Finales Creados/Modificados
+```
+📁 Páginas y Componentes
+├── src/pages/Home.tsx                    # Página de registro con spinner
+├── src/hooks/useUserInfo.ts              # Hook para fetch de user info
+├── src/lib/contract.ts                   # Helpers con tipos y docs
+├── src/lib/enums.ts                      # Enums UserRole/UserStatus
+└── src/__tests__/home.registration.test.tsx  # Suite TDD con factory
+
+📁 Formato Automático
+├── src/App.tsx                           # Imports reordenados
+├── src/routes/AppRoutes.tsx              # Imports reordenados
+├── src/__tests__/app.routes.test.tsx     # Imports reordenados
+└── src/config/contracts.ts               # Regenerado (formato JSON)
+```
+
+### 🚀 Estado Actual del Proyecto
+
+**Completado en esta sesión**:
+- ✅ Home page con registro de usuario (TDD completo)
+- ✅ Helpers de contrato tipados y documentados
+- ✅ Hook useUserInfo para data fetching
+- ✅ Enums estrictos eliminando strings mágicos
+- ✅ Spinner SVG para mejor UX
+- ✅ Tests limpios y mantenibles con factory pattern
+
+**Métricas**:
+- **Tests totales**: 27/27 pasando (100% éxito)
+- **Commits TDD**: 8 commits estratégicos (RED→GREEN→5×REFACTOR)
+- **Cobertura**: Routing, layout, header, wallet, Home registration
+
+**Próximos pasos**:
+- [ ] Página Admin Users (listar usuarios, aprobar/rechazar)
+- [ ] Integración real con contrato (TypeChain + ethers v6)
+- [ ] Componentes UI reutilizables (Button, Card, etc.)
+- [ ] Navegación y protección de rutas por rol
+
+---
+
+_Sesión actualizada: 16 octubre 2025, 00:40 GMT_  
+_Metodología: Test-Driven Development (TDD) con refactors incrementales_  
+_Resultado: ✅ Home page registration completada con 5 refactors aplicados_
