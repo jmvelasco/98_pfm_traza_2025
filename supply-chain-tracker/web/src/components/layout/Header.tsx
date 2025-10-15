@@ -1,7 +1,13 @@
-import { Link } from 'react-router-dom'
-import { WalletConnect } from '../wallet/WalletConnect'
+import { Link } from 'react-router-dom';
+import { useUserInfo } from '../../hooks/useUserInfo';
+import { useWallet } from '../../hooks/useWallet';
+import { WalletConnect } from '../wallet/WalletConnect';
 
 export default function Header() {
+  const { address, isConnected } = useWallet();
+  const { userInfo } = useUserInfo(isConnected ? address : null);
+  const isAdmin = userInfo?.role === 'Admin';
+
   return (
     <header className="w-full border-b bg-white">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -9,9 +15,6 @@ export default function Header() {
           <Link to="/" className="text-gray-900">Supply Chain Tracker</Link>
         </h1>
         <nav className="flex items-center gap-4">
-          <Link to="/admin/users" className="text-sm text-gray-700 hover:underline">
-            Admin Users
-          </Link>
           <WalletConnect />
         </nav>
       </div>
