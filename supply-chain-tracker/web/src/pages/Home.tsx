@@ -21,7 +21,7 @@ function Spinner() {
 
 export default function Home() {
   const { address, isConnected, connect } = useWallet();
-  const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
+  const { userInfo, loading, error, refetch } = useUserInfo(isConnected ? address : null);
   const [selectedRole, setSelectedRole] = useState<UserRole>(ROLES[0].value);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function Home() {
     setSubmitError(null);
     try {
       await requestUserRole(address, selectedRole);
-      // No actualizamos userInfo aquí, el hook lo recargará automáticamente si se implementa polling/refetch
+      await refetch(); // Refresca el estado tras la transacción
     } catch (err) {
       setSubmitError('Error requesting role');
     } finally {
