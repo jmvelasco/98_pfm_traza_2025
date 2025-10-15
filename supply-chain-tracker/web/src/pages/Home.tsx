@@ -41,6 +41,8 @@ export default function Home() {
     }
   };
 
+  const isAdmin = userInfo?.role === 'Admin';
+
   return (
     <div>
       <h2 className="text-2xl font-semibold">Home</h2>
@@ -56,6 +58,15 @@ export default function Home() {
         <div>
           <p>Role: {userInfo.role}</p>
           <p>Status: {isValidStatus(userInfo.status) ? STATUS_LABELS[userInfo.status] : 'Unknown'}</p>
+          {isAdmin && (
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+              <p className="text-blue-800 font-semibold">👑 Administrator Access</p>
+              <p className="text-sm text-blue-600 mt-1">You have full administrative privileges.</p>
+              <a href="/admin/users" className="inline-block mt-2 px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-800 transition-colors font-medium">
+                Go to Admin Panel
+              </a>
+            </div>
+          )}
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">
