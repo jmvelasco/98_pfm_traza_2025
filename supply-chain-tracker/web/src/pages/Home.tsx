@@ -1,40 +1,30 @@
-import { useEffect, useState } from 'react';
+
+import { useState } from 'react';
+import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
-import { getUserInfo, requestUserRole } from '../lib/contract';
+import { requestUserRole } from '../lib/contract';
 import { ROLES, STATUS_LABELS } from '../lib/enums';
+
 
 export default function Home() {
   const { address, isConnected, connect } = useWallet();
-  const [userInfo, setUserInfo] = useState<{ role: string | null, status: string | null } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
   const [selectedRole, setSelectedRole] = useState('Producer');
-
-  useEffect(() => {
-    if (isConnected && address) {
-      setLoading(true);
-      getUserInfo(address)
-        .then(setUserInfo)
-        .catch(() => setError('Error loading user info'))
-        .finally(() => setLoading(false));
-    } else {
-      setUserInfo(null);
-      setError(null);
-    }
-  }, [isConnected, address]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const handleRequestRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address) return;
-    setLoading(true);
-    setError(null);
+    setSubmitLoading(true);
+    setSubmitError(null);
     try {
       await requestUserRole(address, selectedRole);
-      setUserInfo({ role: selectedRole, status: 'Pending' });
+      // No actualizamos userInfo aquí, el hook lo recargará automáticamente si se implementa polling/refetch
     } catch (err) {
-      setError('Error requesting role');
+      setSubmitError('Error requesting role');
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
@@ -68,9 +58,10 @@ export default function Home() {
               <option key={r.value} value={r.value}>{r.label}</option>
             ))}
           </select>
-          <button type="submit" className="ml-2 px-4 py-2 bg-green-600 text-white rounded">
-            Request Role
+          <button type="submit" className="ml-2 px-4 py-2 bg-green-600 text-white rounded" disabled={submitLoading}>
+            {submitLoading ? 'Requesting...' : 'Request Role'}
           </button>
+          {submitError && <p className="text-red-600 mt-2">{submitError}</p>}
         </form>
       )}
     </div>
