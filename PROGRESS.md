@@ -514,6 +514,13 @@ Commit: `refactor: centralize contract helpers with strict types and documentati
 
 Commit: `refactor: DRY tests with mock wallet factory and use getByRole for better semantics`
 
+#### 🛡️ Gestión de roles y permisos (actualización)
+- Ahora la aplicación detecta correctamente si el usuario conectado es el **admin** (rol "Admin" desde el contrato inteligente).
+- Si el usuario es admin:
+  - No se muestra el formulario de solicitud de rol en Home.
+  - Se muestra un panel especial con acceso directo a la administración.
+- Esto garantiza que el flujo de registro y permisos respeta la lógica de negocio y mejora la experiencia de usuario.
+
 ### ✅ Verificación Final Post-Refactors
 ```
 ✓ home.registration.test.tsx (4 tests) — 4/4 pasando
