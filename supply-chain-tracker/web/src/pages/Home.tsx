@@ -1,15 +1,19 @@
-
 import { useState } from 'react';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
 import { requestUserRole } from '../lib/contract';
-import { ROLES, STATUS_LABELS } from '../lib/enums';
+import { ROLES, STATUS_LABELS, UserRole, UserStatus } from '../lib/enums';
+
+
+function isValidStatus(status: any): status is UserStatus {
+  return Object.values(UserStatus).includes(status);
+}
 
 
 export default function Home() {
   const { address, isConnected, connect } = useWallet();
   const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
-  const [selectedRole, setSelectedRole] = useState('Producer');
+  const [selectedRole, setSelectedRole] = useState<UserRole>(ROLES[0].value);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -42,7 +46,7 @@ export default function Home() {
       ) : userInfo && userInfo.role ? (
         <div>
           <p>Role: {userInfo.role}</p>
-          <p>Status: {userInfo.status ? STATUS_LABELS[userInfo.status] || userInfo.status : 'Unknown'}</p>
+          <p>Status: {isValidStatus(userInfo.status) ? STATUS_LABELS[userInfo.status] : 'Unknown'}</p>
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">
@@ -50,7 +54,7 @@ export default function Home() {
           <select
             id="role"
             value={selectedRole}
-            onChange={e => setSelectedRole(e.target.value)}
+            onChange={e => setSelectedRole(e.target.value as UserRole)}
             className="border rounded px-2 py-1 mb-2"
             aria-label="Select Role"
           >

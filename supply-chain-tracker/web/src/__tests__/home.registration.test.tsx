@@ -1,4 +1,3 @@
-
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,6 +9,7 @@ vi.mock('../lib/contract');
 
 import { useWallet } from '../hooks/useWallet';
 import * as contract from '../lib/contract';
+import { UserRole, UserStatus } from '../lib/enums';
 
 describe('Home page registration', () => {
   beforeEach(() => {
@@ -63,7 +63,7 @@ describe('Home page registration', () => {
       switchNetwork: vi.fn(),
       getCurrentNetwork: vi.fn(),
     });
-    vi.mocked(contract.getUserInfo).mockResolvedValue({ role: 'Producer' as string | null, status: 'Pending' as string | null });
+    vi.mocked(contract.getUserInfo).mockResolvedValue({ role: UserRole.Producer, status: UserStatus.Pending });
 
     render(<Home />);
     expect(await screen.findByText(/status: pending/i)).toBeInTheDocument();
