@@ -59,19 +59,19 @@ export default function Home() {
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">
-          <label htmlFor="role" className="block mb-2">Select Role</label>
+          <label htmlFor="role" className="block mb-2 text-gray-700">Select Role</label>
           <select
             id="role"
             value={selectedRole}
             onChange={e => setSelectedRole(e.target.value as UserRole)}
-            className="border rounded px-2 py-1 mb-2"
+            className="border border-gray-300 rounded px-3 py-2 mb-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Select Role"
           >
             {ROLES.map(r => (
-              <option key={r.value} value={r.value}>{r.label}</option>
+              <option key={r.value} value={r.value} className="bg-white text-gray-900">{r.label}</option>
             ))}
           </select>
-          <button type="submit" className="ml-2 px-4 py-2 bg-green-600 text-white rounded" disabled={submitLoading}>
+          <button type="submit" className="ml-2 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors" disabled={submitLoading}>
             {submitLoading ? 'Requesting...' : 'Request Role'}
           </button>
           {submitError && <p className="text-red-600 mt-2">{submitError}</p>}
