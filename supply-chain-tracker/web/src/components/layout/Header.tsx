@@ -6,7 +6,7 @@ export default function Header() {
     <header className="w-full border-b bg-white">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <h1 className="text-xl font-semibold">
-          <Link to="/">Supply Chain Tracker</Link>
+          <Link to="/" className="text-gray-900">Supply Chain Tracker</Link>
         </h1>
         <nav className="flex items-center gap-4">
           <Link to="/admin/users" className="text-sm text-gray-700 hover:underline">
