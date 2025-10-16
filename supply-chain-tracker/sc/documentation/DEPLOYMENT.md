@@ -126,6 +126,13 @@ forge script script/Verify.s.sol \
     --private-key ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 ```
 
+## Step 6: Ensure RPC node is up and running via curl
+
+```bash
+curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \ 
+    -H "Content-Type: application/json" http://127.0.0.1:8545
+```
+
 ### Expected Verification Output
 
 A successful deployment should show:
