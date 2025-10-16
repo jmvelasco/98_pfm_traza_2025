@@ -78,7 +78,7 @@ beforeEach(() => {
 })
 
 describe('Web3Provider persistence', () => {
-  it('does not have address initially and persists after connect (RED)', async () => {
+  it('does not have address initially and persists after connect', async () => {
     renderWithProvider()
     expect(screen.getByTestId('address').textContent).toBe('')
 
@@ -99,7 +99,7 @@ describe('Web3Provider persistence', () => {
     expect(localStorage.getItem('web3:address')).toBe('0xabc')
   })
 
-  it('auto-connects from localStorage on load (RED)', async () => {
+  it('auto-connects from localStorage on load', async () => {
     localStorage.setItem('web3:address', '0xdef')
     // Also simulate eth_accounts contains that address
     mockEthereum.request.mockImplementation(async ({ method }: any) => {
@@ -116,7 +116,7 @@ describe('Web3Provider persistence', () => {
 })
 
 describe('Web3Provider MetaMask events', () => {
-  it('updates address on accountsChanged (RED)', async () => {
+  it('updates address on accountsChanged', async () => {
     // Start connected
     mockEthereum.request.mockImplementation(async ({ method }: any) => {
       if (method === 'eth_accounts') return ['0xabc']
@@ -133,7 +133,7 @@ describe('Web3Provider MetaMask events', () => {
     await waitFor(() => expect(screen.getByTestId('address').textContent).toBe('0x123'))
   })
 
-  it('resets state on chainChanged (RED)', async () => {
+  it('resets state on chainChanged', async () => {
     mockEthereum.request.mockImplementation(async ({ method }: any) => {
       if (method === 'eth_accounts') return ['0xabc']
       return null
