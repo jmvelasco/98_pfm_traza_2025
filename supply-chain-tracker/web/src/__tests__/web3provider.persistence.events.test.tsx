@@ -1,4 +1,5 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Hoisted mock for ethers
@@ -10,7 +11,7 @@ vi.mock('ethers', () => {
     }
   }
   class MockBrowserProvider {
-    constructor(_eth: any) {}
+    constructor(_eth: any) { }
     async getSigner() {
       return new MockSigner()
     }
@@ -62,15 +63,15 @@ const mockEthereum = {
   }),
   // util to emit
   _emit(event: string, payload: any) {
-    ;(listeners[event] || []).forEach((fn) => fn(payload))
+    ; (listeners[event] || []).forEach((fn) => fn(payload))
   },
 }
 
 // Patch globals before each test
 beforeEach(() => {
   listeners = {}
-  ;(global as any).window = Object.create(window)
-  ;(window as any).ethereum = mockEthereum
+    ; (global as any).window = Object.create(window)
+    ; (window as any).ethereum = mockEthereum
   // Clear storage
   localStorage.clear()
   currentAccount = '0xabc'
@@ -87,8 +88,8 @@ describe('Web3Provider persistence', () => {
       return null
     })
 
-    // Click connect
-    screen.getByText('connect').click()
+    // Click connect (simulate real user)
+    await userEvent.click(screen.getByText('connect'))
 
     await waitFor(() => {
       expect(screen.getByTestId('address').textContent).toBe('0xabc')
@@ -125,7 +126,9 @@ describe('Web3Provider MetaMask events', () => {
     await waitFor(() => expect(screen.getByTestId('address').textContent).toBe('0xabc'))
 
     // Emit accountsChanged
-    mockEthereum._emit('accountsChanged', ['0x123'])
+    await act(async () => {
+      mockEthereum._emit('accountsChanged', ['0x123'])
+    })
 
     await waitFor(() => expect(screen.getByTestId('address').textContent).toBe('0x123'))
   })
@@ -139,7 +142,9 @@ describe('Web3Provider MetaMask events', () => {
     await waitFor(() => expect(screen.getByTestId('address').textContent).toBe('0xabc'))
 
     // Emit chainChanged
-    mockEthereum._emit('chainChanged', '0x7a69')
+    await act(async () => {
+      mockEthereum._emit('chainChanged', '0x7a69')
+    })
 
     await waitFor(() => expect(screen.getByTestId('address').textContent).toBe(''))
   })

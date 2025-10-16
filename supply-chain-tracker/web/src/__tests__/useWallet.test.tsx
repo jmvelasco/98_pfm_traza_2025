@@ -73,7 +73,9 @@ describe('useWallet hook', () => {
 
     const { result } = renderHook(() => useWallet(), { wrapper });
 
-    await result.current.switchNetwork(1);
+    await act(async () => {
+      await result.current.switchNetwork(1);
+    });
     expect(web3Service.switchNetwork).toHaveBeenCalledWith(1);
   });
 

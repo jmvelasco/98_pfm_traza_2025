@@ -20,8 +20,8 @@ describe('AppRoutes', () => {
 
     // Header title link
     expect(screen.getByRole('link', { name: /supply chain tracker/i })).toBeInTheDocument()
-    // Link to Admin Users
-    expect(screen.getByRole('link', { name: /admin users/i })).toBeInTheDocument()
+    // Header no longer shows Admin Users link (was removed from header navigation)
+    expect(screen.queryByRole('link', { name: /admin users/i })).not.toBeInTheDocument()
   })
 
   it('renders Admin Users page at "/admin/users"', () => {
@@ -33,6 +33,7 @@ describe('AppRoutes', () => {
       </Web3Provider>
     )
 
-    expect(screen.getByRole('heading', { name: /admin users/i })).toBeInTheDocument()
+    // Page title is now just "Users"
+    expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument()
   })
 })

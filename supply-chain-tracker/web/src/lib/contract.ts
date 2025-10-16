@@ -12,6 +12,13 @@ import { UserStatus as StatusEnum } from './enums';
 // UserInfo can contain any role string from the contract, including 'Admin'
 export type UserInfo = { role: string | null, status: UserStatus | null };
 
+// Row used by Admin users listing
+export type AdminUserRow = {
+  address: string;
+  role: string | null;
+  status: UserStatus | null;
+};
+
 /**
  * Get user information from the contract
  * @param address - Ethereum address of the user
@@ -72,5 +79,75 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
   } catch (error) {
     console.error('Error requesting role:', error);
     throw error;
+  }
+}
+
+/**
+ * Admin: change status of a user
+ * @param userAddress - target user address
+ * @param newStatus - new status to set (Approved/Rejected/Pending)
+ */
+export async function changeStatusUser(userAddress: string, newStatus: UserStatus): Promise<void> {
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('MetaMask not available');
+  }
+
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+
+    const tx = await contract.changeStatusUser(userAddress, toContractStatus(newStatus));
+    await tx.wait();
+  } catch (error) {
+    console.error('Error changing user status:', error);
+    throw error;
+  }
+}
+
+// Map frontend status string to contract enum value
+function toContractStatus(status: UserStatus): number {
+  switch (status) {
+    case StatusEnum.Pending: return 0;
+    case StatusEnum.Approved: return 1;
+    case StatusEnum.Rejected: return 2;
+    default: return 0;
+  }
+}
+
+/**
+ * Get list of users with pending (or all) requests for admin review.
+ * This assumes the contract exposes a view like `getUsersPending()`; if not available,
+ * this helper should be adapted accordingly. Returns an empty list on failure.
+ */
+export async function getUsersPending(): Promise<AdminUserRow[]> {
+  try {
+    if (typeof window === 'undefined' || !window.ethereum) return [];
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    // Use signer so msg.sender is the connected account (must be admin)
+    const signer = await provider.getSigner();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+
+    // Use getAllUsers from the contract and return ALL users with their current status/role
+    const all: any[] = await (contract as any).getAllUsers();
+    if (!all || !Array.isArray(all)) return [];
+
+    const statusMap: Record<number, UserStatus> = {
+      0: StatusEnum.Pending,
+      1: StatusEnum.Approved,
+      2: StatusEnum.Rejected,
+      // 3: Canceled (not represented in frontend enum)
+    };
+
+    const mapped: AdminUserRow[] = all.map((u: any) => ({
+      address: String(u.userAddress ?? u[1] ?? ''),
+      role: (u.role ?? u[2] ?? null) || null,
+      status: statusMap[Number(u.status ?? u[3] ?? 0)] || null,
+    }));
+
+    return mapped; // no filtering: show all users so approved ones remain visible
+  } catch (e) {
+    console.error('Error getting users list:', e);
+    return [];
   }
 }

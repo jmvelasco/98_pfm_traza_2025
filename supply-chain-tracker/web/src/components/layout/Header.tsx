@@ -1,12 +1,8 @@
 import { Link } from 'react-router-dom';
-import { useUserInfo } from '../../hooks/useUserInfo';
-import { useWallet } from '../../hooks/useWallet';
 import { WalletConnect } from '../wallet/WalletConnect';
 
 export default function Header() {
-  const { address, isConnected } = useWallet();
-  const { userInfo } = useUserInfo(isConnected ? address : null);
-  const isAdmin = userInfo?.role === 'Admin';
+  // Header shows app title and wallet connect; role-based nav removed.
 
   return (
     <header className="w-full border-b bg-white">
