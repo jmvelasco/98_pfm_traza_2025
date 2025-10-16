@@ -577,3 +577,214 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 _Sesión actualizada: 16 octubre 2025, 00:40 GMT_  
 _Metodología: Test-Driven Development (TDD) con refactors incrementales_  
 _Resultado: ✅ Home page registration completada con 5 refactors aplicados_
+
+---
+
+## ➕ Fase 5 — Admin Users Panel (TDD) + Web3 Account Sync (17 octubre 2025)
+
+### 🎯 Objetivo
+Implementar el panel de administración de usuarios siguiendo TDD para:
+- Control de acceso (solo Admin)
+- Listado completo de usuarios del sistema
+- Acciones de aprobación y rechazo con actualización en blockchain
+- Refetch automático tras cambios de estado
+- Manejo correcto de cambios de cuenta en MetaMask
+
+### 🔴 RED — Tests del Panel Admin
+Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
+
+1. **"denies access to non-admin users"**: 
+   - Verifica que usuarios no-admin ven mensaje de acceso restringido
+   - No se muestra formulario de gestión
+
+2. **"lists users with different statuses (pending and approved)"**:
+   - Mock con 3 usuarios: Pending, Approved, Rejected
+   - Verifica que todos aparecen en la tabla
+   - Comprueba que botones se deshabilitan según estado actual
+
+3. **"allows approving a pending user and refetches list"**:
+   - Simula aprobación de usuario Pending
+   - Verifica llamada correcta a `changeStatusUser`
+   - Confirma refetch y actualización de estado a Approved
+
+4. **"shows an error if reject action fails"**:
+   - Simula error en rechazo de usuario
+   - Verifica mensaje de error mostrado al usuario
+
+**Resultado inicial**: ❌ Tests definidos, implementación pendiente
+
+### 🟢 GREEN — Implementación Completa
+
+#### **Archivos Creados/Modificados**:
+
+**1. Página Admin Users (`src/pages/admin/Users.tsx`)**:
+- Control de acceso mediante `useUserInfo` (verifica rol Admin)
+- Estado local: `rows`, `loading`, `error`
+- Función `fetchRows()`: obtiene usuarios desde blockchain
+- Handlers `handleApprove()` y `handleReject()`: cambian estado y refrescan
+- Tabla con columnas: Address, Rol, Estado, Acciones
+- Botones "Aprobar" y "Rechazar" deshabilitados según estado actual
+- Botón "Refrescar" manual para reload
+- useEffect auto-fetch cuando es admin
+
+**2. Helpers de Contrato (`src/lib/contract.ts`)**:
+- **Tipo `AdminUserRow`**: `{ address, role, status }`
+- **`changeStatusUser(address, newStatus)`**: 
+  - Usa signer para ejecutar transacción
+  - Helper `toContractStatus()` mapea enum frontend → contrato (0,1,2)
+  - Espera confirmación con `tx.wait()`
+- **`getUsersPending()`** (renombrado de concepto):
+  - Llama a `getAllUsers()` del contrato con signer (requiere onlyAdmin)
+  - Mapea respuesta del contrato a `AdminUserRow[]`
+  - **Sin filtrado**: retorna TODOS los usuarios (no solo pending)
+  - Permite ver usuarios aprobados/rechazados en lista
+
+**3. Actualización de Tipos (`src/lib/enums.ts`)**:
+- Enums `UserStatus` ya existentes utilizados
+- Labels de estado para UI
+
+**4. Routing (`src/routes/AppRoutes.tsx`)**:
+- Ruta `/admin/users` apunta a componente `Users`
+
+**5. Tests actualizados**:
+- `src/__tests__/app.routes.test.tsx`: expectativa de heading "Users" en lugar de "Admin Users"
+
+**Resultado**: ✅ 4/4 tests pasando (31 totales en proyecto)
+
+### 🔧 REFACTOR — Mejoras Post-GREEN
+
+#### **Refactor 1: Sincronización Web3 con MetaMask**
+**Problema detectado**: Al cambiar de cuenta en MetaMask, el `address` se actualizaba en el contexto pero el `signer` y `contract` seguían vinculados a la cuenta anterior.
+
+**Solución implementada** (`src/contexts/Web3Provider.tsx`):
+- Actualizado handler `accountsChanged` para refrescar signer y contract:
+  ```typescript
+  const existing = provider ?? new ethers.BrowserProvider(window.ethereum)
+  const nextSigner = await existing.getSigner()
+  setSigner(nextSigner)
+  const contractInstance = new ethers.Contract(...)
+  setContract(contractInstance)
+  ```
+- Ahora el signer se recrea al cambiar cuenta, manteniendo sincronía
+- Esto garantiza que `getAllUsers()` se ejecuta con el msg.sender correcto
+
+**Tests actualizados**:
+- `src/__tests__/web3provider.persistence.events.test.tsx`: mantiene 4/4 pasando
+- Verificado que eventos `accountsChanged` y `chainChanged` funcionan correctamente
+
+#### **Refactor 2: UX — Listado completo de usuarios**
+**Cambio de requisito**: Usuario solicitó que usuarios aprobados permanezcan visibles en lista.
+
+**Implementación**:
+- Eliminado filtro `.filter(u => u.status === Pending)` en `getUsersPending()`
+- Ahora retorna **todos los usuarios** del sistema
+- Comentario explicativo: `// no filtering: show all users so approved ones remain visible`
+- Actualizada copia UI: "Gestión de usuarios y sus estados" (no solo pendientes)
+- Empty state: "No hay usuarios" (en lugar de "No hay solicitudes pendientes")
+
+**Beneficio**: Admin ve estado completo del sistema, no necesita adivinar quién fue aprobado/rechazado.
+
+#### **Refactor 3: Botones inteligentes**
+**Implementación**:
+- Botón "Aprobar" deshabilitado si `r.status === UserStatus.Approved`
+- Botón "Rechazar" deshabilitado si `r.status === UserStatus.Rejected`
+- Previene acciones redundantes y mejora feedback visual
+
+**Test agregado**:
+- Test específico verifica disabled state según status actual
+- Confirma que usuario Pending tiene ambos botones habilitados
+
+#### **Refactor 4: Tests ampliados para cobertura mixta**
+**Tests mejorados**:
+- Reemplazado test básico por dos casos más exhaustivos:
+  1. `lists users with different statuses`: tabla con Pending, Approved, Rejected simultáneos
+  2. `allows approving a pending user and refetches list`: simula mock sequence (before/after)
+- Cobertura ahora incluye verificación de disabled buttons por estado
+
+**Resultado**: Suite de 4 tests cubre todos los flujos críticos
+
+#### **Refactor 5: Header limpieza**
+**Cambio**: Eliminadas variables no usadas en `Header.tsx`
+- Removido import `useUserInfo` y variable `isAdmin`
+- Razón: Header ya no muestra link "Admin Users" condicional
+- Build TypeScript sin errores
+
+### ✅ Verificación Final
+```bash
+✓ admin.users.test.tsx (4 tests) — 4/4 pasando
+✓ app.routes.test.tsx (2 tests) — 2/2 pasando  
+✓ web3provider.persistence.events.test.tsx (4 tests) — 4/4 pasando
+✓ Total suite: 31/31 tests pasando ✅
+✓ Build production: OK sin errores TypeScript
+```
+
+### 📊 Resumen de Implementación
+
+**Funcionalidades entregadas**:
+- ✅ Control de acceso Admin con verificación de rol
+- ✅ Listado completo de usuarios desde blockchain (`getAllUsers`)
+- ✅ Tabla con address, rol y estado para cada usuario
+- ✅ Aprobación/rechazo con transacción blockchain y confirmación
+- ✅ Refetch automático tras cada acción
+- ✅ Botón "Refrescar" manual
+- ✅ Estados de loading y error con feedback visual
+- ✅ Botones inteligentes (deshabilitados según estado)
+- ✅ Sincronización correcta con cambios de cuenta MetaMask
+
+**Integración blockchain**:
+- `changeStatusUser()`: transacción firmada con signer actual
+- `getUsersPending()`: lectura de `getAllUsers()` con signer (onlyAdmin)
+- Mapeo correcto de enums frontend ↔ contrato (0=Pending, 1=Approved, 2=Rejected)
+- Manejo de errores en llamadas al contrato
+
+**Tests y calidad**:
+- 4 tests específicos para Admin Users
+- Cobertura: acceso, listado, aprobación, rechazo, errores
+- Test de sincronización Web3 con accountsChanged
+- 100% de tests pasando, build limpio
+
+### 🔧 Archivos Finales Creados/Modificados
+```
+📁 Páginas y Componentes
+├── src/pages/admin/Users.tsx              # Panel completo de gestión
+├── src/__tests__/admin.users.test.tsx     # Suite TDD (4 tests)
+├── src/__tests__/app.routes.test.tsx      # Actualizado (heading "Users")
+
+📁 Lógica de Negocio
+├── src/lib/contract.ts                    # +AdminUserRow, +changeStatusUser, ~getUsersPending
+├── src/contexts/Web3Provider.tsx          # Actualizado accountsChanged con signer refresh
+
+📁 UI/Layout  
+└── src/components/layout/Header.tsx       # Limpieza de imports no usados
+```
+
+### 🚀 Estado Actual del Proyecto
+
+**Completado en esta sesión**:
+- ✅ Panel Admin Users con TDD completo (RED→GREEN→REFACTOR)
+- ✅ Integración blockchain con `getAllUsers` y `changeStatusUser`
+- ✅ Sincronización correcta de Web3 al cambiar cuenta MetaMask
+- ✅ UX mejorada: listado completo, botones inteligentes, feedback de errores
+- ✅ Tests exhaustivos con cobertura de casos edge
+
+**Métricas finales**:
+- **Tests totales**: 31/31 pasando (100% éxito)
+- **Commits TDD**: Pendiente separación en RED/GREEN/REFACTOR
+- **Cobertura nueva**: Gestión admin, sincronización Web3, estados mixtos
+
+**Bloqueadores resueltos**:
+- ❌ Usuarios aprobados desaparecían de lista → ✅ Ahora se muestran todos
+- ❌ Signer desincronizado al cambiar cuenta → ✅ accountsChanged refresca signer/contract
+- ❌ onlyAdmin revertía con provider read-only → ✅ Ahora usa signer
+
+**Próximos pasos (según PLANNING.md)**:
+- [ ] **Gestión de Tokens**: `/tokens/create`, `/tokens` (Producer crea materias primas, Factory/Retailer crean derivados)
+- [ ] **Visualización de balances** y metadatos de tokens
+- [ ] **Transferencias**: `/tokens/[id]/transfer` (flujo dirigido)
+- [ ] **Trazabilidad**: árbol de parentId completo
+
+---
+
+_Sesión actualizada: 17 octubre 2025, 00:30 GMT_  
+_Metodología: Test-Driven Development (TDD) con refactors iterativos_  
+_Resultado: ✅ Panel Admin Users completado, Web3 sync corregido, 31/31 tests pasando_
