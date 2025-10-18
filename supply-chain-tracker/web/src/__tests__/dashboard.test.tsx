@@ -32,6 +32,10 @@ describe('Dashboard Page', () => {
   });
 
   it('redirects to home if not connected', () => {
+    // Mock window.location.href
+    delete (window as any).location;
+    (window as any).location = { href: '' };
+
     vi.mocked(useWallet).mockReturnValue(createMockWalletState({ address: null, isConnected: false }));
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: null,
@@ -41,7 +45,9 @@ describe('Dashboard Page', () => {
     });
 
     render(<Dashboard />);
-    expect(screen.getByText(/please connect your wallet/i)).toBeInTheDocument();
+    
+    // Should redirect to home
+    expect(window.location.href).toBe('/');
   });
 
   it('shows loading state while fetching user info', () => {
@@ -171,7 +177,7 @@ describe('Dashboard Page', () => {
     });
 
     render(<Dashboard />);
-    expect(screen.getByText(/pending transfers/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /pending transfers/i })).toBeInTheDocument();
     expect(screen.getByText(/no pending transfers/i)).toBeInTheDocument();
   });
 });
