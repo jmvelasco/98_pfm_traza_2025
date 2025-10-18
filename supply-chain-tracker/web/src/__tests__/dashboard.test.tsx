@@ -1,0 +1,177 @@
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import Dashboard from '../pages/Dashboard';
+
+// Mock hooks
+vi.mock('../hooks/useWallet');
+vi.mock('../hooks/useUserInfo');
+
+import { useUserInfo } from '../hooks/useUserInfo';
+import type { UseWalletReturn } from '../hooks/useWallet';
+import { useWallet } from '../hooks/useWallet';
+import { UserRole, UserStatus } from '../lib/enums';
+
+function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletReturn {
+  return {
+    address: '0x123',
+    isConnected: true,
+    chainId: 31337,
+    networkName: 'anvil',
+    connect: vi.fn(),
+    getBalance: vi.fn(),
+    switchNetwork: vi.fn(),
+    getCurrentNetwork: vi.fn(),
+    ...overrides,
+  };
+}
+
+describe('Dashboard Page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('redirects to home if not connected', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState({ address: null, isConnected: false }));
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/please connect your wallet/i)).toBeInTheDocument();
+  });
+
+  it('shows loading state while fetching user info', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: null,
+      loading: true,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+  });
+
+  it('shows error if user has no role assigned', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: null, status: null },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/no role assigned/i)).toBeInTheDocument();
+  });
+
+  it('shows Producer dashboard with create raw material action', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Producer, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByRole('heading', { name: /producer dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/create raw material/i)).toBeInTheDocument();
+    expect(screen.getByText(/transfer to factory/i)).toBeInTheDocument();
+  });
+
+  it('shows Factory dashboard with process material action', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Factory, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByRole('heading', { name: /factory dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/process materials/i)).toBeInTheDocument();
+    expect(screen.getByText(/transfer to retailer/i)).toBeInTheDocument();
+  });
+
+  it('shows Retailer dashboard with package product action', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Retailer, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByRole('heading', { name: /retailer dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/package products/i)).toBeInTheDocument();
+    expect(screen.getByText(/transfer to consumer/i)).toBeInTheDocument();
+  });
+
+  it('shows Consumer dashboard with view traceability action', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Consumer, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByRole('heading', { name: /consumer dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/view my products/i)).toBeInTheDocument();
+    expect(screen.getByText(/check traceability/i)).toBeInTheDocument();
+    // Consumer should NOT see transfer option
+    expect(screen.queryByText(/transfer to/i)).not.toBeInTheDocument();
+  });
+
+  it('shows Admin dashboard with system management actions', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Admin, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/manage users/i)).toBeInTheDocument();
+    expect(screen.getByText(/system statistics/i)).toBeInTheDocument();
+  });
+
+  it('shows tokens placeholder section', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Producer, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/my tokens/i)).toBeInTheDocument();
+    expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
+  });
+
+  it('shows pending transfers placeholder section', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Factory, status: UserStatus.Approved },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/pending transfers/i)).toBeInTheDocument();
+    expect(screen.getByText(/no pending transfers/i)).toBeInTheDocument();
+  });
+});
