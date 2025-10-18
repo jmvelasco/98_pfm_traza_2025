@@ -83,4 +83,31 @@ describe('Home page registration', () => {
     render(<Home />);
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });
+
+  it('redirects admin users to /admin/users automatically', async () => {
+    // Spy on window.location.href setter
+    const locationAssignSpy = vi.fn();
+    delete (window as any).location;
+    (window as any).location = { href: '', assign: locationAssignSpy };
+
+    vi.mocked(useWallet).mockReturnValue(
+      createMockWalletState({
+        address: '0xADMIN',
+        isConnected: true,
+        chainId: 31337,
+        networkName: 'anvil',
+      })
+    );
+    vi.mocked(contract.getUserInfo).mockResolvedValue({
+      role: UserRole.Admin,
+      status: UserStatus.Approved,
+    });
+
+    render(<Home />);
+
+    // Wait for the redirect to happen
+    await vi.waitFor(() => {
+      expect(window.location.href).toBe('/admin/users');
+    }, { timeout: 2000 });
+  });
 });
