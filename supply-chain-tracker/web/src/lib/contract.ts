@@ -17,7 +17,7 @@ import {
 export type UserInfo = { role: UserRole | null; status: UserStatus | null }
 
 // Row used by Admin users listing
-export type AdminUserRow = {
+export type Users = {
   address: string
   role: UserRole | null
   status: UserStatus | null
@@ -131,12 +131,7 @@ function toContractStatus(status: UserStatus): number {
   }
 }
 
-/**
- * Get list of users with pending (or all) requests for admin review.
- * This assumes the contract exposes a view like `getUsersPending()`; if not available,
- * this helper should be adapted accordingly. Returns an empty list on failure.
- */
-export async function getUsersPending(): Promise<AdminUserRow[]> {
+export async function getUsers(): Promise<Users[]> {
   try {
     if (typeof window === 'undefined' || !window.ethereum) return []
     const provider = new ethers.BrowserProvider(window.ethereum)
@@ -155,7 +150,7 @@ export async function getUsersPending(): Promise<AdminUserRow[]> {
       // 3: Canceled (not represented in frontend enum)
     }
 
-    const mapped: AdminUserRow[] = all.map((u: any) => ({
+    const mapped: Users[] = all.map((u: any) => ({
       address: String(u.userAddress ?? u[1] ?? ''),
       role: (u.role ?? u[2] ?? null) || null,
       status: statusMap[Number(u.status ?? u[3] ?? 0)] || null,

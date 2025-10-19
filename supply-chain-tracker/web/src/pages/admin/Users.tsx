@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useUserInfo } from '../../hooks/useUserInfo'
 import { useWallet } from '../../hooks/useWallet'
-import { changeStatusUser, getUsersPending, type AdminUserRow } from '../../lib/contract'
+import { changeStatusUser, getUsers, type Users } from '../../lib/contract'
 import { UserStatus } from '../../lib/enums'
 
 export default function Users() {
@@ -9,7 +9,7 @@ export default function Users() {
   const { userInfo: myInfo } = useUserInfo(address)
   const isAdmin = myInfo?.role === 'Admin'
 
-  const [rows, setRows] = useState<AdminUserRow[]>([])
+  const [users, setUsers] = useState<Users[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -17,8 +17,8 @@ export default function Users() {
     setLoading(true)
     setError(null)
     try {
-      const list = await getUsersPending()
-      setRows(list)
+      const list = await getUsers()
+      setUsers(list)
     } catch (e) {
       setError('Error cargando usuarios pendientes')
     } finally {
@@ -83,8 +83,8 @@ export default function Users() {
 
       <div className="mt-6 max-w-4xl">
         {loading && <p className="text-gray-500">Cargando…</p>}
-        {!loading && rows.length === 0 && <p className="text-gray-500">No hay usuarios.</p>}
-        {!loading && rows.length > 0 && (
+        {!loading && users.length === 0 && <p className="text-gray-500">No hay usuarios.</p>}
+        {!loading && users.length > 0 && (
           <table className="w-full border text-sm">
             <thead>
               <tr className="bg-gray-900 text-left">
@@ -95,7 +95,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => (
+              {users.map((r) => (
                 <tr key={r.address} className="border-b">
                   <td className="p-2 font-mono text-xs break-all">{r.address}</td>
                   <td className="p-2">{r.role ?? '—'}</td>

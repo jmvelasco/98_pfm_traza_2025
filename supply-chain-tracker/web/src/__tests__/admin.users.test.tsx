@@ -13,12 +13,12 @@ vi.mock('../hooks/useUserInfo', () => ({
 vi.mock('../lib/contract', () => ({
   changeStatusUser: vi.fn(),
   getUserInfo: vi.fn(),
-  getUsersPending: vi.fn(),
+  getUsers: vi.fn(),
 }))
 
 import { useUserInfo } from '../hooks/useUserInfo'
 import { useWallet } from '../hooks/useWallet'
-import { changeStatusUser, getUsersPending } from '../lib/contract'
+import { changeStatusUser, getUsers } from '../lib/contract'
 import { UserStatus } from '../lib/enums'
 
 describe('Admin Users Page', () => {
@@ -89,7 +89,7 @@ describe('Admin Users Page', () => {
         status: UserStatus.Rejected,
       },
     ]
-    vi.mocked(getUsersPending).mockResolvedValue(users as any)
+    vi.mocked(getUsers).mockResolvedValue(users as any)
     vi.mocked(changeStatusUser).mockResolvedValue(undefined)
 
     render(<Users />)
@@ -151,7 +151,7 @@ describe('Admin Users Page', () => {
       },
     ]
 
-    vi.mocked(getUsersPending)
+    vi.mocked(getUsers)
       .mockResolvedValueOnce(initialUsers as any)
       .mockResolvedValueOnce(updatedUsers as any)
     vi.mocked(changeStatusUser).mockResolvedValue(undefined)
@@ -200,7 +200,7 @@ describe('Admin Users Page', () => {
         status: UserStatus.Pending,
       },
     ]
-    vi.mocked(getUsersPending).mockResolvedValue(pending as any)
+    vi.mocked(getUsers).mockResolvedValue(pending as any)
     vi.mocked(changeStatusUser).mockRejectedValue(new Error('tx failed'))
 
     render(<Users />)
