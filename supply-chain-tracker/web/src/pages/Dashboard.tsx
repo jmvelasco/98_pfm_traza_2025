@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import MyTokens from '../components/MyTokens'
 import { RoleActions } from '../components/ui/RoleActions'
 import Spinner from '../components/ui/Spiner'
 import { useUserInfo } from '../hooks/useUserInfo'
@@ -63,9 +64,13 @@ export default function Dashboard() {
       {/* My Tokens Section */}
       <section>
         <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
-        <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">No tokens yet. Create or receive tokens to see them here.</p>
-        </div>
+        {address ? (
+          <MyTokens userAddress={address} />
+        ) : (
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <p className="text-gray-500">Connect your wallet to see your tokens.</p>
+          </div>
+        )}
       </section>
 
       {/* Pending Transfers Section */}
