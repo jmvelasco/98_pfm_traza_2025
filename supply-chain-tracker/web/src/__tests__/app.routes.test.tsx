@@ -43,7 +43,7 @@ describe('AppRoutes', () => {
 
     render(
       <Web3Provider>
-        <MemoryRouter initialEntries={["/"]}>
+        <MemoryRouter initialEntries={['/']}>
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>
@@ -66,7 +66,7 @@ describe('AppRoutes', () => {
 
     render(
       <Web3Provider>
-        <MemoryRouter initialEntries={["/admin/users"]}>
+        <MemoryRouter initialEntries={['/admin/users']}>
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>
@@ -94,7 +94,7 @@ describe('AppRoutes', () => {
 
     render(
       <Web3Provider>
-        <MemoryRouter initialEntries={["/dashboard"]}>
+        <MemoryRouter initialEntries={['/dashboard']}>
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>

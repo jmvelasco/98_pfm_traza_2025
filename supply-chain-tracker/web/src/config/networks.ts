@@ -6,4 +6,4 @@ export const NETWORK_NAMES: Record<number, string> = {
   137: 'Polygon Mainnet',
   80001: 'Polygon Mumbai',
   31337: 'Localhost',
-};
+}

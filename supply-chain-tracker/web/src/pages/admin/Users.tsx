@@ -1,61 +1,61 @@
-import { useEffect, useState } from 'react';
-import { useUserInfo } from '../../hooks/useUserInfo';
-import { useWallet } from '../../hooks/useWallet';
-import { changeStatusUser, getUsersPending, type AdminUserRow } from '../../lib/contract';
-import { UserStatus } from '../../lib/enums';
+import { useEffect, useState } from 'react'
+import { useUserInfo } from '../../hooks/useUserInfo'
+import { useWallet } from '../../hooks/useWallet'
+import { changeStatusUser, getUsersPending, type AdminUserRow } from '../../lib/contract'
+import { UserStatus } from '../../lib/enums'
 
 export default function Users() {
-  const { address } = useWallet();
-  const { userInfo: myInfo } = useUserInfo(address);
-  const isAdmin = myInfo?.role === 'Admin';
+  const { address } = useWallet()
+  const { userInfo: myInfo } = useUserInfo(address)
+  const isAdmin = myInfo?.role === 'Admin'
 
-  const [rows, setRows] = useState<AdminUserRow[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [rows, setRows] = useState<AdminUserRow[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchRows = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      const list = await getUsersPending();
-      setRows(list);
+      const list = await getUsersPending()
+      setRows(list)
     } catch (e) {
-      setError('Error cargando usuarios pendientes');
+      setError('Error cargando usuarios pendientes')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleApprove = async (targetAddress: string) => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      await changeStatusUser(targetAddress, UserStatus.Approved);
-      await fetchRows();
+      await changeStatusUser(targetAddress, UserStatus.Approved)
+      await fetchRows()
     } catch (e) {
-      setError('Error al actualizar estado');
+      setError('Error al actualizar estado')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleReject = async (targetAddress: string) => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
     try {
-      await changeStatusUser(targetAddress, UserStatus.Rejected);
-      await fetchRows();
+      await changeStatusUser(targetAddress, UserStatus.Rejected)
+      await fetchRows()
     } catch (e) {
-      setError('Error al actualizar estado');
+      setError('Error al actualizar estado')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    if (isAdmin) fetchRows();
+    if (isAdmin) fetchRows()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
+  }, [isAdmin])
 
   if (!isAdmin) {
     return (
@@ -63,7 +63,7 @@ export default function Users() {
         <h2 className="text-2xl font-semibold">Users</h2>
         <p className="mt-2 text-gray-600">Acceso restringido a administradores.</p>
       </section>
-    );
+    )
   }
 
   return (
@@ -83,9 +83,7 @@ export default function Users() {
 
       <div className="mt-6 max-w-4xl">
         {loading && <p className="text-gray-500">Cargando…</p>}
-        {!loading && rows.length === 0 && (
-          <p className="text-gray-500">No hay usuarios.</p>
-        )}
+        {!loading && rows.length === 0 && <p className="text-gray-500">No hay usuarios.</p>}
         {!loading && rows.length > 0 && (
           <table className="w-full border text-sm">
             <thead>

@@ -3,21 +3,25 @@
 // and ensure type safety across the application.
 // The frontend should never use strings directly or interact with TypeChain.
 
-import { ethers } from 'ethers';
-import { CONTRACT_CONFIG } from '../config/contracts';
-import { SupplyChain__factory } from '../types/factories/SupplyChain__factory';
-import type { UserRole, UserStatus } from './enums';
-import { UserStatus as StatusEnum } from './enums';
+import { ethers } from 'ethers'
+import { CONTRACT_CONFIG } from '../config/contracts'
+import { SupplyChain__factory } from '../types/factories/SupplyChain__factory'
+import {
+  UserStatus as StatusEnum,
+  UserRole as UserRoleEnum,
+  type UserRole,
+  type UserStatus,
+} from './enums'
 
 // UserInfo can contain any role string from the contract, including 'Admin'
-export type UserInfo = { role: string | null, status: UserStatus | null };
+export type UserInfo = { role: UserRole | null; status: UserStatus | null }
 
 // Row used by Admin users listing
 export type AdminUserRow = {
-  address: string;
-  role: string | null;
-  status: UserStatus | null;
-};
+  address: string
+  role: UserRole | null
+  status: UserStatus | null
+}
 
 /**
  * Get user information from the contract
@@ -28,30 +32,38 @@ export async function getUserInfo(address: string): Promise<UserInfo> {
   try {
     // Get provider from window.ethereum
     if (typeof window === 'undefined' || !window.ethereum) {
-      return { role: null, status: null };
+      return { role: null, status: null }
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
-    
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider)
+
     // Call getUserInfo from contract
-    const user = await contract.getUserInfo(address);
-    
+    const user = await contract.getUserInfo(address)
+
     // Map contract status enum (0,1,2,3) to our status strings
     const statusMap: Record<number, UserStatus> = {
       0: StatusEnum.Pending,
       1: StatusEnum.Approved,
       2: StatusEnum.Rejected,
       // 3 would be Canceled but we don't have it in our enum yet
-    };
+    }
+
+    const rolesMap: Record<string, UserRole> = {
+      Producer: UserRoleEnum.Producer,
+      Factory: UserRoleEnum.Factory,
+      Retailer: UserRoleEnum.Retailer,
+      Consumer: UserRoleEnum.Consumer,
+      Admin: UserRoleEnum.Admin,
+    }
 
     return {
-      role: user.role || null,
+      role: rolesMap[user.role] || null,
       status: statusMap[Number(user.status)] || null,
-    };
+    }
   } catch (error) {
-    console.error('Error getting user info:', error);
-    return { role: null, status: null };
+    console.error('Error getting user info:', error)
+    return { role: null, status: null }
   }
 }
 
@@ -64,21 +76,21 @@ export async function getUserInfo(address: string): Promise<UserInfo> {
 export async function requestUserRole(address: string, role: UserRole): Promise<void> {
   try {
     if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('MetaMask not available');
+      throw new Error('MetaMask not available')
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
-    
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner()
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer)
+
     // Call requestUserRole from contract
-    const tx = await contract.requestUserRole(role);
-    await tx.wait();
-    
-    console.log(`Role ${role} requested successfully for ${address}`);
+    const tx = await contract.requestUserRole(role)
+    await tx.wait()
+
+    console.log(`Role ${role} requested successfully for ${address}`)
   } catch (error) {
-    console.error('Error requesting role:', error);
-    throw error;
+    console.error('Error requesting role:', error)
+    throw error
   }
 }
 
@@ -89,29 +101,33 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
  */
 export async function changeStatusUser(userAddress: string, newStatus: UserStatus): Promise<void> {
   if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('MetaMask not available');
+    throw new Error('MetaMask not available')
   }
 
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner()
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer)
 
-    const tx = await contract.changeStatusUser(userAddress, toContractStatus(newStatus));
-    await tx.wait();
+    const tx = await contract.changeStatusUser(userAddress, toContractStatus(newStatus))
+    await tx.wait()
   } catch (error) {
-    console.error('Error changing user status:', error);
-    throw error;
+    console.error('Error changing user status:', error)
+    throw error
   }
 }
 
 // Map frontend status string to contract enum value
 function toContractStatus(status: UserStatus): number {
   switch (status) {
-    case StatusEnum.Pending: return 0;
-    case StatusEnum.Approved: return 1;
-    case StatusEnum.Rejected: return 2;
-    default: return 0;
+    case StatusEnum.Pending:
+      return 0
+    case StatusEnum.Approved:
+      return 1
+    case StatusEnum.Rejected:
+      return 2
+    default:
+      return 0
   }
 }
 
@@ -122,32 +138,32 @@ function toContractStatus(status: UserStatus): number {
  */
 export async function getUsersPending(): Promise<AdminUserRow[]> {
   try {
-    if (typeof window === 'undefined' || !window.ethereum) return [];
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    if (typeof window === 'undefined' || !window.ethereum) return []
+    const provider = new ethers.BrowserProvider(window.ethereum)
     // Use signer so msg.sender is the connected account (must be admin)
-    const signer = await provider.getSigner();
-    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+    const signer = await provider.getSigner()
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer)
 
     // Use getAllUsers from the contract and return ALL users with their current status/role
-    const all: any[] = await (contract as any).getAllUsers();
-    if (!all || !Array.isArray(all)) return [];
+    const all: any[] = await (contract as any).getAllUsers()
+    if (!all || !Array.isArray(all)) return []
 
     const statusMap: Record<number, UserStatus> = {
       0: StatusEnum.Pending,
       1: StatusEnum.Approved,
       2: StatusEnum.Rejected,
       // 3: Canceled (not represented in frontend enum)
-    };
+    }
 
     const mapped: AdminUserRow[] = all.map((u: any) => ({
       address: String(u.userAddress ?? u[1] ?? ''),
       role: (u.role ?? u[2] ?? null) || null,
       status: statusMap[Number(u.status ?? u[3] ?? 0)] || null,
-    }));
+    }))
 
-    return mapped; // no filtering: show all users so approved ones remain visible
+    return mapped // no filtering: show all users so approved ones remain visible
   } catch (e) {
-    console.error('Error getting users list:', e);
-    return [];
+    console.error('Error getting users list:', e)
+    return []
   }
 }

@@ -11,7 +11,7 @@ vi.mock('ethers', () => {
     }
   }
   class MockBrowserProvider {
-    constructor(_eth: any) { }
+    constructor(_eth: any) {}
     async getSigner() {
       return new MockSigner()
     }
@@ -63,15 +63,15 @@ const mockEthereum = {
   }),
   // util to emit
   _emit(event: string, payload: any) {
-    ; (listeners[event] || []).forEach((fn) => fn(payload))
+    ;(listeners[event] || []).forEach((fn) => fn(payload))
   },
 }
 
 // Patch globals before each test
 beforeEach(() => {
   listeners = {}
-    ; (global as any).window = Object.create(window)
-    ; (window as any).ethereum = mockEthereum
+  ;(global as any).window = Object.create(window)
+  ;(window as any).ethereum = mockEthereum
   // Clear storage
   localStorage.clear()
   currentAccount = '0xabc'

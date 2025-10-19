@@ -1,8 +1,8 @@
-import { ethers } from 'ethers';
-import type { ReactNode } from 'react';
-import { createContext, useContext, useEffect, useState } from 'react';
-import { CONTRACT_CONFIG } from '../config/contracts';
-import type { SupplyChain } from '../types/SupplyChain'; // TypeChain types
+import { ethers } from 'ethers'
+import type { ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
+import { CONTRACT_CONFIG } from '../config/contracts'
+import type { SupplyChain } from '../types/SupplyChain' // TypeChain types
 
 // Extend the Window interface to include the ethereum property
 declare global {
@@ -114,7 +114,9 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
     const init = async () => {
       const [accounts, persisted] = await Promise.all([
         window.ethereum.request({ method: 'eth_accounts' }) as Promise<string[]>,
-        Promise.resolve<string | null>(typeof localStorage !== 'undefined' ? localStorage.getItem('web3:address') : null),
+        Promise.resolve<string | null>(
+          typeof localStorage !== 'undefined' ? localStorage.getItem('web3:address') : null
+        ),
       ])
 
       if (accounts && accounts.length > 0) {
