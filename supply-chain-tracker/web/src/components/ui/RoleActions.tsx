@@ -1,4 +1,6 @@
-import { UserRole } from '../../lib/enums'
+import React, { useState } from 'react';
+import { UserRole } from '../../lib/enums';
+
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
@@ -6,11 +8,10 @@ export function RoleActions({ role }: { role: UserRole }) {
     case UserRole.Producer:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCard
+          <ActionCardWithFeedback
             title="Create Raw Material"
             description="Register new raw materials in the system"
             icon="🌾"
-            disabled
           />
           <ActionCard
             title="Transfer to Factory"
@@ -93,7 +94,56 @@ export function RoleActions({ role }: { role: UserRole }) {
   }
 }
 
-function ActionCard({ title, description, icon, link, disabled }: ActionCardProps) {
+
+// ActionCard with local feedback for Producer mint action
+function ActionCardWithFeedback(props: ActionCardProps) {
+  const [showFeedback, setShowFeedback] = useState(false);
+  const { title, description, icon, link, disabled } = props;
+  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
+  const enabledClasses = 'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
+  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
+
+  const handleClick = () => {
+    setShowFeedback(true);
+    if (props.onClick) props.onClick();
+  };
+
+  const content = (
+    <>
+      <div className="text-4xl mb-3">{icon}</div>
+      <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
+      <p className="text-sm text-gray-600">{description}</p>
+      {disabled && (
+        <span className="inline-block mt-3 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Coming soon</span>
+      )}
+      {showFeedback && (
+        <div data-testid="minting-feedback" className="mt-3 text-blue-600">Minting raw material...</div>
+      )}
+    </>
+  );
+
+  if (link && !disabled) {
+    return (
+      <a href={link} className={`${baseClasses} ${enabledClasses} block`}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}
+      onClick={disabled ? undefined : handleClick}
+      role={!disabled ? 'button' : undefined}
+      tabIndex={!disabled ? 0 : undefined}
+      aria-disabled={disabled}
+    >
+      {content}
+    </div>
+  );
+}
+
+function ActionCard({ title, description, icon, link, disabled, onClick, children }: ActionCardProps & { children?: React.ReactNode }) {
   const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all'
   const enabledClasses =
     'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500'
@@ -109,6 +159,7 @@ function ActionCard({ title, description, icon, link, disabled }: ActionCardProp
           Coming soon
         </span>
       )}
+      {children}
     </>
   )
 
@@ -121,7 +172,15 @@ function ActionCard({ title, description, icon, link, disabled }: ActionCardProp
   }
 
   return (
-    <div className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}>{content}</div>
+    <div
+      className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}
+      onClick={disabled ? undefined : onClick}
+      role={onClick && !disabled ? 'button' : undefined}
+      tabIndex={onClick && !disabled ? 0 : undefined}
+      aria-disabled={disabled}
+    >
+      {content}
+    </div>
   )
 }
 
@@ -131,4 +190,5 @@ interface ActionCardProps {
   icon: string
   link?: string
   disabled?: boolean
+  onClick?: () => void
 }
