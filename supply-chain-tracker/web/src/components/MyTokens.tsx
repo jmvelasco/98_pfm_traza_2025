@@ -106,7 +106,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
   if (tokens.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-500">No tokens found</p>
+        <p className="text-gray-500">No tokens yet</p>
       </div>
     )
   }
@@ -123,7 +123,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
 
         return (
           <div key={token.id} className="border rounded-lg p-4 bg-white shadow-sm">
-            <h3 className="text-lg font-semibold mb-2">{token.name}</h3>
+            <h3 className="text-lg text-orange-600 font-semibold mb-2">{token.name}</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <p>
                 <span className="font-medium">Token ID:</span> {token.id}
@@ -138,6 +138,11 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
                 <span className="font-medium">Parent ID:</span>{' '}
                 {token.parentId === 0 ? 'Raw Material' : token.parentId}
               </p>
+              {parsedFeatures.content && (
+                <p>
+                  <span className="font-medium">Content:</span> {parsedFeatures.content}
+                </p>
+              )}
               {parsedFeatures.country && (
                 <p>
                   <span className="font-medium">Country:</span> {parsedFeatures.country}
