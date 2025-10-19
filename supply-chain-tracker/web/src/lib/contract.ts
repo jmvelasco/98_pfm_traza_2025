@@ -198,3 +198,79 @@ export async function createToken(params: {
     throw e
   }
 }
+
+/**
+ * Token details from contract
+ */
+export type TokenDetails = {
+  id: number
+  creator: string
+  name: string
+  totalSupply: number
+  features: string
+  parentId: number
+  dateCreated: number
+  balance: number
+}
+
+/**
+ * Get all token IDs owned by a user
+ * @param userAddress - Address of the user
+ * @returns Array of token IDs
+ */
+export async function getUserTokens(userAddress: string): Promise<number[]> {
+  try {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      return []
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider)
+
+    // Call getUserTokens from contract
+    const tokenIds = await contract.getUserTokens(userAddress)
+    
+    // Convert BigInt to number
+    return tokenIds.map((id: any) => Number(id))
+  } catch (error) {
+    console.error('Error getting user tokens:', error)
+    return []
+  }
+}
+
+/**
+ * Get token details by ID
+ * @param tokenId - Token ID
+ * @param userAddress - Address to check balance for
+ * @returns Token details including balance for the user
+ */
+export async function getTokenDetails(tokenId: number, userAddress: string): Promise<TokenDetails | null> {
+  try {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      return null
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider)
+
+    // Get token info
+    const token = await contract.getToken(tokenId)
+    
+    // Get balance for the user
+    const balance = await contract.getTokenBalance(tokenId, userAddress)
+
+    return {
+      id: Number(token.id),
+      creator: token.creator,
+      name: token.name,
+      totalSupply: Number(token.totalSupply),
+      features: token.features,
+      parentId: Number(token.parentId),
+      dateCreated: Number(token.dateCreated),
+      balance: Number(balance),
+    }
+  } catch (error) {
+    console.error('Error getting token details:', error)
+    return null
+  }
+}
