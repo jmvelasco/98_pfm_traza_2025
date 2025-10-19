@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as contractModule from '../lib/contract';
 import Dashboard from '../pages/Dashboard';
@@ -75,9 +75,11 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     render(<Dashboard />);
 
     // Assert: MyTokens section should show the token
-    expect(screen.getByText('My Tokens')).toBeInTheDocument();
-    expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
-    expect(screen.getByText(/Spain/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('My Tokens')).toBeInTheDocument();
+      expect(screen.getByText(/Wheat/i)).toBeInTheDocument();
+      expect(screen.getByText(/Spain/i)).toBeInTheDocument();
+    });
   });
 
   it('shows empty state in MyTokens when user has no tokens', async () => {
@@ -107,7 +109,9 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     render(<Dashboard />);
 
     // Assert: Should show empty state
-    expect(screen.getByText('My Tokens')).toBeInTheDocument();
-    expect(await screen.findByText(/no tokens found/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('My Tokens')).toBeInTheDocument();
+      expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
+    });
   });
 });

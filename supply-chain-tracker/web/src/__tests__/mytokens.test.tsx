@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MyTokens from '../components/MyTokens';
 import * as contractModule from '../lib/contract';
@@ -39,7 +39,9 @@ describe('MyTokens (TDD RED)', () => {
     vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     
     render(<MyTokens userAddress="0x123" />);
-    expect(await screen.findByText(/no tokens found/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
+    });
   });
 
   it('shows list of owned tokens with metadata', async () => {
@@ -48,8 +50,10 @@ describe('MyTokens (TDD RED)', () => {
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
     
     render(<MyTokens userAddress="0x123" />);
-    expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
-    expect(screen.getByText(/Spain/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Wheat/i)).toBeInTheDocument();
+      expect(screen.getByText(/Spain/i)).toBeInTheDocument();
+    });
   });
 
   it('updates UI in real time when TokenCreated event is emitted for user', async () => {

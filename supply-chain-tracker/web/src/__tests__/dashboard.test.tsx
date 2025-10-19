@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Dashboard from '../pages/Dashboard'
 
@@ -78,7 +78,7 @@ describe('Dashboard Page', () => {
     expect(screen.getByText(/no role assigned/i)).toBeInTheDocument()
   })
 
-  it('shows Producer dashboard with create raw material action', () => {
+  it('shows Producer dashboard with create raw material action', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Producer, status: UserStatus.Approved },
@@ -88,12 +88,14 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /producer dashboard/i })).toBeInTheDocument()
-    expect(screen.getByText(/create raw material/i)).toBeInTheDocument()
-    expect(screen.getByText(/transfer to factory/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /producer dashboard/i })).toBeInTheDocument()
+      expect(screen.getByText(/create raw material/i)).toBeInTheDocument()
+      expect(screen.getByText(/transfer to factory/i)).toBeInTheDocument()
+    })
   })
 
-  it('shows Factory dashboard with process material action', () => {
+  it('shows Factory dashboard with process material action', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Factory, status: UserStatus.Approved },
@@ -103,12 +105,14 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /factory dashboard/i })).toBeInTheDocument()
-    expect(screen.getByText(/process materials/i)).toBeInTheDocument()
-    expect(screen.getByText(/transfer to retailer/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /factory dashboard/i })).toBeInTheDocument()
+      expect(screen.getByText(/process materials/i)).toBeInTheDocument()
+      expect(screen.getByText(/transfer to retailer/i)).toBeInTheDocument()
+    })
   })
 
-  it('shows Retailer dashboard with package product action', () => {
+  it('shows Retailer dashboard with package product action', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Retailer, status: UserStatus.Approved },
@@ -118,12 +122,14 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /retailer dashboard/i })).toBeInTheDocument()
-    expect(screen.getByText(/package products/i)).toBeInTheDocument()
-    expect(screen.getByText(/transfer to consumer/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /retailer dashboard/i })).toBeInTheDocument()
+      expect(screen.getByText(/package products/i)).toBeInTheDocument()
+      expect(screen.getByText(/transfer to consumer/i)).toBeInTheDocument()
+    })
   })
 
-  it('shows Consumer dashboard with view traceability action', () => {
+  it('shows Consumer dashboard with view traceability action', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Consumer, status: UserStatus.Approved },
@@ -133,14 +139,16 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /consumer dashboard/i })).toBeInTheDocument()
-    expect(screen.getByText(/view my products/i)).toBeInTheDocument()
-    expect(screen.getByText(/check traceability/i)).toBeInTheDocument()
-    // Consumer should NOT see transfer option
-    expect(screen.queryByText(/transfer to/i)).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /consumer dashboard/i })).toBeInTheDocument()
+      expect(screen.getByText(/view my products/i)).toBeInTheDocument()
+      expect(screen.getByText(/check traceability/i)).toBeInTheDocument()
+      // Consumer should NOT see transfer option
+      expect(screen.queryByText(/transfer to/i)).not.toBeInTheDocument()
+    })
   })
 
-  it('shows Admin dashboard with system management actions', () => {
+  it('shows Admin dashboard with system management actions', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Admin, status: UserStatus.Approved },
@@ -150,12 +158,14 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument()
-    expect(screen.getByText(/manage users/i)).toBeInTheDocument()
-    expect(screen.getByText(/system statistics/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument()
+      expect(screen.getByText(/manage users/i)).toBeInTheDocument()
+      expect(screen.getByText(/system statistics/i)).toBeInTheDocument()
+    })
   })
 
-  it('shows tokens placeholder section', () => {
+  it('shows tokens placeholder section', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Producer, status: UserStatus.Approved },
@@ -165,11 +175,13 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByText(/my tokens/i)).toBeInTheDocument()
-    expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText(/my tokens/i)).toBeInTheDocument()
+      expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument()
+    })
   })
 
-  it('shows pending transfers placeholder section', () => {
+  it('shows pending transfers placeholder section', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState())
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Factory, status: UserStatus.Approved },
@@ -179,7 +191,9 @@ describe('Dashboard Page', () => {
     })
 
     render(<Dashboard />)
-    expect(screen.getByRole('heading', { name: /pending transfers/i })).toBeInTheDocument()
-    expect(screen.getByText(/no pending transfers/i)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /pending transfers/i })).toBeInTheDocument()
+      expect(screen.getByText(/no pending transfers/i)).toBeInTheDocument()
+    })
   })
 })
