@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createToken } from '../../lib/contract';
 import { UserRole } from '../../lib/enums';
 
 
@@ -103,8 +104,21 @@ function ActionCardWithFeedback(props: ActionCardProps) {
   const enabledClasses = 'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
   const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
-  const handleClick = () => {
+  const handleClick = async () => {
     setShowFeedback(true);
+    
+    try {
+      // Call createToken with default values for raw material
+      await createToken({
+        name: 'Raw Material',
+        totalSupply: 100,
+        features: JSON.stringify({ type: 'raw', quality: 'premium' }),
+        parentId: 0,
+      });
+    } catch (error) {
+      console.error('Error minting token:', error);
+    }
+    
     if (props.onClick) props.onClick();
   };
 

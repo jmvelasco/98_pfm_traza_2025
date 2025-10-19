@@ -162,3 +162,39 @@ export async function getUsers(): Promise<Users[]> {
     return []
   }
 }
+
+/**
+ * Create a new token (mint raw material for Producer)
+ * @param params - Token creation parameters
+ * @returns Promise that resolves when token is created
+ */
+export async function createToken(params: {
+  name: string
+  totalSupply: number
+  features: string
+  parentId: number
+}): Promise<void> {
+  try {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      throw new Error('No ethereum provider found')
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner()
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer)
+
+    // Call createToken on the contract
+    const tx = await contract.createToken(
+      params.name,
+      params.totalSupply,
+      params.features,
+      params.parentId
+    )
+
+    // Wait for transaction to be mined
+    await tx.wait()
+  } catch (e) {
+    console.error('Error creating token:', e)
+    throw e
+  }
+}
