@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Home from '../pages/Home';
 
@@ -27,6 +28,11 @@ function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletR
   };
 }
 
+// Helper to render with router context
+function renderWithRouter(component: React.ReactElement) {
+  return render(<MemoryRouter>{component}</MemoryRouter>);
+}
+
 describe('Home page registration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,7 +40,7 @@ describe('Home page registration', () => {
 
   it('shows connect CTA if not connected', () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
-    render(<Home />);
+    renderWithRouter(<Home />);
     expect(screen.getByRole('button', { name: /connect wallet/i })).toBeInTheDocument();
   });
 
@@ -49,7 +55,7 @@ describe('Home page registration', () => {
     );
     vi.mocked(contract.getUserInfo).mockResolvedValue({ role: null, status: null });
 
-    render(<Home />);
+    renderWithRouter(<Home />);
     expect(await screen.findByLabelText(/select role/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /request role/i })).toBeInTheDocument();
   });
@@ -65,8 +71,26 @@ describe('Home page registration', () => {
     );
     vi.mocked(contract.getUserInfo).mockResolvedValue({ role: UserRole.Producer, status: UserStatus.Pending });
 
-    render(<Home />);
+    renderWithRouter(<Home />);
     expect(await screen.findByText(/status: pending/i)).toBeInTheDocument();
+  });
+
+  it('shows dashboard link when user has a role', async () => {
+    vi.mocked(useWallet).mockReturnValue(
+      createMockWalletState({
+        address: '0x123',
+        isConnected: true,
+        chainId: 31337,
+        networkName: 'anvil',
+      })
+    );
+    vi.mocked(contract.getUserInfo).mockResolvedValue({ role: UserRole.Producer, status: UserStatus.Approved });
+
+    renderWithRouter(<Home />);
+    expect(await screen.findByText(/role: producer/i)).toBeInTheDocument();
+    const dashboardLink = screen.getByRole('link', { name: /go to dashboard/i });
+    expect(dashboardLink).toBeInTheDocument();
+    expect(dashboardLink).toHaveAttribute('href', '/dashboard');
   });
 
   it('shows error if contract call fails', async () => {
@@ -80,7 +104,7 @@ describe('Home page registration', () => {
     );
     vi.mocked(contract.getUserInfo).mockRejectedValue(new Error('Contract error'));
 
-    render(<Home />);
+    renderWithRouter(<Home />);
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });
 
@@ -103,7 +127,7 @@ describe('Home page registration', () => {
       status: UserStatus.Approved,
     });
 
-    render(<Home />);
+    renderWithRouter(<Home />);
 
     // Wait for the redirect to happen
     await vi.waitFor(() => {

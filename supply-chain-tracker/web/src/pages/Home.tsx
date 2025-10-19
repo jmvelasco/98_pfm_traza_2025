@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
@@ -63,6 +64,9 @@ export default function Home() {
         <div>
           <p>Role: {userInfo.role}</p>
           <p>Status: {isValidStatus(userInfo.status) ? STATUS_LABELS[userInfo.status] : 'Unknown'}</p>
+          <Link to="/dashboard" className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Go to Dashboard
+          </Link>
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">
