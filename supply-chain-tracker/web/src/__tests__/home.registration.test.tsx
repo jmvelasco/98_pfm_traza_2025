@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Home from '../pages/Home'
@@ -136,7 +136,7 @@ describe('Home page registration', () => {
     renderWithRouter(<Home />)
 
     // Wait for the redirect to happen
-    await vi.waitFor(
+    await waitFor(
       () => {
         expect(window.location.href).toBe('/admin/users')
       },
