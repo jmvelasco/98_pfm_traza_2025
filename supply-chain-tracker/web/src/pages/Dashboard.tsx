@@ -71,7 +71,7 @@ export default function Dashboard() {
       {/* Pending Transfers Section */}
       {role !== UserRole.Consumer && (
         <section>
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Pending Transfers</h2>
+          <h2 className="text-xl font-semibold text-blue-400 mb-4">Pending Transfers</h2>
           <div className="bg-white rounded-lg shadow p-6 text-center">
             <p className="text-gray-500">No pending transfers at the moment.</p>
           </div>
