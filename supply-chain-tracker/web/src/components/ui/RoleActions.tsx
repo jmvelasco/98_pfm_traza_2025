@@ -98,21 +98,34 @@ export function RoleActions({ role }: { role: UserRole }) {
 
 // ActionCard with local feedback for Producer mint action
 function ActionCardWithFeedback(props: ActionCardProps) {
+  const [showForm, setShowForm] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    totalSupply: '',
+    content: ''
+  });
   const { title, description, icon, link, disabled } = props;
   const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
   const enabledClasses = 'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
   const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
-  const handleClick = async () => {
+  const handleClick = () => {
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setShowFeedback(true);
     
     try {
-      // Call createToken with default values for raw material
       await createToken({
-        name: 'Raw Material',
-        totalSupply: 100,
-        features: JSON.stringify({ type: 'raw', quality: 'premium' }),
+        name: formData.name,
+        totalSupply: Number(formData.totalSupply),
+        features: JSON.stringify({
+          type: 'raw',
+          content: formData.content
+        }),
         parentId: 0,
       });
     } catch (error) {
@@ -129,6 +142,59 @@ function ActionCardWithFeedback(props: ActionCardProps) {
       <p className="text-sm text-gray-600">{description}</p>
       {disabled && (
         <span className="inline-block mt-3 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Coming soon</span>
+      )}
+      {showForm && !showFeedback && (
+        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+          <div>
+            <label htmlFor="token-name" className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <input
+              id="token-name"
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Wheat"
+            />
+          </div>
+          <div>
+            <label htmlFor="token-supply" className="block text-sm font-medium text-gray-700 mb-1">
+              Total Supply
+            </label>
+            <input
+              id="token-supply"
+              type="number"
+              required
+              min="1"
+              value={formData.totalSupply}
+              onChange={(e) => setFormData({ ...formData, totalSupply: e.target.value })}
+              className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 500"
+            />
+          </div>
+          <div>
+            <label htmlFor="token-content" className="block text-sm font-medium text-gray-700 mb-1">
+              Content
+            </label>
+            <textarea
+              id="token-content"
+              required
+              value={formData.content}
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              rows={3}
+              className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Describe the raw material..."
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Mint
+          </button>
+        </form>
       )}
       {showFeedback && (
         <div data-testid="minting-feedback" className="mt-3 text-blue-600">Minting raw material...</div>
@@ -147,9 +213,9 @@ function ActionCardWithFeedback(props: ActionCardProps) {
   return (
     <div
       className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}
-      onClick={disabled ? undefined : handleClick}
-      role={!disabled ? 'button' : undefined}
-      tabIndex={!disabled ? 0 : undefined}
+      onClick={disabled || showForm ? undefined : handleClick}
+      role={!disabled && !showForm ? 'button' : undefined}
+      tabIndex={!disabled && !showForm ? 0 : undefined}
       aria-disabled={disabled}
     >
       {content}

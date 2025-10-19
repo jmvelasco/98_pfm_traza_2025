@@ -21,15 +21,36 @@ describe('Producer RoleActions', () => {
     expect(createButton).toBeInTheDocument();
     userEvent.click(createButton);
     
+    // Check that form fields appear
+    expect(await screen.findByLabelText(/name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/total supply/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/content/i)).toBeInTheDocument();
+    
+    // Fill in the form
+    const nameInput = screen.getByLabelText(/name/i);
+    const supplyInput = screen.getByLabelText(/total supply/i);
+    const contentInput = screen.getByLabelText(/content/i);
+    
+    await userEvent.type(nameInput, 'Wheat');
+    await userEvent.type(supplyInput, '500');
+    await userEvent.type(contentInput, 'High quality organic wheat');
+    
+    // Submit the form
+    const submitButton = screen.getByRole('button', { name: /mint/i });
+    await userEvent.click(submitButton);
+    
     // Check UI feedback is shown
     expect(await screen.findByTestId('minting-feedback')).toBeInTheDocument();
     
-    // Check that createToken was called with proper parameters
+    // Check that createToken was called with proper parameters from form
     expect(createToken).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: expect.any(String),
-        totalSupply: expect.any(Number),
-        features: expect.any(String),
+        name: 'Wheat',
+        totalSupply: 500,
+        features: JSON.stringify({
+          type: 'raw',
+          content: 'High quality organic wheat'
+        }),
         parentId: 0,
       })
     );
@@ -52,13 +73,15 @@ describe('Producer RoleActions', () => {
     // TODO: Implement disabled state for unapproved Producer
   });
 
-  test('shows feedback only once on rapid clicks', async () => {
+  test('shows form only once on rapid clicks', async () => {
     render(<RoleActions role={UserRole.Producer} />);
     const createButton = screen.getByRole('button', { name: /Create Raw Material/i });
-    userEvent.click(createButton);
-    userEvent.click(createButton);
-    const feedbacks = await screen.findAllByTestId('minting-feedback');
-    expect(feedbacks.length).toBe(1);
+    await userEvent.click(createButton);
+    await userEvent.click(createButton);
+    
+    // Should only show one form
+    const nameInputs = screen.getAllByLabelText(/name/i);
+    expect(nameInputs.length).toBe(1);
   });
 
   test('does not show mint action for missing input (simulate by not rendering)', () => {
