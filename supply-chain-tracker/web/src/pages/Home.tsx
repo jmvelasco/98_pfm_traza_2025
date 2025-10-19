@@ -41,18 +41,25 @@ export default function Home() {
     }
   }, [isAdmin, userInfo?.status]);
 
+  if (!isConnected) {
+    return <button onClick={connect} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
+      Connect Wallet
+    </button>;
+  }
+
+  if (loading) {
+    return <Spinner />;
+  }
+  
+  if (error) {
+    return <p className="text-red-600">Error: {error}</p>;
+  }
+
+
   return (
     <div>
       <h2 className="text-2xl font-semibold">Home</h2>
-      {!isConnected ? (
-        <button onClick={connect} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
-          Connect Wallet
-        </button>
-      ) : loading ? (
-        <Spinner />
-      ) : error ? (
-        <p className="text-red-600">Error: {error}</p>
-      ) : userInfo && userInfo.role ? (
+      {userInfo && userInfo.role ? (
         <div>
           <p>Role: {userInfo.role}</p>
           <p>Status: {isValidStatus(userInfo.status) ? STATUS_LABELS[userInfo.status] : 'Unknown'}</p>
