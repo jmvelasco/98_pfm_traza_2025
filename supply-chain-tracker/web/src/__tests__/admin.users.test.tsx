@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Users from '../pages/admin/Users'
 
@@ -46,7 +47,11 @@ describe('Admin Users Page', () => {
       refetch: vi.fn(),
     })
 
-    render(<Users />)
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>
+    )
 
     expect(screen.getByText(/Acceso restringido a administradores/i)).toBeInTheDocument()
     expect(screen.queryByLabelText(/Dirección de usuario/i)).not.toBeInTheDocument()
@@ -92,7 +97,11 @@ describe('Admin Users Page', () => {
     vi.mocked(getUsers).mockResolvedValue(users as any)
     vi.mocked(changeStatusUser).mockResolvedValue(undefined)
 
-    render(<Users />)
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>
+    )
 
     // Should list all users with different statuses
     expect(
@@ -156,7 +165,11 @@ describe('Admin Users Page', () => {
       .mockResolvedValueOnce(updatedUsers as any)
     vi.mocked(changeStatusUser).mockResolvedValue(undefined)
 
-    render(<Users />)
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>
+    )
 
     // Initially shows pending user
     expect(await screen.findByText('Pending')).toBeInTheDocument()
@@ -203,7 +216,11 @@ describe('Admin Users Page', () => {
     vi.mocked(getUsers).mockResolvedValue(pending as any)
     vi.mocked(changeStatusUser).mockRejectedValue(new Error('tx failed'))
 
-    render(<Users />)
+    render(
+      <MemoryRouter>
+        <Users />
+      </MemoryRouter>
+    )
 
     // Click Reject on the only row
     fireEvent.click(await screen.findByRole('button', { name: /Rechazar/i }))
