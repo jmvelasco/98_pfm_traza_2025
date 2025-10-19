@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MyTokens from '../components/MyTokens';
 import * as contractModule from '../lib/contract';
@@ -16,6 +16,44 @@ vi.mock('../contexts/Web3Provider', () => ({
     provider: {},
   }),
 }));
+
+// Mock ethers BrowserProvider to avoid real provider checks
+vi.mock('ethers', () => ({
+  ethers: {
+    BrowserProvider: class {
+      constructor(_arg: any) {}
+    },
+  },
+}));
+
+// Mock SupplyChain__factory to capture event listener registration
+vi.mock('../types/factories/SupplyChain__factory', () => {
+  let savedHandler: ((...args: any[]) => Promise<void> | void) | null = null;
+  const contract = {
+    filters: { TokenCreated: () => 'TokenCreated' },
+    on: (_filter: any, handler: any) => {
+      savedHandler = handler;
+    },
+    off: (_filter: any, handler: any) => {
+      if (savedHandler === handler) savedHandler = null;
+    },
+    removeAllListeners: () => {
+      savedHandler = null;
+    },
+  };
+  return {
+    SupplyChain__factory: {
+      connect: vi.fn(() => contract),
+    },
+    __mock: {
+      getListener: () => savedHandler,
+      contract,
+    },
+  };
+});
+
+// @ts-expect-error test-only mock export provided via vi.mock above
+import { __mock as factoryMock } from '../types/factories/SupplyChain__factory';
 
 const mockTokenDetails = {
   id: 1,
@@ -57,16 +95,68 @@ describe('MyTokens (TDD RED)', () => {
   });
 
   it('updates UI in real time when TokenCreated event is emitted for user', async () => {
-    // For now, we'll skip testing event listeners since they require complex mocking
-    // This test would require mocking ethers contract event listeners
-    // which is beyond the scope of this initial implementation
-    expect(true).toBe(true);
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
+
+    render(<MyTokens userAddress="0x123" />);
+
+    // Act: emit a TokenCreated event (TypeChain/ethers v6 style)
+    const listener = factoryMock.getListener();
+    expect(listener).toBeTruthy();
+    await act(async () => {
+      await listener!({ args: [1, '0x123'] });
+    });
+
+    // Assert: token is rendered
+    await waitFor(() => {
+      expect(screen.getByText(/Wheat/i)).toBeInTheDocument();
+    });
   });
 
   it('does not update UI for TokenCreated events from other users', async () => {
-    // For now, we'll skip testing event listeners since they require complex mocking
-    // This test would require mocking ethers contract event listeners
-    // which is beyond the scope of this initial implementation
-    expect(true).toBe(true);
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
+
+    render(<MyTokens userAddress="0xABC" />);
+
+    // Act: emit event with different creator
+    const listener = factoryMock.getListener();
+    expect(listener).toBeTruthy();
+    await listener!({ args: [1, '0x123'] });
+
+    // Assert: still empty state
+    await waitFor(() => {
+      expect(screen.getByText(/No tokens yet/i)).toBeInTheDocument();
+    });
+  });
+
+  it('avoids duplicate appends when the same TokenCreated fires multiple times', async () => {
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
+
+    render(<MyTokens userAddress="0x123" />);
+
+    const listener = factoryMock.getListener();
+    expect(listener).toBeTruthy();
+
+    // Act: fire event twice
+    await act(async () => {
+      await listener!({ args: [1, '0x123'] });
+    });
+    await act(async () => {
+      await listener!({ args: [1, '0x123'] });
+    });
+
+    // Assert: token appears only once
+    await waitFor(() => {
+      const items = screen.getAllByText(/Wheat/i);
+      expect(items.length).toBe(1);
+    });
   });
 });
