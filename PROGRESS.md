@@ -331,7 +331,7 @@ Commit: `refactor: useWallet hook with types, error handling, network state, val
 ### 🔧 **Archivos Creados/Modificados**:
 ```
 web/src/config/networks.ts          # Mapeo de nombres de redes
-web/src/lib/web3.ts                 # Servicio Web3 con ethers v6
+web/src/lib/web3.ts                 # Servicio Web3 (ethers v6 + EIP-1193)  
 web/src/hooks/useWallet.ts          # Hook de ergonomía
 web/src/__tests__/*.test.{tsx,ts}   # Suite completa de tests TDD
 web/vite.config.ts                  # Configuración Vitest
@@ -381,45 +381,6 @@ web/vitest.setup.ts                 # Setup global de tests
 - **Para Proyecto**: Base sólida, testeada, mantenible para desarrollo futuro
 
 **Estado del Proyecto**: Listo para implementación de UI y páginas funcionales
-
----
-
-## 🧭 Sesión UI (15 octubre 2025) — Semana 1: Routing + Header (RED)
-
-### 🎯 Objetivo
-Alinear con PLANNING.md (Semana 1, días 6-7) creando infraestructura mínima de UI:
-- Routing con React Router (Vite)
-- Layout con Header y componentes WalletConnect/NetworkStatus
-- Preparación de Home y Admin Users
-
-### 🔴 RED — Tests creados y fallando inicialmente
-- Añadido `src/__tests__/routing.layout.test.tsx` comprobando que Header muestra "Connect" cuando no hay wallet conectada (mock de `useWallet`).
-- Estructura esperada: `Header` con enlace "Admin Users" y `WalletConnect`.
-
-Archivos añadidos (stubs):
-- `src/components/layout/Header.tsx` (usa `<WalletConnect />` y enlaces)
-- `src/components/wallet/WalletConnect.tsx` (render mínimo con estado o botón Connect)
-- `src/components/network/NetworkStatus.tsx` (cadena y chainId)
-
-Estado actual de la fase:
-- Tests en ROJO hasta completar wiring de Router y página.
-
-Siguiente: Implementar Router en `App.tsx` y terminar layout para pasar a GREEN.
-
-### 🟢 GREEN — Routing/Layout implementados y tests pasando
-- Creado `src/routes/AppRoutes.tsx` con rutas `/` y `/admin/users` bajo `AppLayout`.
-- Creado `src/layouts/AppLayout.tsx` (Header + Outlet + container).
-- Pages placeholder: `src/pages/Home.tsx`, `src/pages/admin/Users.tsx`.
-- Actualizado `src/App.tsx` para usar `<BrowserRouter><AppRoutes/></BrowserRouter>`.
-- Actualizado test: `app.routes.test.tsx` envuelto en `Web3Provider`.
-
-Resultado de tests:
-```
-✓ app.routes.test.tsx (2 tests) — PASS
-Total: 23/23 tests passing
-```
-
-Siguiente: RED de Home (formulario `requestUserRole`) y definición de helpers de contrato.
 
 ---
 
@@ -571,12 +532,6 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 - [ ] Integración real con contrato (TypeChain + ethers v6)
 - [ ] Componentes UI reutilizables (Button, Card, etc.)
 - [ ] Navegación y protección de rutas por rol
-
----
-
-_Sesión actualizada: 16 octubre 2025, 00:40 GMT_  
-_Metodología: Test-Driven Development (TDD) con refactors incrementales_  
-_Resultado: ✅ Home page registration completada con 5 refactors aplicados_
 
 ---
 
@@ -788,3 +743,171 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 _Sesión actualizada: 17 octubre 2025, 00:30 GMT_  
 _Metodología: Test-Driven Development (TDD) con refactors iterativos_  
 _Resultado: ✅ Panel Admin Users completado, Web3 sync corregido, 31/31 tests pasando_
+
+---
+
+## 📝 Reglas de Metodología TDD
+
+1. **Tener clara la funcionalidad a implementar**.
+2. **Escribir el test** (no va a pasar porque la funcionalidad no va a estar implementada).
+3. **Hacer el commit de este estado**.
+4. **Implementar la funcionalidad** de forma que el test pase.
+5. **Hacer el commit de este estado**.
+6. **Repetir el ciclo**: si la misma funcionalidad debe cubrir otros casos, se deberá hacer otro ciclo test rojo -> verde.
+7. **Analizar si se puede hacer un refactor** que mejore la implementación de la funcionalidad.
+
+---
+
+## ✅ Producer Code-Level Checklist
+
+### 1. Mint Raw Material Token
+- [ ] Producer can call `createToken(name, totalSupply, features, parentId=0)`
+- [ ] Only users with Producer role and Approved status can mint raw materials
+- [ ] Token metadata (name, features) is stored and retrievable
+- [ ] Event emitted on token creation for traceability
+
+### 2. View Owned Tokens
+- [ ] Producer can query all tokens they own (function like `getTokensByOwner(address)`)
+- [ ] Token details (metadata, balances) are accessible
+
+### 3. Transfer Token to Factory
+- [ ] Producer can initiate transfer of owned token to Factory (function like `transferToken(tokenId, toAddress)`)
+- [ ] Transfer is only allowed to valid Factory addresses
+- [ ] Transfer event emitted for traceability
+- [ ] Token ownership updates correctly
+
+### 4. Role and Access Control
+- [ ] All Producer actions are protected by `onlyApprovedUser` and role checks
+- [ ] Unauthorized users cannot mint or transfer tokens
+
+### 5. Traceability
+- [ ] Each token has a `parentId` (raw materials: `parentId=0`)
+- [ ] Transfer history is recorded (events or mapping)
+- [ ] Functions exist to retrieve token lineage (for traceability UI)
+
+### 6. Testing
+- [ ] Unit tests for Producer minting, viewing, and transferring tokens
+- [ ] Tests for access control and edge cases (e.g., double transfer, invalid recipient)
+
+### 7. Frontend Integration
+- [ ] Dashboard actions for Producer trigger correct contract functions
+- [ ] UI feedback for success/failure of mint and transfer actions
+
+---
+
+## ✅ Factory Code-Level Checklist
+
+### 1. Process Materials
+- [ ] Factory can process raw material tokens (consume/mutate tokens with `parentId=0`)
+- [ ] Only users with Factory role and Approved status can process materials
+- [ ] New product tokens created with `parentId` referencing consumed raw material
+- [ ] Event emitted on product creation for traceability
+
+### 2. View Owned Tokens
+- [ ] Factory can query all tokens they own
+- [ ] Token details (metadata, balances) are accessible
+
+### 3. Transfer Token to Retailer
+- [ ] Factory can transfer owned product tokens to Retailer
+- [ ] Transfer is only allowed to valid Retailer addresses
+- [ ] Transfer event emitted for traceability
+- [ ] Token ownership updates correctly
+
+### 4. Role and Access Control
+- [ ] All Factory actions are protected by `onlyApprovedUser` and role checks
+
+### 5. Traceability
+- [ ] Each product token has a `parentId` referencing its raw material
+- [ ] Transfer history is recorded
+- [ ] Functions exist to retrieve token lineage
+
+### 6. Testing
+- [ ] Unit tests for Factory processing, viewing, and transferring tokens
+- [ ] Tests for access control and edge cases
+
+### 7. Frontend Integration
+- [ ] Dashboard actions for Factory trigger correct contract functions
+- [ ] UI feedback for success/failure
+
+---
+## ✅ Retailer Code-Level Checklist
+
+### 1. Package Products
+- [ ] Retailer can package product tokens (consume/mutate tokens with `parentId>0`)
+- [ ] Only users with Retailer role and Approved status can package products
+- [ ] New packaged tokens created with `parentId` referencing processed product
+- [ ] Event emitted on packaging for traceability
+
+### 2. View Owned Tokens
+- [ ] Retailer can query all tokens they own
+- [ ] Token details (metadata, balances) are accessible
+
+### 3. Transfer Token to Consumer
+- [ ] Retailer can transfer packaged tokens to Consumer
+- [ ] Transfer is only allowed to valid Consumer addresses
+- [ ] Transfer event emitted for traceability
+- [ ] Token ownership updates correctly
+
+### 4. Role and Access Control
+- [ ] All Retailer actions are protected by `onlyApprovedUser` and role checks
+
+### 5. Traceability
+- [ ] Each packaged token has a `parentId` referencing its product
+- [ ] Transfer history is recorded
+- [ ] Functions exist to retrieve token lineage
+
+### 6. Testing
+- [ ] Unit tests for Retailer packaging, viewing, and transferring tokens
+- [ ] Tests for access control and edge cases
+
+### 7. Frontend Integration
+- [ ] Dashboard actions for Retailer trigger correct contract functions
+- [ ] UI feedback for success/failure
+
+---
+## ✅ Consumer Code-Level Checklist
+
+### 1. View My Products
+- [ ] Consumer can view all tokens they own
+- [ ] Token details (metadata, balances) are accessible
+
+### 2. Check Traceability
+- [ ] Consumer can view full traceability (parentId lineage) of owned tokens
+- [ ] Functions exist to retrieve and display token history
+
+### 3. Role and Access Control
+- [ ] All Consumer actions are protected by `onlyApprovedUser` and role checks
+
+### 4. Testing
+- [ ] Unit tests for Consumer viewing and traceability
+- [ ] Tests for access control and edge cases
+
+### 5. Frontend Integration
+- [ ] Dashboard actions for Consumer trigger correct contract functions
+- [ ] UI feedback for success/failure
+
+---
+## ✅ Admin Code-Level Checklist
+
+### 1. Manage Users
+- [ ] Admin can view all users and their roles/statuses
+- [ ] Admin can approve or reject user role requests
+- [ ] Only Admin can call user management functions
+
+### 2. System Statistics
+- [ ] Admin can view system-wide statistics (number of tokens, transfers, users per role, etc.)
+
+### 3. Role and Access Control
+- [ ] All Admin actions are protected by `onlyAdmin` checks
+
+### 4. Testing
+- [ ] Unit tests for Admin user management and statistics
+- [ ] Tests for access control and edge cases
+
+### 5. Frontend Integration
+- [ ] Dashboard actions for Admin trigger correct contract functions
+- [ ] UI feedback for success/failure
+
+---
+
+**If all items above are implemented and tested, all roles are ready and aligned with project goals.**
