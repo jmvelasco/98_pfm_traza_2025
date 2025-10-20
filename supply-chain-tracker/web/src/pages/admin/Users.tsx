@@ -138,7 +138,6 @@ export default function Users() {
               Go to Dashboard
             </Link>
           </>
-
         )}
 
         {error && (
