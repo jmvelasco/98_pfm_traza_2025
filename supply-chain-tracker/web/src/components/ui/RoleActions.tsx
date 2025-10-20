@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { createToken } from '../../lib/contract';
-import { UserRole } from '../../lib/enums';
-
+import React, { useState } from 'react'
+import { createToken } from '../../lib/contract'
+import { UserRole } from '../../lib/enums'
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
@@ -95,45 +94,50 @@ export function RoleActions({ role }: { role: UserRole }) {
   }
 }
 
-
 // ActionCard with local feedback for Producer mint action
 function ActionCardWithFeedback(props: ActionCardProps) {
-  const [showForm, setShowForm] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
+  const [showForm, setShowForm] = useState(false)
+  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success'>('none')
   const [formData, setFormData] = useState({
     name: '',
     totalSupply: '',
-    content: ''
-  });
-  const { title, description, icon, link, disabled } = props;
-  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
-  const enabledClasses = 'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
-  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
+    content: '',
+  })
+  const { title, description, icon, link, disabled } = props
+  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all'
+  const enabledClasses =
+    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500'
+  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50'
 
   const handleClick = () => {
-    setShowForm(true);
-  };
+    setShowForm(true)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowFeedback(true);
-    
+    e.preventDefault()
+    setShowFeedback('pending')
     try {
       await createToken({
         name: formData.name,
         totalSupply: Number(formData.totalSupply),
         features: JSON.stringify({
           type: 'raw',
-          content: formData.content
+          content: formData.content,
         }),
         parentId: 0,
-      });
+      })
+      setShowFeedback('success')
+      setTimeout(() => {
+        setShowFeedback('none')
+        setShowForm(false)
+        setFormData({ name: '', totalSupply: '', content: '' })
+      }, 2000)
     } catch (error) {
-      console.error('Error minting token:', error);
+      console.error('Error minting token:', error)
+      setShowFeedback('none')
     }
-    
-    if (props.onClick) props.onClick();
-  };
+    if (props.onClick) props.onClick()
+  }
 
   const content = (
     <>
@@ -141,9 +145,11 @@ function ActionCardWithFeedback(props: ActionCardProps) {
       <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
       <p className="text-sm text-gray-600">{description}</p>
       {disabled && (
-        <span className="inline-block mt-3 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Coming soon</span>
+        <span className="inline-block mt-3 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+          Coming soon
+        </span>
       )}
-      {showForm && !showFeedback && (
+      {showForm && showFeedback === 'none' && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div>
             <label htmlFor="token-name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -196,18 +202,25 @@ function ActionCardWithFeedback(props: ActionCardProps) {
           </button>
         </form>
       )}
-      {showFeedback && (
-        <div data-testid="minting-feedback" className="mt-3 text-blue-600">Minting raw material...</div>
+      {showFeedback === 'pending' && (
+        <div data-testid="minting-feedback" className="mt-3 text-blue-600">
+          Minting raw material...
+        </div>
+      )}
+      {showFeedback === 'success' && (
+        <div data-testid="mint-success" className="mt-3 text-green-600">
+          Token created!
+        </div>
       )}
     </>
-  );
+  )
 
   if (link && !disabled) {
     return (
       <a href={link} className={`${baseClasses} ${enabledClasses} block`}>
         {content}
       </a>
-    );
+    )
   }
 
   return (
@@ -220,10 +233,18 @@ function ActionCardWithFeedback(props: ActionCardProps) {
     >
       {content}
     </div>
-  );
+  )
 }
 
-function ActionCard({ title, description, icon, link, disabled, onClick, children }: ActionCardProps & { children?: React.ReactNode }) {
+function ActionCard({
+  title,
+  description,
+  icon,
+  link,
+  disabled,
+  onClick,
+  children,
+}: ActionCardProps & { children?: React.ReactNode }) {
   const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all'
   const enabledClasses =
     'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500'

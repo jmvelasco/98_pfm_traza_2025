@@ -86,8 +86,6 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
     // Call requestUserRole from contract
     const tx = await contract.requestUserRole(role)
     await tx.wait()
-
-    console.log(`Role ${role} requested successfully for ${address}`)
   } catch (error) {
     console.error('Error requesting role:', error)
     throw error
@@ -229,7 +227,7 @@ export async function getUserTokens(userAddress: string): Promise<number[]> {
 
     // Call getUserTokens from contract
     const tokenIds = await contract.getUserTokens(userAddress)
-    
+
     // Convert BigInt to number
     return tokenIds.map((id: any) => Number(id))
   } catch (error) {
@@ -244,7 +242,10 @@ export async function getUserTokens(userAddress: string): Promise<number[]> {
  * @param userAddress - Address to check balance for
  * @returns Token details including balance for the user
  */
-export async function getTokenDetails(tokenId: number, userAddress: string): Promise<TokenDetails | null> {
+export async function getTokenDetails(
+  tokenId: number,
+  userAddress: string
+): Promise<TokenDetails | null> {
   try {
     if (typeof window === 'undefined' || !window.ethereum) {
       return null
@@ -255,7 +256,7 @@ export async function getTokenDetails(tokenId: number, userAddress: string): Pro
 
     // Get token info
     const token = await contract.getToken(tokenId)
-    
+
     // Get balance for the user
     const balance = await contract.getTokenBalance(tokenId, userAddress)
 
