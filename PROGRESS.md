@@ -10,6 +10,16 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
 2. **GREEN**: Implementar el mínimo código necesario para que pasen
 3. **REFACTOR**: Mejorar el código manteniendo los tests verdes
 
+### 📝 Reglas de Metodología TDD
+
+1. **Tener clara la funcionalidad a implementar**.
+2. **Escribir el test** (no va a pasar porque la funcionalidad no va a estar implementada).
+3. **Hacer el commit de este estado**.
+4. **Implementar la funcionalidad** de forma que el test pase.
+5. **Hacer el commit de este estado**.
+6. **Repetir el ciclo**: si la misma funcionalidad debe cubrir otros casos, se deberá hacer otro ciclo test rojo -> verde.
+7. **Analizar si se puede hacer un refactor** que mejore la implementación de la funcionalidad.
+
 ---
 
 ## ✅ Logros Alcanzados
@@ -746,168 +756,46 @@ _Resultado: ✅ Panel Admin Users completado, Web3 sync corregido, 31/31 tests p
 
 ---
 
-## 📝 Reglas de Metodología TDD
+## ➕ Fase 6 — Tokens en Dashboard: MyTokens en tiempo real y UX de Mint (20 octubre 2025)
 
-1. **Tener clara la funcionalidad a implementar**.
-2. **Escribir el test** (no va a pasar porque la funcionalidad no va a estar implementada).
-3. **Hacer el commit de este estado**.
-4. **Implementar la funcionalidad** de forma que el test pase.
-5. **Hacer el commit de este estado**.
-6. **Repetir el ciclo**: si la misma funcionalidad debe cubrir otros casos, se deberá hacer otro ciclo test rojo -> verde.
-7. **Analizar si se puede hacer un refactor** que mejore la implementación de la funcionalidad.
+### 🎯 Objetivo
+Hacer que el dashboard del Productor muestre sus tokens al instante tras el mint, sin refrescar, y mejorar el feedback visual del flujo de creación.
 
----
+### 🟢 Implementado
+- **MyTokens (frontend)**
+  - Fetch inicial de tokens del usuario con `getUserTokens()` + `getTokenDetails()`.
+  - Suscripción a evento `TokenCreated` del contrato usando ethers v6 (objeto de evento con `.args`).
+  - Handler robusto: extrae `tokenId` y `creator` con fallbacks, verifica autoría y hace `append` del detalle al estado.
+  - **Deduplicación**: `seenIdsRef` + verificación en estado para evitar duplicados por StrictMode o eventos repetidos.
+  - **Cleanup**: `off/removeListener/removeAllListeners` en unmount usando el mismo filtro y handler.
+  - **Race fix**: el fetch inicial ahora fusiona resultados con el estado actual para no sobrescribir tokens llegados por eventos.
+  - Simplificación a **ethers v6 only**: eliminado soporte para firmas de evento v5.
 
-## ✅ Producer Code-Level Checklist
+- **UX de Mint (ActionCard del Productor)**
+  - Feedback “Minting raw material…” mientras la transacción está pendiente.
+  - Mensaje “Token created!” al confirmar (`tx.wait()`), autocierre y reseteo del formulario tras 2s.
+  - Se evita escuchar eventos también desde la card para no duplicar lógica: la verdad única de eventos queda en MyTokens.
 
-### 1. Mint Raw Material Token
-- [ ] Producer can call `createToken(name, totalSupply, features, parentId=0)`
-- [ ] Only users with Producer role and Approved status can mint raw materials
-- [ ] Token metadata (name, features) is stored and retrievable
-- [ ] Event emitted on token creation for traceability
+### 🧪 Tests (TDD)
+- Suite de MyTokens:
+  - Empty state y render de metadatos.
+  - Actualización en tiempo real al emitir `TokenCreated` (mock de factory/proveedor).
+  - Ignora eventos de otros usuarios.
+  - Evita duplicados al emitir el mismo evento dos veces.
+- Suite de Dashboard + MyTokens integrada: verifica presencia y empty state.
+- Suite de RoleActions (Productor): verifica feedback de mint pendiente → éxito → reset con retardo.
 
-### 2. View Owned Tokens
-- [ ] Producer can query all tokens they own (function like `getTokensByOwner(address)`)
-- [ ] Token details (metadata, balances) are accessible
+Resultados: ✅ 62/62 tests pasando en la suite total.
 
-### 3. Transfer Token to Factory
-- [ ] Producer can initiate transfer of owned token to Factory (function like `transferToken(tokenId, toAddress)`)
-- [ ] Transfer is only allowed to valid Factory addresses
-- [ ] Transfer event emitted for traceability
-- [ ] Token ownership updates correctly
+### 📦 Commits relevantes (20/oct)
+1. `test: improve formatting and consistency in dashboard, mytokens, and producer tests`
+2. `refactor: simplify TokenCreated event handler for ethers v6 only`
+3. `feat: show minting and success feedback in ActionCard; minor contract helper cleanup`
 
-### 4. Role and Access Control
-- [ ] All Producer actions are protected by `onlyApprovedUser` and role checks
-- [ ] Unauthorized users cannot mint or transfer tokens
+### 🔜 Pendiente (se mantiene de sesiones previas)
+- Páginas y flujos de **transferencias** dirigidas.
+- **Trazabilidad** completa por `parentId` y árbol/lineage en UI.
+- Páginas `/tokens` y detalles, incl. balances y metadatos avanzados.
+- Documentación IA (IA.md) y demo final.
 
-### 5. Traceability
-- [ ] Each token has a `parentId` (raw materials: `parentId=0`)
-- [ ] Transfer history is recorded (events or mapping)
-- [ ] Functions exist to retrieve token lineage (for traceability UI)
-
-### 6. Testing
-- [ ] Unit tests for Producer minting, viewing, and transferring tokens
-- [ ] Tests for access control and edge cases (e.g., double transfer, invalid recipient)
-
-### 7. Frontend Integration
-- [ ] Dashboard actions for Producer trigger correct contract functions
-- [ ] UI feedback for success/failure of mint and transfer actions
-
----
-
-## ✅ Factory Code-Level Checklist
-
-### 1. Process Materials
-- [ ] Factory can process raw material tokens (consume/mutate tokens with `parentId=0`)
-- [ ] Only users with Factory role and Approved status can process materials
-- [ ] New product tokens created with `parentId` referencing consumed raw material
-- [ ] Event emitted on product creation for traceability
-
-### 2. View Owned Tokens
-- [ ] Factory can query all tokens they own
-- [ ] Token details (metadata, balances) are accessible
-
-### 3. Transfer Token to Retailer
-- [ ] Factory can transfer owned product tokens to Retailer
-- [ ] Transfer is only allowed to valid Retailer addresses
-- [ ] Transfer event emitted for traceability
-- [ ] Token ownership updates correctly
-
-### 4. Role and Access Control
-- [ ] All Factory actions are protected by `onlyApprovedUser` and role checks
-
-### 5. Traceability
-- [ ] Each product token has a `parentId` referencing its raw material
-- [ ] Transfer history is recorded
-- [ ] Functions exist to retrieve token lineage
-
-### 6. Testing
-- [ ] Unit tests for Factory processing, viewing, and transferring tokens
-- [ ] Tests for access control and edge cases
-
-### 7. Frontend Integration
-- [ ] Dashboard actions for Factory trigger correct contract functions
-- [ ] UI feedback for success/failure
-
----
-## ✅ Retailer Code-Level Checklist
-
-### 1. Package Products
-- [ ] Retailer can package product tokens (consume/mutate tokens with `parentId>0`)
-- [ ] Only users with Retailer role and Approved status can package products
-- [ ] New packaged tokens created with `parentId` referencing processed product
-- [ ] Event emitted on packaging for traceability
-
-### 2. View Owned Tokens
-- [ ] Retailer can query all tokens they own
-- [ ] Token details (metadata, balances) are accessible
-
-### 3. Transfer Token to Consumer
-- [ ] Retailer can transfer packaged tokens to Consumer
-- [ ] Transfer is only allowed to valid Consumer addresses
-- [ ] Transfer event emitted for traceability
-- [ ] Token ownership updates correctly
-
-### 4. Role and Access Control
-- [ ] All Retailer actions are protected by `onlyApprovedUser` and role checks
-
-### 5. Traceability
-- [ ] Each packaged token has a `parentId` referencing its product
-- [ ] Transfer history is recorded
-- [ ] Functions exist to retrieve token lineage
-
-### 6. Testing
-- [ ] Unit tests for Retailer packaging, viewing, and transferring tokens
-- [ ] Tests for access control and edge cases
-
-### 7. Frontend Integration
-- [ ] Dashboard actions for Retailer trigger correct contract functions
-- [ ] UI feedback for success/failure
-
----
-## ✅ Consumer Code-Level Checklist
-
-### 1. View My Products
-- [ ] Consumer can view all tokens they own
-- [ ] Token details (metadata, balances) are accessible
-
-### 2. Check Traceability
-- [ ] Consumer can view full traceability (parentId lineage) of owned tokens
-- [ ] Functions exist to retrieve and display token history
-
-### 3. Role and Access Control
-- [ ] All Consumer actions are protected by `onlyApprovedUser` and role checks
-
-### 4. Testing
-- [ ] Unit tests for Consumer viewing and traceability
-- [ ] Tests for access control and edge cases
-
-### 5. Frontend Integration
-- [ ] Dashboard actions for Consumer trigger correct contract functions
-- [ ] UI feedback for success/failure
-
----
-## ✅ Admin Code-Level Checklist
-
-### 1. Manage Users
-- [ ] Admin can view all users and their roles/statuses
-- [ ] Admin can approve or reject user role requests
-- [ ] Only Admin can call user management functions
-
-### 2. System Statistics
-- [ ] Admin can view system-wide statistics (number of tokens, transfers, users per role, etc.)
-
-### 3. Role and Access Control
-- [ ] All Admin actions are protected by `onlyAdmin` checks
-
-### 4. Testing
-- [ ] Unit tests for Admin user management and statistics
-- [ ] Tests for access control and edge cases
-
-### 5. Frontend Integration
-- [ ] Dashboard actions for Admin trigger correct contract functions
-- [ ] UI feedback for success/failure
-
----
-
-**If all items above are implemented and tested, all roles are ready and aligned with project goals.**
+_Sesión actualizada: 20 octubre 2025, 01:45 GMT_
