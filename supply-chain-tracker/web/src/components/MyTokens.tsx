@@ -31,9 +31,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
         const tokenIds = await getUserTokens(userAddress)
 
         // Fetch details for each token
-        const details = await Promise.all(
-          tokenIds.map((id) => getTokenDetails(id, userAddress))
-        )
+        const details = await Promise.all(tokenIds.map((id) => getTokenDetails(id, userAddress)))
 
         // Filter out nulls and merge with any tokens already appended via events
         const nonNull = details.filter((t): t is TokenDetails => t !== null)
@@ -80,26 +78,21 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
         // Listen for TokenCreated events
 
         handler = async (...args: any[]) => {
-          // ethers may pass a single event object or positional args
+          // ethers v6: event object with .args
           let tokenId, creator
           if (args.length === 1 && args[0]?.args) {
-            // TypeChain/ethers v6 style: event object with .args
             const a = args[0].args
             tokenId = a?.tokenId ?? a?.id ?? a?.[0]
             creator = a?.creator ?? a?.owner ?? a?.[1]
           } else {
-            // ethers v5 style: positional args
-            tokenId = args[0]
-            creator = args[1]
+            // Defensive: ignore if not v6 event object
+            return
           }
-          console.log('[MyTokens] TokenCreated event:', { tokenId, creator, userAddress, args })
           if (creator && creator.toLowerCase() === userAddress.toLowerCase()) {
             const idStr = tokenId?.toString ? tokenId.toString() : String(tokenId)
             if (seenIdsRef.current.has(idStr)) {
-              console.log('[MyTokens] Token already present, skipping append:', idStr)
               return
             }
-            console.log('[MyTokens] Matching creator, fetching details for token', tokenId)
             const details = await getTokenDetails(Number(tokenId), userAddress)
             if (details) {
               seenIdsRef.current.add(String(details.id))
@@ -108,12 +101,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
                 if (prev.some((t) => String(t.id) === String(details.id))) return prev
                 return [...prev, details]
               })
-              console.log('[MyTokens] Token appended to list:', details)
-            } else {
-              console.log('[MyTokens] No details found for token', tokenId)
             }
-          } else {
-            console.log('[MyTokens] Event ignored, creator does not match user or is undefined')
           }
         }
         // Prepare and register filter
@@ -134,13 +122,15 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
             contract.off(eventFilter ?? 'TokenCreated', handler)
           } catch {
             // fallback
-            contract.removeAllListeners && contract.removeAllListeners(eventFilter ?? 'TokenCreated')
+            contract.removeAllListeners &&
+              contract.removeAllListeners(eventFilter ?? 'TokenCreated')
           }
         } else if (typeof contract.removeListener === 'function') {
           try {
             contract.removeListener(eventFilter ?? 'TokenCreated', handler)
           } catch {
-            contract.removeAllListeners && contract.removeAllListeners(eventFilter ?? 'TokenCreated')
+            contract.removeAllListeners &&
+              contract.removeAllListeners(eventFilter ?? 'TokenCreated')
           }
         } else if (typeof contract.removeAllListeners === 'function') {
           contract.removeAllListeners(eventFilter ?? 'TokenCreated')
