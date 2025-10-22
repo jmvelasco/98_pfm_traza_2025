@@ -23,6 +23,7 @@ Use this prompt verbatim (fill in the placeholders) to drive an AI pair-programm
 - If an intermediate UI state must render before an async completes, yield a tick (e.g., `await new Promise(r => setTimeout(r, 0))`) to make the state observable in tests.
 - Prefer user-visible state over console logs for validations and errors.
 - Keep commit history clean and linear; one behavioral change per commit.
+ - Prefer `@testing-library/user-event` for user interactions (typing, clicking, tabbing) because it simulates realistic event sequences and state changes. Always `const user = userEvent.setup()` and `await user.*(...)`. Reserve `fireEvent` only for low-level/custom events or quick setup where realism is unnecessary.
 
 ## Quality Gates (run implicitly each step)
 - Build: PASS (or N/A) after changes.
@@ -56,6 +57,7 @@ Use this prompt verbatim (fill in the placeholders) to drive an AI pair-programm
 - For external calls:
   - Mock and assert on call arguments.
   - Surface errors to the UI; do not swallow silently.
+ - For intermediate async UI states (e.g., "Requesting…" → "Done") prefer stabilizing the test by delaying the mock resolution (e.g., `mockImplementation(() => new Promise(r => setTimeout(r, 0)))`). Use component-level event-loop yields only when it matches real UX needs.
 
 ## Communication Style
 - Start with a brief one-liner explaining what you’ll do next.
