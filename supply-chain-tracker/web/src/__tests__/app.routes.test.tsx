@@ -1,18 +1,18 @@
-import '@testing-library/jest-dom'
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Web3Provider } from '../contexts/Web3Provider'
-import AppRoutes from '../routes/AppRoutes'
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Web3Provider } from '../contexts/Web3Provider';
+import AppRoutes from '../routes/AppRoutes';
 
 // Mock hooks for Dashboard test
-vi.mock('../hooks/useWallet')
-vi.mock('../hooks/useUserInfo')
+vi.mock('../hooks/useWallet');
+vi.mock('../hooks/useUserInfo');
 
-import { useUserInfo } from '../hooks/useUserInfo'
-import type { UseWalletReturn } from '../hooks/useWallet'
-import { useWallet } from '../hooks/useWallet'
-import { UserRole, UserStatus } from '../lib/enums'
+import { useUserInfo } from '../hooks/useUserInfo';
+import type { UseWalletReturn } from '../hooks/useWallet';
+import { useWallet } from '../hooks/useWallet';
+import { UserRole, UserStatus } from '../lib/enums';
 
 function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletReturn {
   return {
@@ -25,21 +25,21 @@ function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletR
     switchNetwork: vi.fn(),
     getCurrentNetwork: vi.fn(),
     ...overrides,
-  }
+  };
 }
 
 describe('AppRoutes', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
   it('renders Home at "/" with header and Connect button when disconnected (mocked via WalletConnect)', () => {
-    vi.mocked(useWallet).mockReturnValue(createMockWalletState())
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: null,
       loading: false,
       error: null,
       refetch: vi.fn(),
-    })
+    });
 
     render(
       <Web3Provider>
@@ -47,22 +47,22 @@ describe('AppRoutes', () => {
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>
-    )
+    );
 
     // Header title link
-    expect(screen.getByRole('link', { name: /supply chain tracker/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /supply chain tracker/i })).toBeInTheDocument();
     // Header no longer shows Admin Users link (was removed from header navigation)
-    expect(screen.queryByRole('link', { name: /admin users/i })).not.toBeInTheDocument()
-  })
+    expect(screen.queryByRole('link', { name: /admin users/i })).not.toBeInTheDocument();
+  });
 
   it('renders Admin Users page at "/admin/users"', () => {
-    vi.mocked(useWallet).mockReturnValue(createMockWalletState())
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: null,
       loading: false,
       error: null,
       refetch: vi.fn(),
-    })
+    });
 
     render(
       <Web3Provider>
@@ -70,11 +70,11 @@ describe('AppRoutes', () => {
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>
-    )
+    );
 
     // Page title is now just "Users"
-    expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument()
-  })
+    expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument();
+  });
 
   it('renders Dashboard page at "/dashboard"', async () => {
     vi.mocked(useWallet).mockReturnValue(
@@ -84,13 +84,13 @@ describe('AppRoutes', () => {
         chainId: 31337,
         networkName: 'anvil',
       })
-    )
+    );
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Producer, status: UserStatus.Approved },
       loading: false,
       error: null,
       refetch: vi.fn(),
-    })
+    });
 
     render(
       <Web3Provider>
@@ -98,9 +98,9 @@ describe('AppRoutes', () => {
           <AppRoutes />
         </MemoryRouter>
       </Web3Provider>
-    )
+    );
 
     // Verify Dashboard renders with role-specific content
-    expect(await screen.findByRole('heading', { name: /producer dashboard/i })).toBeInTheDocument()
-  })
-})
+    expect(await screen.findByRole('heading', { name: /producer dashboard/i })).toBeInTheDocument();
+  });
+});

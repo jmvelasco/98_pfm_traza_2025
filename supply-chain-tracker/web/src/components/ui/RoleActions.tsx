@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { createToken } from '../../lib/contract'
-import { UserRole } from '../../lib/enums'
+import React, { useState } from 'react';
+import { createToken } from '../../lib/contract';
+import { UserRole } from '../../lib/enums';
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
@@ -20,7 +20,7 @@ export function RoleActions({ role }: { role: UserRole }) {
             disabled
           />
         </div>
-      )
+      );
     case UserRole.Factory:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -37,7 +37,7 @@ export function RoleActions({ role }: { role: UserRole }) {
             disabled
           />
         </div>
-      )
+      );
     case UserRole.Retailer:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -54,7 +54,7 @@ export function RoleActions({ role }: { role: UserRole }) {
             disabled
           />
         </div>
-      )
+      );
     case UserRole.Consumer:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -71,7 +71,7 @@ export function RoleActions({ role }: { role: UserRole }) {
             disabled
           />
         </div>
-      )
+      );
     case UserRole.Admin:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -88,34 +88,34 @@ export function RoleActions({ role }: { role: UserRole }) {
             disabled
           />
         </div>
-      )
+      );
     default:
-      return null
+      return null;
   }
 }
 
 // ActionCard with local feedback for Producer mint action
 function ActionCardWithFeedback(props: ActionCardProps) {
-  const [showForm, setShowForm] = useState(false)
-  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success'>('none')
+  const [showForm, setShowForm] = useState(false);
+  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success'>('none');
   const [formData, setFormData] = useState({
     name: '',
     totalSupply: '',
     content: '',
-  })
-  const { title, description, icon, link, disabled } = props
-  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all'
+  });
+  const { title, description, icon, link, disabled } = props;
+  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
   const enabledClasses =
-    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500'
-  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50'
+    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
+  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
   const handleClick = () => {
-    setShowForm(true)
-  }
+    setShowForm(true);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setShowFeedback('pending')
+    e.preventDefault();
+    setShowFeedback('pending');
     try {
       await createToken({
         name: formData.name,
@@ -125,19 +125,19 @@ function ActionCardWithFeedback(props: ActionCardProps) {
           content: formData.content,
         }),
         parentId: 0,
-      })
-      setShowFeedback('success')
+      });
+      setShowFeedback('success');
       setTimeout(() => {
-        setShowFeedback('none')
-        setShowForm(false)
-        setFormData({ name: '', totalSupply: '', content: '' })
-      }, 2000)
+        setShowFeedback('none');
+        setShowForm(false);
+        setFormData({ name: '', totalSupply: '', content: '' });
+      }, 2000);
     } catch (error) {
-      console.error('Error minting token:', error)
-      setShowFeedback('none')
+      console.error('Error minting token:', error);
+      setShowFeedback('none');
     }
-    if (props.onClick) props.onClick()
-  }
+    if (props.onClick) props.onClick();
+  };
 
   const content = (
     <>
@@ -213,14 +213,14 @@ function ActionCardWithFeedback(props: ActionCardProps) {
         </div>
       )}
     </>
-  )
+  );
 
   if (link && !disabled) {
     return (
       <a href={link} className={`${baseClasses} ${enabledClasses} block`}>
         {content}
       </a>
-    )
+    );
   }
 
   return (
@@ -233,7 +233,7 @@ function ActionCardWithFeedback(props: ActionCardProps) {
     >
       {content}
     </div>
-  )
+  );
 }
 
 function ActionCard({
@@ -245,10 +245,10 @@ function ActionCard({
   onClick,
   children,
 }: ActionCardProps & { children?: React.ReactNode }) {
-  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all'
+  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
   const enabledClasses =
-    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500'
-  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50'
+    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
+  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
   const content = (
     <>
@@ -262,14 +262,14 @@ function ActionCard({
       )}
       {children}
     </>
-  )
+  );
 
   if (link && !disabled) {
     return (
       <a href={link} className={`${baseClasses} ${enabledClasses} block`}>
         {content}
       </a>
-    )
+    );
   }
 
   return (
@@ -282,14 +282,14 @@ function ActionCard({
     >
       {content}
     </div>
-  )
+  );
 }
 
 interface ActionCardProps {
-  title: string
-  description: string
-  icon: string
-  link?: string
-  disabled?: boolean
-  onClick?: () => void
+  title: string;
+  description: string;
+  icon: string;
+  link?: string;
+  disabled?: boolean;
+  onClick?: () => void;
 }

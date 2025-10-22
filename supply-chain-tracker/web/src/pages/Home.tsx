@@ -1,48 +1,48 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import Spinner from '../components/ui/Spiner'
-import { useUserInfo } from '../hooks/useUserInfo'
-import { useWallet } from '../hooks/useWallet'
-import { requestUserRole } from '../lib/contract'
-import { ROLES, STATUS_LABELS, UserRole, UserStatus } from '../lib/enums'
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import Spinner from '../components/ui/Spiner';
+import { useUserInfo } from '../hooks/useUserInfo';
+import { useWallet } from '../hooks/useWallet';
+import { requestUserRole } from '../lib/contract';
+import { ROLES, STATUS_LABELS, UserRole, UserStatus } from '../lib/enums';
 
 function isValidStatus(status: any): status is UserStatus {
-  return Object.values(UserStatus).includes(status)
+  return Object.values(UserStatus).includes(status);
 }
 
 export default function Home() {
-  const { address, isConnected, connect } = useWallet()
-  const { userInfo, loading, error, refetch } = useUserInfo(isConnected ? address : null)
-  const [selectedRole, setSelectedRole] = useState<UserRole>(ROLES[0].value)
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [submitLoading, setSubmitLoading] = useState(false)
+  const { address, isConnected, connect } = useWallet();
+  const { userInfo, loading, error, refetch } = useUserInfo(isConnected ? address : null);
+  const [selectedRole, setSelectedRole] = useState<UserRole>(ROLES[0].value);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   const handleRequestRole = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!address) return
-    setSubmitLoading(true)
-    setSubmitError(null)
+    e.preventDefault();
+    if (!address) return;
+    setSubmitLoading(true);
+    setSubmitError(null);
     try {
-      await requestUserRole(address, selectedRole)
-      await refetch()
+      await requestUserRole(address, selectedRole);
+      await refetch();
     } catch (err) {
-      setSubmitError('Error requesting role')
+      setSubmitError('Error requesting role');
     } finally {
-      setSubmitLoading(false)
+      setSubmitLoading(false);
     }
-  }
+  };
 
-  const isAdmin = userInfo?.role === 'Admin'
+  const isAdmin = userInfo?.role === 'Admin';
 
   // Auto-redirect admin users to admin panel
   useEffect(() => {
     if (isAdmin && userInfo?.status === UserStatus.Approved) {
-      window.location.href = '/admin/users'
+      window.location.href = '/admin/users';
     }
-  }, [isAdmin, userInfo?.status])
+  }, [isAdmin, userInfo?.status]);
 
   if (isAdmin && userInfo?.status === UserStatus.Approved) {
-    return null
+    return null;
   }
 
   if (!isConnected) {
@@ -50,15 +50,15 @@ export default function Home() {
       <button onClick={connect} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded">
         Connect Wallet
       </button>
-    )
+    );
   }
 
   if (loading) {
-    return <Spinner />
+    return <Spinner />;
   }
 
   if (error) {
-    return <p className="text-red-600">Error: {error}</p>
+    return <p className="text-red-600">Error: {error}</p>;
   }
 
   return (
@@ -106,5 +106,5 @@ export default function Home() {
         </form>
       )}
     </div>
-  )
+  );
 }

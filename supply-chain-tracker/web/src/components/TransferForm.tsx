@@ -1,22 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 
 export type TransferFormProps = {
-  tokenId: number
-  parentId: number
-  balance: number
-}
+  tokenId: number;
+  parentId: number;
+  balance: number;
+};
 
-
-import * as contract from '../lib/contract'
+import * as contract from '../lib/contract';
 
 export default function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
-  const [destination, setDestination] = useState('')
-  const [amount, setAmount] = useState('')
-  const [message, setMessage] = useState<string | null>(null)
+  const [destination, setDestination] = useState('');
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
 
   function isValidAddress(addr: string) {
     // Accepts 0x-prefixed, 40 hex chars (simple check)
-    return /^0x[a-fA-F0-9]{40}$/.test(addr)
+    return /^0x[a-fA-F0-9]{40}$/.test(addr);
   }
 
   if (parentId > 0) {
@@ -24,46 +23,46 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
       <div data-testid="transfer-form">
         <p>Derived tokens cannot be transferred by producer</p>
       </div>
-    )
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!isValidAddress(destination)) {
-      return
+      return;
     }
-    const amountNum = Number(amount)
+    const amountNum = Number(amount);
     if (!Number.isFinite(amountNum) || amountNum <= 0) {
-      setMessage('Amount must be greater than 0')
-      return
+      setMessage('Amount must be greater than 0');
+      return;
     }
     if (amountNum > balance) {
-      setMessage('Insufficient balance')
-      return
+      setMessage('Insufficient balance');
+      return;
     }
     // Business validation: recipient must be an Approved Factory
     try {
-      const info = await (contract as any).getUserInfo(destination)
-      const role = info?.role
-      const status = info?.status
+      const info = await (contract as any).getUserInfo(destination);
+      const role = info?.role;
+      const status = info?.status;
       if (role !== 'Factory' || status !== 'Approved') {
-        setMessage('Recipient must be an approved factory')
-        return
+        setMessage('Recipient must be an approved factory');
+        return;
       }
     } catch (_err) {
       // In case of API error, surface a generic validation error
-      setMessage('Recipient must be an approved factory')
-      return
+      setMessage('Recipient must be an approved factory');
+      return;
     }
     // Success flow
-    setMessage('Requesting transfer')
+    setMessage('Requesting transfer');
     // Yield to allow the "Requesting transfer" message to render before proceeding
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0));
     try {
-      await (contract as any).requestTransfer(tokenId, destination, amountNum)
-      setMessage('Transfer requested')
+      await (contract as any).requestTransfer(tokenId, destination, amountNum);
+      setMessage('Transfer requested');
     } catch (err: any) {
-      setMessage(err?.message || 'Transfer failed')
+      setMessage(err?.message || 'Transfer failed');
     }
   }
 
@@ -75,7 +74,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           id="destination"
           name="destination"
           value={destination}
-          onChange={e => setDestination(e.target.value)}
+          onChange={(e) => setDestination(e.target.value)}
         />
       </div>
       <div>
@@ -85,18 +84,13 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           name="amount"
           type="number"
           value={amount}
-          onChange={e => setAmount(e.target.value)}
+          onChange={(e) => setAmount(e.target.value)}
         />
       </div>
       {message && <div>{message}</div>}
-      <button
-        type="submit"
-        disabled={
-          !destination || !amount || !isValidAddress(destination)
-        }
-      >
+      <button type="submit" disabled={!destination || !amount || !isValidAddress(destination)}>
         Request Transfer
       </button>
     </form>
-  )
+  );
 }

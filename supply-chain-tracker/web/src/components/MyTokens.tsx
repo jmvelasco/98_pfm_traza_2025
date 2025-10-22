@@ -1,150 +1,150 @@
-import { ethers } from 'ethers'
-import { useEffect, useRef, useState } from 'react'
-import { CONTRACT_CONFIG } from '../config/contracts'
-import { getTokenDetails, getUserTokens, type TokenDetails } from '../lib/contract'
-import { SupplyChain__factory } from '../types/factories/SupplyChain__factory'
+import { ethers } from 'ethers';
+import { useEffect, useRef, useState } from 'react';
+import { CONTRACT_CONFIG } from '../config/contracts';
+import { getTokenDetails, getUserTokens, type TokenDetails } from '../lib/contract';
+import { SupplyChain__factory } from '../types/factories/SupplyChain__factory';
 
 interface MyTokensProps {
-  userAddress: string
+  userAddress: string;
 }
 
 export default function MyTokens({ userAddress }: MyTokensProps) {
-  const [tokens, setTokens] = useState<TokenDetails[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [tokens, setTokens] = useState<TokenDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   // Track seen token IDs to avoid duplicates from repeated events/StrictMode
-  const seenIdsRef = useRef<Set<string>>(new Set())
+  const seenIdsRef = useRef<Set<string>>(new Set());
 
   // Fetch owned tokens on mount
   useEffect(() => {
     if (!userAddress) {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
 
     async function fetchTokens() {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         // Get token IDs owned by user
-        const tokenIds = await getUserTokens(userAddress)
+        const tokenIds = await getUserTokens(userAddress);
 
         // Fetch details for each token
-        const details = await Promise.all(tokenIds.map((id) => getTokenDetails(id, userAddress)))
+        const details = await Promise.all(tokenIds.map((id) => getTokenDetails(id, userAddress)));
 
         // Filter out nulls and merge with any tokens already appended via events
-        const nonNull = details.filter((t): t is TokenDetails => t !== null)
+        const nonNull = details.filter((t): t is TokenDetails => t !== null);
         setTokens((prev) => {
-          const byId = new Map<string, TokenDetails>()
+          const byId = new Map<string, TokenDetails>();
           // keep any tokens already present (e.g., from realtime events)
-          for (const t of prev) byId.set(String(t.id), t)
+          for (const t of prev) byId.set(String(t.id), t);
           // merge/overwrite with fetched details
-          for (const t of nonNull) byId.set(String(t.id), t)
-          return Array.from(byId.values())
-        })
+          for (const t of nonNull) byId.set(String(t.id), t);
+          return Array.from(byId.values());
+        });
         // Seed/extend seen IDs set
         seenIdsRef.current = new Set([
           ...Array.from(seenIdsRef.current),
           ...nonNull.map((t) => String(t.id)),
-        ])
+        ]);
       } catch (e) {
-        console.error('Error fetching tokens:', e)
-        setError('Failed to load tokens')
+        console.error('Error fetching tokens:', e);
+        setError('Failed to load tokens');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchTokens()
-  }, [userAddress])
+    fetchTokens();
+  }, [userAddress]);
 
   // Listen to TokenCreated events
   useEffect(() => {
     if (typeof window === 'undefined' || !window.ethereum || !userAddress) {
-      return
+      return;
     }
 
-    let provider: ethers.BrowserProvider
-    let contract: any
-    let handler: ((...args: any[]) => Promise<void>) | null = null
-    let eventFilter: any = null
+    let provider: ethers.BrowserProvider;
+    let contract: any;
+    let handler: ((...args: any[]) => Promise<void>) | null = null;
+    let eventFilter: any = null;
 
     async function setupEventListener() {
       try {
-        provider = new ethers.BrowserProvider(window.ethereum)
-        contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider)
+        provider = new ethers.BrowserProvider(window.ethereum);
+        contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
 
         // Listen for TokenCreated events
 
         handler = async (...args: any[]) => {
           // ethers v6: event object with .args
-          let tokenId, creator
+          let tokenId, creator;
           if (args.length === 1 && args[0]?.args) {
-            const a = args[0].args
-            tokenId = a?.tokenId ?? a?.id ?? a?.[0]
-            creator = a?.creator ?? a?.owner ?? a?.[1]
+            const a = args[0].args;
+            tokenId = a?.tokenId ?? a?.id ?? a?.[0];
+            creator = a?.creator ?? a?.owner ?? a?.[1];
           } else {
             // Defensive: ignore if not v6 event object
-            return
+            return;
           }
           if (creator && creator.toLowerCase() === userAddress.toLowerCase()) {
-            const idStr = tokenId?.toString ? tokenId.toString() : String(tokenId)
+            const idStr = tokenId?.toString ? tokenId.toString() : String(tokenId);
             if (seenIdsRef.current.has(idStr)) {
-              return
+              return;
             }
-            const details = await getTokenDetails(Number(tokenId), userAddress)
+            const details = await getTokenDetails(Number(tokenId), userAddress);
             if (details) {
-              seenIdsRef.current.add(String(details.id))
+              seenIdsRef.current.add(String(details.id));
               setTokens((prev) => {
                 // Double-check in state in case of race
-                if (prev.some((t) => String(t.id) === String(details.id))) return prev
-                return [...prev, details]
-              })
+                if (prev.some((t) => String(t.id) === String(details.id))) return prev;
+                return [...prev, details];
+              });
             }
           }
-        }
+        };
         // Prepare and register filter
-        eventFilter = contract.filters.TokenCreated()
-        contract.on(eventFilter, handler)
+        eventFilter = contract.filters.TokenCreated();
+        contract.on(eventFilter, handler);
       } catch (e) {
-        console.error('Error setting up event listener:', e)
+        console.error('Error setting up event listener:', e);
       }
     }
 
-    setupEventListener()
+    setupEventListener();
 
     // Cleanup listener on unmount
     return () => {
       if (contract && handler) {
         if (typeof contract.off === 'function') {
           try {
-            contract.off(eventFilter ?? 'TokenCreated', handler)
+            contract.off(eventFilter ?? 'TokenCreated', handler);
           } catch {
             // fallback
             contract.removeAllListeners &&
-              contract.removeAllListeners(eventFilter ?? 'TokenCreated')
+              contract.removeAllListeners(eventFilter ?? 'TokenCreated');
           }
         } else if (typeof contract.removeListener === 'function') {
           try {
-            contract.removeListener(eventFilter ?? 'TokenCreated', handler)
+            contract.removeListener(eventFilter ?? 'TokenCreated', handler);
           } catch {
             contract.removeAllListeners &&
-              contract.removeAllListeners(eventFilter ?? 'TokenCreated')
+              contract.removeAllListeners(eventFilter ?? 'TokenCreated');
           }
         } else if (typeof contract.removeAllListeners === 'function') {
-          contract.removeAllListeners(eventFilter ?? 'TokenCreated')
+          contract.removeAllListeners(eventFilter ?? 'TokenCreated');
         }
       }
-    }
-  }, [userAddress])
+    };
+  }, [userAddress]);
 
   if (loading) {
     return (
       <div className="text-center py-8">
         <p className="text-gray-500">Loading tokens...</p>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -152,7 +152,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
       <div className="text-center py-8">
         <p className="text-red-600">{error}</p>
       </div>
-    )
+    );
   }
 
   if (tokens.length === 0) {
@@ -160,15 +160,15 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
       <div className="text-center py-8">
         <p className="text-gray-500">No tokens yet</p>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
       {tokens.map((token) => {
-        let parsedFeatures: any = {}
+        let parsedFeatures: any = {};
         try {
-          parsedFeatures = JSON.parse(token.features)
+          parsedFeatures = JSON.parse(token.features);
         } catch {
           // ignore parse errors
         }
@@ -207,8 +207,8 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
               )}
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

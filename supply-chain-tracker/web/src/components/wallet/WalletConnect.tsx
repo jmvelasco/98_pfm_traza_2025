@@ -1,16 +1,16 @@
-import { useCallback } from 'react'
-import { useWallet } from '../../hooks/useWallet'
+import { useCallback } from 'react';
+import { useWallet } from '../../hooks/useWallet';
 
 function shortAddress(addr: string) {
-  return addr.slice(0, 6) + '…' + addr.slice(-4)
+  return addr.slice(0, 6) + '…' + addr.slice(-4);
 }
 
 export function WalletConnect() {
-  const { address, isConnected, networkName, connect } = useWallet()
+  const { address, isConnected, networkName, connect } = useWallet();
 
   const onConnect = useCallback(async () => {
-    await connect()
-  }, [connect])
+    await connect();
+  }, [connect]);
 
   if (!isConnected) {
     return (
@@ -20,7 +20,7 @@ export function WalletConnect() {
       >
         Connect
       </button>
-    )
+    );
   }
 
   return (
@@ -28,5 +28,5 @@ export function WalletConnect() {
       <span className="px-2 py-0.5 bg-gray-100 rounded">{networkName ?? 'Unknown'}</span>
       <span className="font-mono">{address ? shortAddress(address) : ''}</span>
     </div>
-  )
+  );
 }

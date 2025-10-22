@@ -5,27 +5,27 @@ export const UserRole = {
   Retailer: 'Retailer',
   Consumer: 'Consumer',
   Admin: 'Admin',
-} as const
+} as const;
 
-export type UserRole = (typeof UserRole)[keyof typeof UserRole]
+export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const UserStatus = {
   Pending: 'Pending',
   Approved: 'Approved',
   Rejected: 'Rejected',
-} as const
+} as const;
 
-export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus]
+export type UserStatus = (typeof UserStatus)[keyof typeof UserStatus];
 
 export const ROLES = [
   { value: UserRole.Producer, label: 'Producer' },
   { value: UserRole.Factory, label: 'Factory' },
   { value: UserRole.Retailer, label: 'Retailer' },
   { value: UserRole.Consumer, label: 'Consumer' },
-]
+];
 
 export const STATUS_LABELS: Record<UserStatus, string> = {
   [UserStatus.Pending]: 'Pending',
   [UserStatus.Approved]: 'Approved',
   [UserStatus.Rejected]: 'Rejected',
-}
+};

@@ -1,8 +1,8 @@
-import { Route, Routes } from 'react-router-dom'
-import AppLayout from '../layouts/AppLayout'
-import Dashboard from '../pages/Dashboard'
-import Home from '../pages/Home'
-import Users from '../pages/admin/Users'
+import { Route, Routes } from 'react-router-dom';
+import AppLayout from '../layouts/AppLayout';
+import Dashboard from '../pages/Dashboard';
+import Home from '../pages/Home';
+import Users from '../pages/admin/Users';
 
 export default function AppRoutes() {
   return (
@@ -13,5 +13,5 @@ export default function AppRoutes() {
         <Route path="/admin/users" element={<Users />} />
       </Route>
     </Routes>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { WalletConnect } from '../wallet/WalletConnect'
+import { Link } from 'react-router-dom';
+import { WalletConnect } from '../wallet/WalletConnect';
 
 export default function Header() {
   // Header shows app title and wallet connect; role-based nav removed.
@@ -17,5 +17,5 @@ export default function Header() {
         </nav>
       </div>
     </header>
-  )
+  );
 }

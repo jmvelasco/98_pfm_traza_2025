@@ -739,10 +739,10 @@ export const CONTRACT_CONFIG = {
     },
   ],
   adminAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-}
+};
 
 export const NETWORK_CONFIG = {
   chainId: 31337,
   name: 'Anvil Local',
   rpcUrl: 'http://localhost:8545',
-}
+};

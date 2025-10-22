@@ -1,24 +1,24 @@
-import { useEffect } from 'react'
-import MyTokens from '../components/MyTokens'
-import { RoleActions } from '../components/ui/RoleActions'
-import Spinner from '../components/ui/Spiner'
-import { useUserInfo } from '../hooks/useUserInfo'
-import { useWallet } from '../hooks/useWallet'
-import { UserRole } from '../lib/enums'
+import { useEffect } from 'react';
+import MyTokens from '../components/MyTokens';
+import { RoleActions } from '../components/ui/RoleActions';
+import Spinner from '../components/ui/Spiner';
+import { useUserInfo } from '../hooks/useUserInfo';
+import { useWallet } from '../hooks/useWallet';
+import { UserRole } from '../lib/enums';
 
 export default function Dashboard() {
-  const { address, isConnected } = useWallet()
-  const { userInfo, loading, error } = useUserInfo(isConnected ? address : null)
+  const { address, isConnected } = useWallet();
+  const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
 
   // Redirect to home if not connected
   useEffect(() => {
     if (!isConnected) {
-      window.location.href = '/'
+      window.location.href = '/';
     }
-  }, [isConnected])
+  }, [isConnected]);
 
   if (!isConnected) {
-    return null // Will redirect, so render nothing
+    return null; // Will redirect, so render nothing
   }
 
   // Loading state
@@ -28,7 +28,7 @@ export default function Dashboard() {
         <Spinner />
         <span className="ml-2 text-gray-600">Loading dashboard...</span>
       </div>
-    )
+    );
   }
 
   // Error state
@@ -37,7 +37,7 @@ export default function Dashboard() {
       <div className="text-center py-8">
         <p className="text-red-600">Error loading dashboard: {error}</p>
       </div>
-    )
+    );
   }
 
   // No role assigned
@@ -46,10 +46,10 @@ export default function Dashboard() {
       <div className="text-center py-8">
         <p className="text-gray-600">No role assigned. Please request a role from the home page.</p>
       </div>
-    )
+    );
   }
 
-  const role = userInfo.role
+  const role = userInfo.role;
 
   return (
     <div className="space-y-6">
@@ -83,5 +83,5 @@ export default function Dashboard() {
         </section>
       )}
     </div>
-  )
+  );
 }

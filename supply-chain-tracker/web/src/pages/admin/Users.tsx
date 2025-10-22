@@ -1,62 +1,62 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useUserInfo } from '../../hooks/useUserInfo'
-import { useWallet } from '../../hooks/useWallet'
-import { changeStatusUser, getUsers, type Users } from '../../lib/contract'
-import { UserRole, UserStatus } from '../../lib/enums'
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useUserInfo } from '../../hooks/useUserInfo';
+import { useWallet } from '../../hooks/useWallet';
+import { changeStatusUser, getUsers, type Users } from '../../lib/contract';
+import { UserRole, UserStatus } from '../../lib/enums';
 
 export default function Users() {
-  const { address } = useWallet()
-  const { userInfo: myInfo } = useUserInfo(address)
-  const isAdmin = myInfo?.role === 'Admin'
+  const { address } = useWallet();
+  const { userInfo: myInfo } = useUserInfo(address);
+  const isAdmin = myInfo?.role === 'Admin';
 
-  const [users, setUsers] = useState<Users[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [users, setUsers] = useState<Users[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRows = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      const list = await getUsers()
-      setUsers(list)
+      const list = await getUsers();
+      setUsers(list);
     } catch (e) {
-      setError('Error cargando usuarios pendientes')
+      setError('Error cargando usuarios pendientes');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleApprove = async (targetAddress: string) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      await changeStatusUser(targetAddress, UserStatus.Approved)
-      await fetchRows()
+      await changeStatusUser(targetAddress, UserStatus.Approved);
+      await fetchRows();
     } catch (e) {
-      setError('Error al actualizar estado')
+      setError('Error al actualizar estado');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleReject = async (targetAddress: string) => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
-      await changeStatusUser(targetAddress, UserStatus.Rejected)
-      await fetchRows()
+      await changeStatusUser(targetAddress, UserStatus.Rejected);
+      await fetchRows();
     } catch (e) {
-      setError('Error al actualizar estado')
+      setError('Error al actualizar estado');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (isAdmin) fetchRows()
+    if (isAdmin) fetchRows();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin])
+  }, [isAdmin]);
 
   if (!isAdmin) {
     return (
@@ -70,10 +70,10 @@ export default function Users() {
           Go to Dashboard
         </Link>
       </section>
-    )
+    );
   }
 
-  const nonAdminUsers = users.filter((u) => u.role !== UserRole.Admin)
+  const nonAdminUsers = users.filter((u) => u.role !== UserRole.Admin);
   return (
     <section>
       <h2 className="text-2xl font-semibold">Users</h2>
@@ -147,5 +147,5 @@ export default function Users() {
         )}
       </div>
     </section>
-  )
+  );
 }
