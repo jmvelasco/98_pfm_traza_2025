@@ -32,6 +32,15 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
     if (!isValidAddress(destination)) {
       return
     }
+    const amountNum = Number(amount)
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      setMessage('Amount must be greater than 0')
+      return
+    }
+    if (amountNum > balance) {
+      setMessage('Insufficient balance')
+      return
+    }
     // Business validation: recipient must be an Approved Factory
     try {
       const info = await (contract as any).getUserInfo(destination)

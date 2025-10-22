@@ -38,7 +38,7 @@ describe('TransferForm', () => {
     expect(await screen.findByText(/recipient must be an approved factory/i)).toBeInTheDocument()
   })
 
-  it.skip('requires amount > 0 and <= balance', async () => {
+  it('requires amount > 0 and <= balance', async () => {
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
     fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '0' } })
