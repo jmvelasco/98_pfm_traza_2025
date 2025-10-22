@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import Users from '../pages/admin/Users'
@@ -175,8 +176,9 @@ describe('Admin Users Page', () => {
     expect(await screen.findByText('Pending')).toBeInTheDocument()
 
     // Approve the user
-    const approveButton = screen.getByRole('button', { name: /Aprobar/i })
-    fireEvent.click(approveButton)
+  const approveButton = screen.getByRole('button', { name: /Aprobar/i })
+  const user = userEvent.setup()
+  await user.click(approveButton)
 
     await waitFor(() => {
       expect(changeStatusUser).toHaveBeenCalledWith(initialUsers[0].address, UserStatus.Approved)
@@ -222,8 +224,10 @@ describe('Admin Users Page', () => {
       </MemoryRouter>
     )
 
-    // Click Reject on the only row
-    fireEvent.click(await screen.findByRole('button', { name: /Rechazar/i }))
+  // Click Reject on the only row
+  const user = userEvent.setup()
+  const rejectBtn = await screen.findByRole('button', { name: /Rechazar/i })
+  await user.click(rejectBtn)
     expect(await screen.findByText(/Error al actualizar estado/i)).toBeInTheDocument()
   })
 })
