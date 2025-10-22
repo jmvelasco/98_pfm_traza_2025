@@ -55,7 +55,16 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
       setMessage('Recipient must be an approved factory')
       return
     }
-    setMessage(null)
+    // Success flow
+    setMessage('Requesting transfer')
+    // Yield to allow the "Requesting transfer" message to render before proceeding
+    await new Promise(resolve => setTimeout(resolve, 0))
+    try {
+      await (contract as any).requestTransfer(tokenId, destination, amountNum)
+      setMessage('Transfer requested')
+    } catch (err: any) {
+      setMessage(err?.message || 'Transfer failed')
+    }
   }
 
   return (

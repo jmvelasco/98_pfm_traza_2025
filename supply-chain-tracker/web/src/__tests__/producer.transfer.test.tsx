@@ -50,7 +50,7 @@ describe('TransferForm', () => {
     expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument()
   })
 
-  it.skip('calls requestTransfer on valid input and shows success', async () => {
+  it('calls requestTransfer on valid input and shows success', async () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
     ;(contract as any).requestTransfer.mockResolvedValue()
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
@@ -61,7 +61,7 @@ describe('TransferForm', () => {
     await waitFor(() => expect(screen.getByText(/transfer requested/i)).toBeInTheDocument())
   })
 
-  it.skip('surfaces contract errors', async () => {
+  it('surfaces contract errors', async () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
     ;(contract as any).requestTransfer.mockRejectedValue(new Error('Insufficient balance'))
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
