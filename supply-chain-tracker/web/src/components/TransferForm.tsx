@@ -9,7 +9,14 @@ export type TransferFormProps = {
  * Minimal component for TDD RED phase. Props are defined but not used yet.
  * The full form UI (destination, amount, submit) will be implemented in GREEN steps.
  */
-export default function TransferForm(_props: TransferFormProps) {
+export default function TransferForm({ parentId }: TransferFormProps) {
+  if (parentId > 0) {
+    return (
+      <div data-testid="transfer-form">
+        <p>Derived tokens cannot be transferred by producer</p>
+      </div>
+    )
+  }
   return (
     <form data-testid="transfer-form" onSubmit={e => e.preventDefault()}>
       <div>
