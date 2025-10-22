@@ -29,10 +29,10 @@ describe('TransferForm', () => {
   })
 
 
-  it.skip('requires Factory approved recipient', async () => {
+  it('requires Factory approved recipient', async () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Retailer', status: 'Approved' })
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0xfactory' } })
+    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/recipient must be an approved factory/i)).toBeInTheDocument()
@@ -40,7 +40,7 @@ describe('TransferForm', () => {
 
   it.skip('requires amount > 0 and <= balance', async () => {
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0xfactory' } })
+    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '0' } })
     fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/amount must be greater than 0/i)).toBeInTheDocument()
@@ -54,7 +54,7 @@ describe('TransferForm', () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
     ;(contract as any).requestTransfer.mockResolvedValue()
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0xfactory' } })
+    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/requesting transfer/i)).toBeInTheDocument()
@@ -65,7 +65,7 @@ describe('TransferForm', () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
     ;(contract as any).requestTransfer.mockRejectedValue(new Error('Insufficient balance'))
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0xfactory' } })
+    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
     fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
     fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument()
