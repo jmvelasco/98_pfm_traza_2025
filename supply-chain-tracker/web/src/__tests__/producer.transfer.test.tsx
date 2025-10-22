@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import TransferForm from '../components/TransferForm'
 import * as contract from '../lib/contract'
@@ -32,31 +33,38 @@ describe('TransferForm', () => {
   it('requires Factory approved recipient', async () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Retailer', status: 'Approved' })
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
-    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/destination/i), '0x1111111111111111111111111111111111111111')
+    await user.type(screen.getByLabelText(/amount/i), '10')
+    await user.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/recipient must be an approved factory/i)).toBeInTheDocument()
   })
 
   it('requires amount > 0 and <= balance', async () => {
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
-    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '0' } })
-    fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/destination/i), '0x1111111111111111111111111111111111111111')
+    await user.type(screen.getByLabelText(/amount/i), '0')
+    await user.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/amount must be greater than 0/i)).toBeInTheDocument()
 
-    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '101' } })
-    fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
+    // Clear and type a higher value
+    const amountInput = screen.getByLabelText(/amount/i)
+    // userEvent.clear ensures realistic clearing
+    await user.clear(amountInput)
+    await user.type(amountInput, '101')
+    await user.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument()
   })
 
   it('calls requestTransfer on valid input and shows success', async () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
-    ;(contract as any).requestTransfer.mockResolvedValue()
+    ;(contract as any).requestTransfer.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 0)))
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
-    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/destination/i), '0x1111111111111111111111111111111111111111')
+    await user.type(screen.getByLabelText(/amount/i), '10')
+    await user.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/requesting transfer/i)).toBeInTheDocument()
     await waitFor(() => expect(screen.getByText(/transfer requested/i)).toBeInTheDocument())
   })
@@ -65,9 +73,10 @@ describe('TransferForm', () => {
     ;(contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' })
     ;(contract as any).requestTransfer.mockRejectedValue(new Error('Insufficient balance'))
     render(<TransferForm tokenId={1} parentId={0} balance={100} />)
-    fireEvent.change(screen.getByLabelText(/destination/i), { target: { value: '0x1111111111111111111111111111111111111111' } })
-    fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10' } })
-    fireEvent.click(screen.getByRole('button', { name: /request transfer/i }))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/destination/i), '0x1111111111111111111111111111111111111111')
+    await user.type(screen.getByLabelText(/amount/i), '10')
+    await user.click(screen.getByRole('button', { name: /request transfer/i }))
     expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument()
   })
 })
