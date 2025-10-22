@@ -1,11 +1,14 @@
 # 📊 PROGRESS.md — Progreso de la Sesión TDD (13 octubre 2025)
 
 ## 🎯 Objetivo de la Sesión
+
 Implementar mediante TDD (Test-Driven Development) las funcionalidades pendientes del punto 4 de STATUS_06:
+
 - **Persistencia de sesión Web3 en localStorage**
 - **Manejo de eventos de MetaMask (cambio de cuenta/red)**
 
 ## 🔄 Metodología TDD Aplicada
+
 1. **RED**: Escribir tests que fallen inicialmente
 2. **GREEN**: Implementar el mínimo código necesario para que pasen
 3. **REFACTOR**: Mejorar el código manteniendo los tests verdes
@@ -25,6 +28,7 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
 ## ✅ Logros Alcanzados
 
 ### 1. 🧪 Configuración del Entorno de Testing
+
 - **Instaladas dependencias de testing**:
   - `vitest` v3.2.4
   - `@vitest/ui` v3.2.4
@@ -48,9 +52,11 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
   - `test:ui`: `vitest --ui`
 
 ### 2. 🔴 Fase RED - Tests Fallando
+
 Creado `src/__tests__/web3provider.persistence.events.test.tsx` con 4 tests:
 
 #### **Tests de Persistencia**:
+
 1. **"does not have address initially and persists after connect"**
    - Verifica que inicialmente no hay dirección
    - Al hacer click en "connect", se conecta y persiste en localStorage
@@ -62,6 +68,7 @@ Creado `src/__tests__/web3provider.persistence.events.test.tsx` con 4 tests:
    - Esperaba: componente muestre la dirección persistida
 
 #### **Tests de Eventos MetaMask**:
+
 3. **"updates address on accountsChanged"**
    - Simula cambio de cuenta en MetaMask
    - Verifica actualización automática del estado
@@ -75,9 +82,11 @@ Creado `src/__tests__/web3provider.persistence.events.test.tsx` con 4 tests:
 **Resultado inicial**: ❌ 4/4 tests fallando (comportamiento esperado en TDD)
 
 ### 3. 🟢 Fase GREEN - Implementación Mínima
+
 Modificado `src/contexts/Web3Provider.tsx` para cumplir especificaciones:
 
 #### **Persistencia Implementada**:
+
 - **En función `connect()`**:
   - Usa `eth_requestAccounts` en lugar de conexión silenciosa
   - Guarda dirección en `localStorage.setItem('web3:address', selected)`
@@ -89,6 +98,7 @@ Modificado `src/contexts/Web3Provider.tsx` para cumplir especificaciones:
   - Limpia localStorage si no hay cuentas conectadas
 
 #### **Eventos MetaMask Implementados**:
+
 - **`accountsChanged` handler**:
   - Si hay cuentas: actualiza dirección y localStorage
   - Si no hay cuentas: resetea estado y limpia localStorage
@@ -103,10 +113,12 @@ Modificado `src/contexts/Web3Provider.tsx` para cumplir especificaciones:
   - Flag `removed` para evitar memory leaks
 
 ### 4. ✅ Verificación Final
+
 **Resultado de tests**: 🟢 4/4 tests pasando
+
 ```
 ✓ Web3Provider persistence > does not have address initially and persists after connect (RED) 31ms
-✓ Web3Provider persistence > auto-connects from localStorage on load (RED) 6ms  
+✓ Web3Provider persistence > auto-connects from localStorage on load (RED) 6ms
 ✓ Web3Provider MetaMask events > updates address on accountsChanged (RED) 8ms
 ✓ Web3Provider MetaMask events > resets state on chainChanged (RED) 7ms
 
@@ -119,10 +131,12 @@ Tests  4 passed (4)
 ## 🔧 Archivos Modificados
 
 ### **Nuevos Archivos**:
+
 - `web/vitest.setup.ts` - Configuración de testing
 - `web/src/__tests__/web3provider.persistence.events.test.tsx` - Suite de tests TDD
 
 ### **Archivos Actualizados**:
+
 - `web/vite.config.ts` - Configuración de Vitest
 - `web/package.json` - Scripts de testing y dependencias
 - `web/src/contexts/Web3Provider.tsx` - Implementación de persistencia y eventos
@@ -132,7 +146,8 @@ Tests  4 passed (4)
 ## 📈 Impacto en Objetivos STATUS_06
 
 ### ✅ **Completado**:
-- [x] **Persistencia de sesión Web3 en localStorage** 
+
+- [x] **Persistencia de sesión Web3 en localStorage**
   - Auto-guardar dirección al conectar
   - Auto-restaurar al recargar página
   - Limpiar al desconectar
@@ -143,6 +158,7 @@ Tests  4 passed (4)
   - Cleanup de listeners para evitar memory leaks
 
 ### 🔄 **Pendiente para Próxima Sesión**:
+
 - [ ] Crear `src/hooks/useWallet.ts` (wrapper/alias de useWeb3)
 - [ ] Crear `src/lib/web3.ts` (servicio de Web3)
 - [ ] Crear estructura de carpetas faltantes (`components/`, `pages/`)
@@ -153,14 +169,16 @@ Tests  4 passed (4)
 ## 🧪 Metodología TDD - Lecciones Aprendidas
 
 ### **Beneficios Observados**:
+
 1. **Especificación clara**: Los tests definen exactamente qué debe hacer el código
 2. **Confianza en cambios**: Cada modificación se valida inmediatamente
 3. **Diseño emergente**: La API se diseña desde el uso (tests), no desde la implementación
 4. **Regresiones controladas**: Imposible romper funcionalidad sin que los tests lo detecten
 
 ### **Patrón Aplicado**:
+
 - **Mock de ethereum**: Simulación completa de MetaMask API
-- **Event emission**: Simulación de eventos del navegador  
+- **Event emission**: Simulación de eventos del navegador
 - **State assertions**: Verificación de estado React mediante Testing Library
 - **LocalStorage testing**: Verificación de persistencia en DOM simulado
 
@@ -169,10 +187,12 @@ Tests  4 passed (4)
 ## 🚀 Estado Actual vs STATUS_06
 
 **Antes** (STATUS_06):
+
 - ❌ Persistencia de sesión Web3 en localStorage aún no implementada
 - ❌ Manejo de eventos de MetaMask (cambio de cuenta/red) pendiente
 
 **Después** (Actual):
+
 - ✅ Persistencia de sesión Web3 completamente funcional y testeada
 - ✅ Manejo robusto de eventos MetaMask con cleanup automático
 - ✅ Suite de tests automatizada para validación continua
@@ -183,7 +203,7 @@ Tests  4 passed (4)
 ## 📋 Próximos Pasos Recomendados
 
 1. **Mantener momentum TDD**: Seguir mismo patrón para hooks y servicios
-2. **Refactoring**: Extraer lógica común a servicios reutilizables  
+2. **Refactoring**: Extraer lógica común a servicios reutilizables
 3. **Coverage**: Añadir tests para casos edge (conexión fallida, etc.)
 4. **Integration**: Tests end-to-end del flujo completo de usuario
 
@@ -198,9 +218,11 @@ _Resultado: ✅ Todos los objetivos de persistencia y eventos completados_
 ## ➕ Fase 2 — Web3 Service (ethers v6) con TDD
 
 ### 🎯 Objetivo
+
 Implementar un servicio `web/src/lib/web3.ts` que provea utilidades Web3 neutrales a UI (conexión, balance, red) usando ethers v6 y EIP-1193, siguiendo TDD con commits estratégicos.
 
 ### 🔴 RED — Tests Fallando
+
 - Creado `web/src/__tests__/web3.service.test.ts` con 12 tests cubriendo:
   - `connectWallet()`: conexión y errores (incluye rechazo de usuario)
   - `getBalance(address)`: validación de address y formateo de balance
@@ -211,6 +233,7 @@ Implementar un servicio `web/src/lib/web3.ts` que provea utilidades Web3 neutral
 Commit: `red: Web3 service comprehensive tests (connect, balance, network, MetaMask detection)`
 
 ### 🟢 GREEN — Implementación Mínima (ethers v6)
+
 - Creado `web/src/lib/web3.ts` con API:
   - `connectWallet(): Promise<{ address, chainId, isConnected }>`
   - `getBalance(address: string): Promise<string>` usando `ethers.formatEther`
@@ -222,6 +245,7 @@ Commit: `red: Web3 service comprehensive tests (connect, balance, network, MetaM
 Commit: `green: Web3 service implementation with ethers v6 (connect, balance, network switch, detection)`
 
 ### 🧹 REFACTOR — Tipos, Helpers y Errores Normalizados
+
 - Extraído mapeo de redes a `web/src/config/networks.ts`.
 - Añadidos helpers y tipos en `web/src/lib/web3.ts`:
   - `Eip1193Provider`, `Eip1193RequestArgs` (forma mínima de EIP-1193)
@@ -234,11 +258,13 @@ Commit: `green: Web3 service implementation with ethers v6 (connect, balance, ne
 Commit: `refactor: web3 service helpers, EIP-1193 typing, normalized errors, config networks; keep API stable`
 
 ### ✅ Verificación
+
 ```
 ✓ Web3 Service (12 tests) — 12/12 pasando
 ```
 
 ### 📌 Notas Técnicas
+
 - Ethers v6 verificado (versión ^6.15.0 y APIs v6 en uso).
 - EIP-1193 aplicado para el tipado del provider inyectado por MetaMask.
 - Diseño SSR-friendly en helpers (evitan fallos en entornos sin `window`).
@@ -248,9 +274,11 @@ Commit: `refactor: web3 service helpers, EIP-1193 typing, normalized errors, con
 ## ➕ Fase 3 — Hook useWallet (TDD)
 
 ### 🎯 Objetivo
+
 Crear `web/src/hooks/useWallet.ts` como capa de ergonomía que combine `useWeb3` context y `web3Service`, proporcionando una API unificada y simplificada para componentes.
 
 ### 🔴 RED — Tests Fallando
+
 - Creado `web/src/__tests__/useWallet.test.tsx` con 4 tests cubriendo:
   - `{ address, isConnected, connect }`: estado de conexión y acción de conectar
   - `getBalance(address)`: obtención de balance via servicio web3
@@ -260,6 +288,7 @@ Crear `web/src/hooks/useWallet.ts` como capa de ergonomía que combine `useWeb3`
 Commit: `red: useWallet hook tests (state, connect, balance, switch network, network info)`
 
 ### 🟢 GREEN — Implementación Mínima
+
 - Creado `web/src/hooks/useWallet.ts` con API:
   - Estado derivado: `address`, `isConnected` desde contexto Web3
   - Proxy a contexto: `connect()` desde `useWeb3`
@@ -270,16 +299,17 @@ Commit: `red: useWallet hook tests (state, connect, balance, switch network, net
 Commit: `green: implement minimal useWallet hook using web3Service and Web3Provider`
 
 ### 🧹 REFACTOR — Implementado
+
 Refactoring completo con 5 mejoras aplicadas:
 
-1. **✅ Tipos específicos**: 
+1. **✅ Tipos específicos**:
    - Creadas interfaces `WalletState`, `WalletActions`, `UseWalletReturn`
    - Tipado completo del hook con return type explícito
    - Import de tipos del servicio web3 (`NetworkInfo`)
 
 2. **✅ Manejo de errores mejorado**:
    - Try/catch en todos los métodos del hook
-   - Normalización de errores con mensajes descriptivos  
+   - Normalización de errores con mensajes descriptivos
    - Preservación del mensaje original cuando es posible
 
 3. **✅ Estados derivados adicionales**:
@@ -300,20 +330,22 @@ Refactoring completo con 5 mejoras aplicadas:
 Commit: `refactor: useWallet hook with types, error handling, network state, validation and optimizations`
 
 ### ✅ Verificación Final
+
 ```
 ✓ useWallet hook (4 tests) — 4/4 pasando tras refactor
 ```
 
 **API final del hook**:
+
 ```typescript
 {
   // Estado
   address: string | null;
-  isConnected: boolean; 
+  isConnected: boolean;
   chainId: number | null;
   networkName: string | null;
-  
-  // Acciones  
+
+  // Acciones
   connect: () => Promise<void>;
   getBalance: (address?: string) => Promise<string>;
   switchNetwork: (chainId: number) => Promise<void>;
@@ -326,6 +358,7 @@ Commit: `refactor: useWallet hook with types, error handling, network state, val
 ## 🚀 Estado Final de la Sesión TDD
 
 ### ✅ **Completado Exitosamente**:
+
 - [x] **Configuración TDD**: Vitest, Testing Library, jsdom configurados
 - [x] **Persistencia Web3**: localStorage y auto-reconexión implementados y testeados
 - [x] **Eventos MetaMask**: accountsChanged/chainChanged con cleanup de listeners
@@ -333,15 +366,17 @@ Commit: `refactor: useWallet hook with types, error handling, network state, val
 - [x] **Hook useWallet**: Capa de ergonomía combinando contexto y servicio
 
 ### 📊 **Métricas de Testing**:
+
 - **Web3Provider**: 4/4 tests pasando (persistencia + eventos)
 - **Web3 Service**: 12/12 tests pasando (conexión + balance + red)
 - **useWallet Hook**: 4/4 tests pasando (estado + servicios)
 - **Total**: 20/20 tests pasando ✅
 
 ### 🔧 **Archivos Creados/Modificados**:
+
 ```
 web/src/config/networks.ts          # Mapeo de nombres de redes
-web/src/lib/web3.ts                 # Servicio Web3 (ethers v6 + EIP-1193)  
+web/src/lib/web3.ts                 # Servicio Web3 (ethers v6 + EIP-1193)
 web/src/hooks/useWallet.ts          # Hook de ergonomía
 web/src/__tests__/*.test.{tsx,ts}   # Suite completa de tests TDD
 web/vite.config.ts                  # Configuración Vitest
@@ -349,6 +384,7 @@ web/vitest.setup.ts                 # Setup global de tests
 ```
 
 ### 📈 **Progreso vs STATUS_06**:
+
 - ✅ Persistencia localStorage + eventos MetaMask (completado con TDD)
 - ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
 - ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)
@@ -359,24 +395,27 @@ web/vitest.setup.ts                 # Setup global de tests
 ## 🏆 Resumen Ejecutivo de la Sesión TDD
 
 ### 🎯 **Objetivo Cumplido al 100%**
+
 ✅ **Persistencia Web3 + Eventos MetaMask**: Implementación completa y robusta  
 ✅ **Servicio Web3**: API completa con ethers v6, tipos EIP-1193, helpers  
 ✅ **Hook useWallet**: Capa de ergonomía con validaciones, manejo de errores y estado derivado
 
 ### 📊 **Métricas Finales**
+
 - **Total Tests**: 20/20 pasando (100% éxito)
-- **Commits TDD**: 9 commits estratégicos (3 ciclos RED→GREEN→REFACTOR)  
+- **Commits TDD**: 9 commits estratégicos (3 ciclos RED→GREEN→REFACTOR)
 - **Coverage**: Persistencia, servicios, hooks, errores, validaciones
 - **Metodología**: TDD puro con commits separados por fase
 
 ### 💻 **Código Entregado**
+
 ```
 📁 Servicios y Utilidades
 ├── src/config/networks.ts        # Mapeo centralizado de redes
-├── src/lib/web3.ts              # Servicio Web3 (ethers v6 + EIP-1193)  
+├── src/lib/web3.ts              # Servicio Web3 (ethers v6 + EIP-1193)
 └── src/hooks/useWallet.ts       # Hook ergonómico con estado completo
 
-📁 Testing Infrastructure  
+📁 Testing Infrastructure
 ├── src/__tests__/*.test.{tsx,ts} # Suite completa TDD (20 tests)
 ├── vite.config.ts               # Configuración Vitest + jsdom
 └── vitest.setup.ts              # Setup global con jest-dom
@@ -386,8 +425,9 @@ web/vitest.setup.ts                 # Setup global de tests
 ```
 
 ### 🚀 **Valor Entregado**
+
 - **Para Desarrolladores**: API limpia, tipada, con manejo de errores
-- **Para Usuarios**: Persistencia automática, reconexión, estados actualizados  
+- **Para Usuarios**: Persistencia automática, reconexión, estados actualizados
 - **Para Proyecto**: Base sólida, testeada, mantenible para desarrollo futuro
 
 **Estado del Proyecto**: Listo para implementación de UI y páginas funcionales
@@ -397,7 +437,9 @@ web/vitest.setup.ts                 # Setup global de tests
 ## ➕ Fase 4 — Home Page Registration (TDD) + Refactors (16 octubre 2025)
 
 ### 🎯 Objetivo
+
 Implementar la lógica de registro de usuario en Home page usando TDD:
+
 - Mostrar CTA de conexión si no está conectado
 - Formulario de selección de rol (Producer/Factory/Retailer/Consumer)
 - Llamada a `requestUserRole()` del contrato
@@ -405,7 +447,9 @@ Implementar la lógica de registro de usuario en Home page usando TDD:
 - Manejo de errores y loading
 
 ### 🔴 RED — Tests de Home Registration
+
 Creado `src/__tests__/home.registration.test.tsx` con 4 tests:
+
 1. **"shows connect CTA if not connected"**: Verifica botón de conexión cuando wallet no conectada
 2. **"shows role request form if connected and no role"**: Muestra formulario de selección de rol
 3. **"shows current user status if already requested"**: Muestra rol y estado (Pending/Approved/Rejected)
@@ -416,14 +460,17 @@ Creado `src/__tests__/home.registration.test.tsx` con 4 tests:
 Commit: `red: Home page registration tests (connect CTA, role request, status, error)`
 
 ### 🟢 GREEN — Implementación Mínima
+
 Implementados los archivos necesarios para pasar los tests:
 
 **Archivos creados**:
+
 - `src/lib/contract.ts`: Helpers `getUserInfo()` y `requestUserRole()` (placeholders)
 - `src/lib/enums.ts`: Arrays de roles y mapeo de labels para status
 - `src/pages/Home.tsx`: Lógica completa de registro con estados loading/error
 
 **Funcionalidad implementada**:
+
 - Detección de conexión y mostrar CTA si no conectado
 - Formulario de selección de rol con dropdown
 - Llamada a `requestUserRole()` al submit
@@ -431,7 +478,8 @@ Implementados los archivos necesarios para pasar los tests:
 - Mostrar rol y estado actual si ya solicitado
 - Manejo de estados de loading y error
 
-**Ajustes en tests**: 
+**Ajustes en tests**:
+
 - Corregidos mocks para usar `vi.mocked()` en vez de `require().mockReturnValue()`
 - Añadidos campos `chainId` y `networkName` a mocks de `useWallet`
 - Tipos estrictos para `UserInfo`
@@ -443,6 +491,7 @@ Commit: `green: Home page registration logic and helpers (tests passing)`
 ### 🧹 REFACTOR — 5 Refactors Incrementales con Commits Separados
 
 #### **Refactor 1: Extraer hook useUserInfo**
+
 - Creado `src/hooks/useUserInfo.ts` para aislar lógica de fetch, loading y error
 - Home.tsx ahora usa el hook en vez de gestionar estado manualmente
 - Separación de responsabilidades: Home solo renderiza, hook gestiona data fetching
@@ -450,6 +499,7 @@ Commit: `green: Home page registration logic and helpers (tests passing)`
 Commit: `refactor: extract useUserInfo hook for user info logic in Home page`
 
 #### **Refactor 2: Enums y tipos estrictos**
+
 - Convertidos strings a enums `UserRole` y `UserStatus` (usando `as const` pattern)
 - Actualizado tipo `UserInfo` para usar `UserRole | null` y `UserStatus | null`
 - Actualizada firma de `requestUserRole()` para aceptar `UserRole`
@@ -461,6 +511,7 @@ Commit: `refactor: extract useUserInfo hook for user info logic in Home page`
 Commit: `refactor: strict enums and types for UserRole/UserStatus, type guard for status in Home page`
 
 #### **Refactor 3: Feedback visual y UX**
+
 - Creado componente `Spinner` SVG minimalista con animación Tailwind
 - Reemplazado texto "Loading..." por spinner visual
 - Botón de submit ya deshabilitado durante loading (implementado en GREEN)
@@ -468,6 +519,7 @@ Commit: `refactor: strict enums and types for UserRole/UserStatus, type guard fo
 Commit: `refactor: add minimal SVG spinner for loading state in Home page`
 
 #### **Refactor 4: Helpers de contrato centralizados**
+
 - Añadida documentación JSDoc a funciones de contrato
 - Comentarios explicando que estos helpers encapsulan interacción con contrato
 - Tipos estrictos usando `UserRole` y `UserStatus`
@@ -476,6 +528,7 @@ Commit: `refactor: add minimal SVG spinner for loading state in Home page`
 Commit: `refactor: centralize contract helpers with strict types and documentation`
 
 #### **Refactor 5: Limpieza y DRY en tests**
+
 - Creada factory function `createMockWalletState()` para generar mocks con defaults
 - Eliminada duplicación de objetos mock en cada test
 - Uso de `getByRole` en vez de `getByText` para mejor semántica
@@ -486,6 +539,7 @@ Commit: `refactor: centralize contract helpers with strict types and documentati
 Commit: `refactor: DRY tests with mock wallet factory and use getByRole for better semantics`
 
 #### 🛡️ Gestión de roles y permisos (actualización)
+
 - Ahora la aplicación detecta correctamente si el usuario conectado es el **admin** (rol "Admin" desde el contrato inteligente).
 - Si el usuario es admin:
   - No se muestra el formulario de solicitud de rol en Home.
@@ -493,12 +547,14 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 - Esto garantiza que el flujo de registro y permisos respeta la lógica de negocio y mejora la experiencia de usuario.
 
 ### ✅ Verificación Final Post-Refactors
+
 ```
 ✓ home.registration.test.tsx (4 tests) — 4/4 pasando
 ✓ Total suite: 27/27 tests pasando
 ```
 
 ### 📊 Resumen de Commits Estratégicos
+
 1. **RED**: Tests fallando definiendo comportamiento esperado
 2. **GREEN**: Implementación mínima para pasar tests
 3. **REFACTOR 1-5**: Mejoras incrementales sin cambiar funcionalidad
@@ -507,6 +563,7 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 **Total**: 8 commits coherentes reflejando el ciclo TDD completo
 
 ### 🔧 Archivos Finales Creados/Modificados
+
 ```
 📁 Páginas y Componentes
 ├── src/pages/Home.tsx                    # Página de registro con spinner
@@ -525,6 +582,7 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 ### 🚀 Estado Actual del Proyecto
 
 **Completado en esta sesión**:
+
 - ✅ Home page con registro de usuario (TDD completo)
 - ✅ Helpers de contrato tipados y documentados
 - ✅ Hook useUserInfo para data fetching
@@ -533,11 +591,13 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 - ✅ Tests limpios y mantenibles con factory pattern
 
 **Métricas**:
+
 - **Tests totales**: 27/27 pasando (100% éxito)
 - **Commits TDD**: 8 commits estratégicos (RED→GREEN→5×REFACTOR)
 - **Cobertura**: Routing, layout, header, wallet, Home registration
 
 **Próximos pasos**:
+
 - [ ] Página Admin Users (listar usuarios, aprobar/rechazar)
 - [ ] Integración real con contrato (TypeChain + ethers v6)
 - [ ] Componentes UI reutilizables (Button, Card, etc.)
@@ -548,7 +608,9 @@ Commit: `refactor: DRY tests with mock wallet factory and use getByRole for bett
 ## ➕ Fase 5 — Admin Users Panel (TDD) + Web3 Account Sync (17 octubre 2025)
 
 ### 🎯 Objetivo
+
 Implementar el panel de administración de usuarios siguiendo TDD para:
+
 - Control de acceso (solo Admin)
 - Listado completo de usuarios del sistema
 - Acciones de aprobación y rechazo con actualización en blockchain
@@ -556,9 +618,10 @@ Implementar el panel de administración de usuarios siguiendo TDD para:
 - Manejo correcto de cambios de cuenta en MetaMask
 
 ### 🔴 RED — Tests del Panel Admin
+
 Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 
-1. **"denies access to non-admin users"**: 
+1. **"denies access to non-admin users"**:
    - Verifica que usuarios no-admin ven mensaje de acceso restringido
    - No se muestra formulario de gestión
 
@@ -583,6 +646,7 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 #### **Archivos Creados/Modificados**:
 
 **1. Página Admin Users (`src/pages/admin/Users.tsx`)**:
+
 - Control de acceso mediante `useUserInfo` (verifica rol Admin)
 - Estado local: `rows`, `loading`, `error`
 - Función `fetchRows()`: obtiene usuarios desde blockchain
@@ -593,8 +657,9 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 - useEffect auto-fetch cuando es admin
 
 **2. Helpers de Contrato (`src/lib/contract.ts`)**:
+
 - **Tipo `AdminUserRow`**: `{ address, role, status }`
-- **`changeStatusUser(address, newStatus)`**: 
+- **`changeStatusUser(address, newStatus)`**:
   - Usa signer para ejecutar transacción
   - Helper `toContractStatus()` mapea enum frontend → contrato (0,1,2)
   - Espera confirmación con `tx.wait()`
@@ -605,13 +670,16 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
   - Permite ver usuarios aprobados/rechazados en lista
 
 **3. Actualización de Tipos (`src/lib/enums.ts`)**:
+
 - Enums `UserStatus` ya existentes utilizados
 - Labels de estado para UI
 
 **4. Routing (`src/routes/AppRoutes.tsx`)**:
+
 - Ruta `/admin/users` apunta a componente `Users`
 
 **5. Tests actualizados**:
+
 - `src/__tests__/app.routes.test.tsx`: expectativa de heading "Users" en lugar de "Admin Users"
 
 **Resultado**: ✅ 4/4 tests pasando (31 totales en proyecto)
@@ -619,9 +687,11 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 ### 🔧 REFACTOR — Mejoras Post-GREEN
 
 #### **Refactor 1: Sincronización Web3 con MetaMask**
+
 **Problema detectado**: Al cambiar de cuenta en MetaMask, el `address` se actualizaba en el contexto pero el `signer` y `contract` seguían vinculados a la cuenta anterior.
 
 **Solución implementada** (`src/contexts/Web3Provider.tsx`):
+
 - Actualizado handler `accountsChanged` para refrescar signer y contract:
   ```typescript
   const existing = provider ?? new ethers.BrowserProvider(window.ethereum)
@@ -634,13 +704,16 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 - Esto garantiza que `getAllUsers()` se ejecuta con el msg.sender correcto
 
 **Tests actualizados**:
+
 - `src/__tests__/web3provider.persistence.events.test.tsx`: mantiene 4/4 pasando
 - Verificado que eventos `accountsChanged` y `chainChanged` funcionan correctamente
 
 #### **Refactor 2: UX — Listado completo de usuarios**
+
 **Cambio de requisito**: Usuario solicitó que usuarios aprobados permanezcan visibles en lista.
 
 **Implementación**:
+
 - Eliminado filtro `.filter(u => u.status === Pending)` en `getUsersPending()`
 - Ahora retorna **todos los usuarios** del sistema
 - Comentario explicativo: `// no filtering: show all users so approved ones remain visible`
@@ -650,17 +723,22 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 **Beneficio**: Admin ve estado completo del sistema, no necesita adivinar quién fue aprobado/rechazado.
 
 #### **Refactor 3: Botones inteligentes**
+
 **Implementación**:
+
 - Botón "Aprobar" deshabilitado si `r.status === UserStatus.Approved`
 - Botón "Rechazar" deshabilitado si `r.status === UserStatus.Rejected`
 - Previene acciones redundantes y mejora feedback visual
 
 **Test agregado**:
+
 - Test específico verifica disabled state según status actual
 - Confirma que usuario Pending tiene ambos botones habilitados
 
 #### **Refactor 4: Tests ampliados para cobertura mixta**
+
 **Tests mejorados**:
+
 - Reemplazado test básico por dos casos más exhaustivos:
   1. `lists users with different statuses`: tabla con Pending, Approved, Rejected simultáneos
   2. `allows approving a pending user and refetches list`: simula mock sequence (before/after)
@@ -669,15 +747,18 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 **Resultado**: Suite de 4 tests cubre todos los flujos críticos
 
 #### **Refactor 5: Header limpieza**
+
 **Cambio**: Eliminadas variables no usadas en `Header.tsx`
+
 - Removido import `useUserInfo` y variable `isAdmin`
 - Razón: Header ya no muestra link "Admin Users" condicional
 - Build TypeScript sin errores
 
 ### ✅ Verificación Final
+
 ```bash
 ✓ admin.users.test.tsx (4 tests) — 4/4 pasando
-✓ app.routes.test.tsx (2 tests) — 2/2 pasando  
+✓ app.routes.test.tsx (2 tests) — 2/2 pasando
 ✓ web3provider.persistence.events.test.tsx (4 tests) — 4/4 pasando
 ✓ Total suite: 31/31 tests pasando ✅
 ✓ Build production: OK sin errores TypeScript
@@ -686,6 +767,7 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 ### 📊 Resumen de Implementación
 
 **Funcionalidades entregadas**:
+
 - ✅ Control de acceso Admin con verificación de rol
 - ✅ Listado completo de usuarios desde blockchain (`getAllUsers`)
 - ✅ Tabla con address, rol y estado para cada usuario
@@ -697,18 +779,21 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 - ✅ Sincronización correcta con cambios de cuenta MetaMask
 
 **Integración blockchain**:
+
 - `changeStatusUser()`: transacción firmada con signer actual
 - `getUsersPending()`: lectura de `getAllUsers()` con signer (onlyAdmin)
 - Mapeo correcto de enums frontend ↔ contrato (0=Pending, 1=Approved, 2=Rejected)
 - Manejo de errores en llamadas al contrato
 
 **Tests y calidad**:
+
 - 4 tests específicos para Admin Users
 - Cobertura: acceso, listado, aprobación, rechazo, errores
 - Test de sincronización Web3 con accountsChanged
 - 100% de tests pasando, build limpio
 
 ### 🔧 Archivos Finales Creados/Modificados
+
 ```
 📁 Páginas y Componentes
 ├── src/pages/admin/Users.tsx              # Panel completo de gestión
@@ -719,13 +804,14 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 ├── src/lib/contract.ts                    # +AdminUserRow, +changeStatusUser, ~getUsersPending
 ├── src/contexts/Web3Provider.tsx          # Actualizado accountsChanged con signer refresh
 
-📁 UI/Layout  
+📁 UI/Layout
 └── src/components/layout/Header.tsx       # Limpieza de imports no usados
 ```
 
 ### 🚀 Estado Actual del Proyecto
 
 **Completado en esta sesión**:
+
 - ✅ Panel Admin Users con TDD completo (RED→GREEN→REFACTOR)
 - ✅ Integración blockchain con `getAllUsers` y `changeStatusUser`
 - ✅ Sincronización correcta de Web3 al cambiar cuenta MetaMask
@@ -733,16 +819,19 @@ Creado `src/__tests__/admin.users.test.tsx` con 4 tests iniciales:
 - ✅ Tests exhaustivos con cobertura de casos edge
 
 **Métricas finales**:
+
 - **Tests totales**: 31/31 pasando (100% éxito)
 - **Commits TDD**: Pendiente separación en RED/GREEN/REFACTOR
 - **Cobertura nueva**: Gestión admin, sincronización Web3, estados mixtos
 
 **Bloqueadores resueltos**:
+
 - ❌ Usuarios aprobados desaparecían de lista → ✅ Ahora se muestran todos
 - ❌ Signer desincronizado al cambiar cuenta → ✅ accountsChanged refresca signer/contract
 - ❌ onlyAdmin revertía con provider read-only → ✅ Ahora usa signer
 
 **Próximos pasos (según PLANNING.md)**:
+
 - [ ] **Gestión de Tokens**: `/tokens/create`, `/tokens` (Producer crea materias primas, Factory/Retailer crean derivados)
 - [ ] **Visualización de balances** y metadatos de tokens
 - [ ] **Transferencias**: `/tokens/[id]/transfer` (flujo dirigido)
@@ -759,9 +848,11 @@ _Resultado: ✅ Panel Admin Users completado, Web3 sync corregido, 31/31 tests p
 ## ➕ Fase 6 — Tokens en Dashboard: MyTokens en tiempo real y UX de Mint (20 octubre 2025)
 
 ### 🎯 Objetivo
+
 Hacer que el dashboard del Productor muestre sus tokens al instante tras el mint, sin refrescar, y mejorar el feedback visual del flujo de creación.
 
 ### 🟢 Implementado
+
 - **MyTokens (frontend)**
   - Fetch inicial de tokens del usuario con `getUserTokens()` + `getTokenDetails()`.
   - Suscripción a evento `TokenCreated` del contrato usando ethers v6 (objeto de evento con `.args`).
@@ -777,6 +868,7 @@ Hacer que el dashboard del Productor muestre sus tokens al instante tras el mint
   - Se evita escuchar eventos también desde la card para no duplicar lógica: la verdad única de eventos queda en MyTokens.
 
 ### 🧪 Tests (TDD)
+
 - Suite de MyTokens:
   - Empty state y render de metadatos.
   - Actualización en tiempo real al emitir `TokenCreated` (mock de factory/proveedor).
@@ -788,11 +880,13 @@ Hacer que el dashboard del Productor muestre sus tokens al instante tras el mint
 Resultados: ✅ 62/62 tests pasando en la suite total.
 
 ### 📦 Commits relevantes (20/oct)
+
 1. `test: improve formatting and consistency in dashboard, mytokens, and producer tests`
 2. `refactor: simplify TokenCreated event handler for ethers v6 only`
 3. `feat: show minting and success feedback in ActionCard; minor contract helper cleanup`
 
 ### 🔜 Pendiente (se mantiene de sesiones previas)
+
 - Páginas y flujos de **transferencias** dirigidas.
 - **Trazabilidad** completa por `parentId` y árbol/lineage en UI.
 - Páginas `/tokens` y detalles, incl. balances y metadatos avanzados.

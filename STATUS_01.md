@@ -199,15 +199,18 @@ This report provides a detailed analysis of the SupplyChain smart contract imple
 Based on the test structure and implementation, the following tests should pass:
 
 #### ✅ **Expected Passing Tests**
+
 - All user management tests (5/5)
 - All token creation tests (5/5)
 - All access control tests (2/2)
 
 #### ❌ **Expected Failing Tests**
+
 - Any tests that depend on transfer functionality
 - Tests requiring deployment script
 
 #### 📊 **Estimated Test Coverage**
+
 - **Implemented Features**: ~90% coverage
 - **Overall Project**: ~60% coverage (due to missing transfer system)
 
@@ -218,6 +221,7 @@ Based on the test structure and implementation, the following tests should pass:
 #### 🔥 **Immediate Actions Required**
 
 1. **Implement Transfer System**
+
    ```solidity
    function transfer(address to, uint tokenId, uint amount) public {
        // Implementation needed
@@ -225,6 +229,7 @@ Based on the test structure and implementation, the following tests should pass:
    ```
 
 2. **Create Deployment Script**
+
    ```solidity
    // script/Deploy.s.sol - Create this file
    ```
@@ -239,12 +244,14 @@ Based on the test structure and implementation, the following tests should pass:
 #### 🛠️ **Improvements for Code Quality**
 
 1. **Add Custom Errors**
+
    ```solidity
    error UserNotRegistered();
    error InsufficientBalance();
    ```
 
 2. **Create Role-Specific Modifiers**
+
    ```solidity
    modifier onlyProducer() {
        // Implementation
@@ -282,6 +289,7 @@ Based on the test structure and implementation, the following tests should pass:
 #### 🎯 **Overall Grade: B+ (85/100)**
 
 **Breakdown**:
+
 - **Functionality**: 85% (excellent for implemented features)
 - **Code Quality**: 90% (well-structured and secure)
 - **Testing**: 95% (excellent TDD approach)
@@ -293,16 +301,19 @@ Based on the test structure and implementation, the following tests should pass:
 ### 9. 📋 Action Items Summary
 
 #### 🔴 **Critical (Must Fix)**
+
 1. Implement transfer system (4 functions)
 2. Create deployment script
 3. Complete getAllUsers() function
 
 #### 🟡 **Important (Should Fix)**
+
 1. Add getUserTransfers() function
 2. Implement event testing
 3. Add custom error types
 
 #### 🟢 **Nice to Have (Could Fix)**
+
 1. Create role-specific modifiers
 2. Improve documentation
 3. Add integration tests

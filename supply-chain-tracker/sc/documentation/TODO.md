@@ -4,7 +4,7 @@
 
 Ahora, avanzaremos con el **Plan de Continuación** para optimizar y modernizar la gestión de tokens.
 
------
+---
 
 ## 🚀 Próximo Módulo TDD: Optimización del Token con ERC-1155
 
@@ -26,7 +26,7 @@ Necesitas una interfaz para el estándar ERC-1155 para que `SupplyChain.sol` pue
 interface I_ERC1155 {
     // Función clave para migrar la lógica de balance
     function balanceOf(address account, uint256 id) external view returns (uint256);
-    
+
     // Función clave para migrar la lógica de transferencia (MINTING/BURNING)
     function safeTransferFrom(
         address from,
@@ -60,9 +60,9 @@ function setTokenContract(address _tokenContract) public onlyAdmin {
 
 #### 3\. Escribir el Test de Integración (ROJO)
 
-Vamos a escribir un test que obligue al contrato a usar el nuevo *getter* `tokenContract.balanceOf` en lugar de la lógica nativa `tokenBalances`.
+Vamos a escribir un test que obligue al contrato a usar el nuevo _getter_ `tokenContract.balanceOf` en lugar de la lógica nativa `tokenBalances`.
 
-**El test fallará** porque, aunque definamos la variable `tokenContract`, la función `getTokenBalance` aún estará usando el *mapping* interno antiguo (`tokenBalances`).
+**El test fallará** porque, aunque definamos la variable `tokenContract`, la función `getTokenBalance` aún estará usando el _mapping_ interno antiguo (`tokenBalances`).
 
 #### 📝 Nuevo Test: `testERC1155IntegrationIsActive()`
 
@@ -84,8 +84,8 @@ Vamos a escribir un test que obligue al contrato a usar el nuevo *getter* `token
         // Cuando supplyChain llama a tokenContract.balanceOf(producer, tokenId)
         // debe devolver 1000.
         vm.mockCall(
-            ERC1155_MOCK, 
-            abi.encodeWithSelector(I_ERC1155.balanceOf.selector, producer, tokenId), 
+            ERC1155_MOCK,
+            abi.encodeWithSelector(I_ERC1155.balanceOf.selector, producer, tokenId),
             abi.encode(expectedBalance)
         );
 

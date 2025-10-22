@@ -20,7 +20,7 @@ Eres un **Ingeniero de Software Senior** y **Auditor de Proyectos**. Tu misión 
    - Contrasta directamente el código de los Contratos Inteligentes con los diseños y especificaciones de la documentación técnica y los tests implementados.
 
 3. **CONTRASTE Y DETERMINACIÓN DEL ESTADO (ROADMAP)**
-   - Compara línea por línea el *checklist* del archivo `ROADMAP.md` con las conclusiones obtenidas en los Pasos 1 y 2.
+   - Compara línea por línea el _checklist_ del archivo `ROADMAP.md` con las conclusiones obtenidas en los Pasos 1 y 2.
    - Usa los siguientes criterios de verificación:
      - **HECHO (DONE):** Característica implementada en el código, confirmada como funcional (por código/estructura/tests) y que cumple con la documentación.
      - **EN PROGRESO (IN PROGRESS):** Característica presente en el código, pero incompleta, o mencionada como en desarrollo.
@@ -35,6 +35,7 @@ Eres un **Ingeniero de Software Senior** y **Auditor de Proyectos**. Tu misión 
 ---
 
 ## Consideraciones adicionales
+
 - Si el README menciona rutas o flujos que no son necesarios para el objetivo actual, justifica su exclusión en el análisis.
 - Si el enfoque implementado difiere del propuesto pero cumple el objetivo, deja constancia crítica y razonada.
 - Mantén el análisis y la documentación lo más claros y trazables posible para futuras iteraciones.
@@ -42,6 +43,7 @@ Eres un **Ingeniero de Software Senior** y **Auditor de Proyectos**. Tu misión 
 ---
 
 **Placeholders a adaptar:**
+
 - `[FEATURE]`: nombre de la funcionalidad o módulo analizado (ej: TRANSFER_TO_FACTORY)
 - `[FECHA]`: fecha del análisis
 - `[ARCHIVOS_DOC]`: archivos de documentación relevantes

@@ -46,6 +46,7 @@ STATUS_10 (19/oct) tenía el Dashboard por rol y la sección “My Tokens” com
 - UI/UX: feedback de mint y spinners; componentes limpios y probados.
 
 Pendiente relevante según README:
+
 - Gestión de Tokens completa (listar por rol, detalles, balances/metadata avanzados).
 - Transferencias dirigidas P→F→R→C, aceptación/rechazo y listado.
 - Trazabilidad completa (árbol parentId en detalle del token).
@@ -67,7 +68,8 @@ Pendiente relevante según README:
 
 Plan pragmático por hitos cortos (TDD, commits atómicos):
 
-1) 20–22 oct — Gestión de Tokens (Productor y vistas base)
+1. 20–22 oct — Gestión de Tokens (Productor y vistas base)
+
 - Páginas:
   - `/tokens` (listado de tokens del usuario, reusando MyTokens).
   - `/tokens/create` (formulario basado en rol: Producer raw; Factory/Retailer derivados más adelante).
@@ -75,7 +77,8 @@ Plan pragmático por hitos cortos (TDD, commits atómicos):
 - Backend/Contrato (si falta wiring): asegurar getters necesarios (ya disponibles) y lectura de balances.
 - Tests: render, navegación, carga y errores.
 
-2) 23–25 oct — Transferencias dirigidas (iniciar + aceptar/rechazar)
+2. 23–25 oct — Transferencias dirigidas (iniciar + aceptar/rechazar)
+
 - Flujo dirigido: Producer→Factory→Retailer→Consumer según reglas del contrato.
 - Páginas:
   - `/tokens/[id]/transfer` (iniciar transferencia con validación de rol destino).
@@ -83,22 +86,26 @@ Plan pragmático por hitos cortos (TDD, commits atómicos):
 - Eventos: escuchar TransferRequested/Accepted/Rejected para refresco en tiempo real.
 - Tests: inicio, permisos por rol, aceptación/rechazo, UI estados.
 
-3) 26–28 oct — Trazabilidad y UX final
+3. 26–28 oct — Trazabilidad y UX final
+
 - Detalle de token: árbol/lineage por `parentId` (mínimo, collapsible o lista ordenada).
 - Mejoras UX: toasts consistentes, loading states unificados, vacíos claros.
 - Seguridad: hardening de handlers, límites y validaciones de inputs.
 - Tests: lineage, render condicional, edge cases.
 
-4) 29–30 oct — Pulido, documentación y demo
+4. 29–30 oct — Pulido, documentación y demo
+
 - IA.md: herramientas usadas, tiempos, errores comunes, chats (según README).
 - README: actualizar guías de ejecución y rutas clave.
 - E2E manual/scriptado de flujo completo P→F→R→C.
 - Performance/lint/build checks finales.
 
-5) 31 oct — Entrega
+5. 31 oct — Entrega
+
 - Revisión checklist, grabación demo y push final.
 
 Riesgos y mitigación:
+
 - Complejidad de transferencias: priorizar camino feliz y roles estrictos; features extra fuera de scope.
 - Árbol de trazabilidad: empezar simple (lista por hops) y mejorar si hay tiempo.
 - Eventos duplicados: mantener dedup y cleanup como en MyTokens.
@@ -106,6 +113,7 @@ Riesgos y mitigación:
 ---
 
 ## ✅ Próximas tareas inmediatas
+
 - Crear rutas `/tokens` y `/tokens/create` con pruebas básicas.
 - Reutilizar MyTokens en `/tokens` y factorizar UI si es necesario.
 - Esqueleto de `/tokens/[id]` con fetch de detalles y parentId.

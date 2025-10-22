@@ -9,11 +9,13 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 ## 📅 Hitos y Progreso Reciente
 
 ### 1. **Smart Contract (Parte 1) — COMPLETADO**
+
 - Contrato `SupplyChain.sol` programado y desplegado en Anvil.
 - Tests unitarios en Foundry **todos pasando**.
 - ABI y dirección configurados en el frontend.
 
 ### 2. **Frontend — Semana 1 (MVP) — COMPLETADO**
+
 - **Infraestructura React + Vite + Tailwind** lista.
 - **Web3Provider**: Persistencia de sesión en localStorage, manejo de eventos MetaMask (`accountsChanged`, `chainChanged`).
 - **Servicio Web3** (`web3.ts`): API robusta con ethers v6 y tipado EIP-1193.
@@ -24,6 +26,7 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 - **Commits atómicos y documentados** en cada fase (RED→GREEN→REFACTOR).
 
 ### 3. **Testing y Calidad**
+
 - 20+ tests automatizados cubriendo persistencia, eventos, servicios y hooks.
 - Refactors incrementales para mantener código limpio y tipado.
 - Documentación de la sesión y decisiones en [PROGRESS.md](../PROGRESS.md).
@@ -31,6 +34,7 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 ---
 
 ## 📝 Notas Técnicas y Lecciones Aprendidas
+
 - **TDD**: El desarrollo guiado por tests ha permitido iterar con confianza y evitar regresiones.
 - **Persistencia y UX**: La sesión Web3 es robusta ante recargas y cambios de cuenta/red.
 - **Helpers y Tipos**: Uso estricto de enums y tipos para roles y estados.
@@ -41,6 +45,7 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 ## 🚦 Estado Actual vs Objetivos del Proyecto
 
 ### ✅ **Completado**
+
 - [x] Smart contract funcional y testeado
 - [x] Conexión Web3 y persistencia localStorage
 - [x] Manejo de eventos MetaMask
@@ -50,6 +55,7 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 - [x] Tests automatizados y refactors
 
 ### 🔄 **En Progreso / Pendiente**
+
 - [ ] **Panel de administración funcional** (`/admin/users`): Aprobación/rechazo de usuarios
 - [ ] **Gestión de tokens** (`/tokens`, `/tokens/create`): Creación y visualización de tokens
 - [ ] **Transferencias** (`/tokens/[id]/transfer`, `/transfers`): Flujo dirigido y aceptación/rechazo
@@ -61,16 +67,17 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 
 ---
 
-
 ## 📆 Próximos Pasos y Plazos (Plan de Choque)
 
 ### **Semana 2 (18–24 octubre 2025)**
+
 - [ ] **Panel de administración funcional**: `/admin/users` (aprobación/rechazo de usuarios, gestión de roles y estados)
 - [ ] **Gestión de Tokens**: `/tokens/create`, `/tokens` (Producer, Factory, Retailer)
 - [ ] **Visualización de balances y metadatos**
 - [ ] **Inicio de transferencias**: `/tokens/[id]/transfer` (flujo dirigido)
 
 ### **Semana 3 (25–31 octubre 2025)**
+
 - [ ] **Aprobación de transferencias**: `/transfers` (aceptar/rechazar)
 - [ ] **Trazabilidad completa**: `/tokens/[id]`
 - [ ] **Dashboard y perfil**: `/dashboard`, `/profile`
@@ -89,6 +96,7 @@ El proyecto **Supply Chain Tracker** avanza conforme a los objetivos definidos e
 ---
 
 ## 📋 Checklist de Desarrollo (Resumen)
+
 - [x] Smart contract y tests pasando
 - [x] Conexión Web3 y persistencia
 - [x] Registro y feedback de usuario

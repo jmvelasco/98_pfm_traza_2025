@@ -17,16 +17,17 @@
 
 1. Uso de la Inteligencia Artificial para el desarrollo del proyecto.
 2. Retrospectiva del uso de la IA. (HACER UN FICHERO IA.md)
-2.1. IA usadas
-2.2. Tiempo consumido aproximado separando el smart contract y el frontend.
-2.3. Errores mas habituales analizando los chats de la IA.
-2.4. Ficheros de los chat de la IA.
+   2.1. IA usadas
+   2.2. Tiempo consumido aproximado separando el smart contract y el frontend.
+   2.3. Errores mas habituales analizando los chats de la IA.
+   2.4. Ficheros de los chat de la IA.
 3. Construccion de un MCP que envuelva los cli de foundry anvil, cast, forge.
 4. Opcional. Manejo del contrato inteligente en la aplicacion con la IA.
 
 ### 🏗️ Objetivos Técnicos
 
 Tu aplicación final debe implementar:
+
 - **Sistema transparente y seguro** para rastrear productos desde origen hasta consumidor final
 - **Tokenización** de materias primas y productos terminados
 - **Flujo controlado** entre actores: Producer → Factory → Retailer → Consumer
@@ -35,32 +36,36 @@ Tu aplicación final debe implementar:
 
 ### 🖼️ Vista Previa de la Aplicación
 
-Implementacion de referencia. (url )
----
+## Implementacion de referencia. (url )
 
 ## 🏭 Actores del Sistema
 
 ### 1. 👨‍🌾 **Producer (Productor)**
+
 - **Función**: Registra materias primas en el sistema
 - **Permisos**: Crear tokens de materias primas, transferir solo a Factory
 - **Ejemplos**: Granjas, minas, productores agrícolas
 
 ### 2. 🏭 **Factory (Fábrica)**
+
 - **Función**: Transforma materias primas en productos terminados
 - **Permisos**: Recibir de Producer, crear productos derivados, transferir solo a Retailer
 - **Ejemplos**: Plantas procesadoras, manufactureras
 
 ### 3. 🏪 **Retailer (Minorista)**
+
 - **Función**: Distribuye productos a consumidores
 - **Permisos**: Recibir de Factory, transferir solo a Consumer
 - **Ejemplos**: Tiendas, supermercados, distribuidores
 
 ### 4. 🛒 **Consumer (Consumidor)**
+
 - **Función**: Punto final de la cadena
 - **Permisos**: Recibir productos, consultar trazabilidad completa
 - **Ejemplos**: Usuarios finales, clientes
 
 ### 5. 👑 **Admin (Administrador)**
+
 - **Función**: Gestiona el sistema y aprueba usuarios
 - **Permisos**: Aprobar/rechazar registros, supervisar el sistema
 - **Nota**: Rol único del creador del contrato
@@ -74,6 +79,7 @@ Implementacion de referencia. (url )
 Antes de comenzar, asegúrate de tener instalado:
 
 1. **Node.js** (versión 18 o superior)
+
    ```bash
    # Verificar versión
    node --version
@@ -81,11 +87,13 @@ Antes de comenzar, asegúrate de tener instalado:
    ```
 
 2. **Git**
+
    ```bash
    git --version
    ```
 
 3. **Foundry** (para smart contracts)
+
    ```bash
    # Instalar Foundry
    curl -L https://foundry.paradigm.xyz | bash
@@ -103,6 +111,7 @@ Antes de comenzar, asegúrate de tener instalado:
 ### 🔧 Configuración del Entorno
 
 #### 1. **Clonar el Repositorio**
+
 ```bash
 git clone 98_pfm_traza_2025
 
@@ -110,6 +119,7 @@ cd supply-chain-tracker
 ```
 
 #### 2. **Configurar Smart Contracts (`sc/`)**
+
 ```bash
 cd sc
 
@@ -127,8 +137,9 @@ ls out/  # Debe mostrar archivos compilados
 ```
 
 #### 3. **Configurar Frontend (`web/`)**
+
 ```bash
-npx create-next-app@latest web --typescript 
+npx create-next-app@latest web --typescript
 
 cd ../web
 
@@ -142,6 +153,7 @@ npm run build
 #### 4. **Configurar Blockchain Local**
 
 **Terminal 1 - Ejecutar Anvil:**
+
 ```bash
 # Iniciar blockchain local
 anvil
@@ -153,6 +165,7 @@ anvil
 ```
 
 **Terminal 2 - Desplegar Contrato:**
+
 ```bash
 cd sc
 
@@ -177,25 +190,27 @@ forge script script/Deploy.s.sol \
    - Importar private keys de Anvil para testing
    - Recomendado: al menos 4 cuentas diferentes (
    ```
-      admin (0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266), 
-      producer (0x70997970C51812dc3A010C7d01b50e0d17dc79C8), 
-      factory (0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC), 
-      retailer (0x90F79bf6EB2c4f870365E785982E1f101E93b906), 
+      admin (0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266),
+      producer (0x70997970C51812dc3A010C7d01b50e0d17dc79C8),
+      factory (0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC),
+      retailer (0x90F79bf6EB2c4f870365E785982E1f101E93b906),
       consumer (0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65))
    ```
 
 #### 6. **Actualizar Configuración**
 
 **Archivo: `web/src/contracts/config.ts`**
+
 ```typescript
 export const CONTRACT_CONFIG = {
   address: "0x...", // Dirección del contrato desplegado
   abi: SupplyChainABI,
-  adminAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" // Primera cuenta de Anvil
+  adminAddress: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266", // Primera cuenta de Anvil
 };
 ```
 
 #### 7. **Iniciar Aplicación**
+
 ```bash
 cd web
 
@@ -210,34 +225,44 @@ npm run dev
 ## 🚀 Funcionalidades a Implementar
 
 ### 🔐 **Sistema de Autenticación Web3**
+
 Deberás codificar:
-- **Conexión con MetaMask** 
+
+- **Conexión con MetaMask**
 - **Persistencia en localStorage** - mantiene sesión al recargar
 - **Desconexión automática** - limpia datos del localStorage
 - **Detección de cambios de cuenta** - reconecta automáticamente
 
 ### 💳 **Gestión de Usuarios**
+
 Tu implementación debe incluir:
-- **Registro por roles** 
+
+- **Registro por roles**
 - **Aprobación por administrador** antes de usar el sistema
 - **Estados**: Pending, Approved, Rejected, Canceled
 
 ### 🪙 **Sistema de Tokens**
+
 Desarrollarás:
+
 - **Creación de tokens** que representan productos/materias primas
 - **Metadatos JSON** para características del producto
 - **Sistema de parentesco** - productos derivan de materias primas
 - **Balance individual** por usuario y token
 
 ### 📦 **Transferencias Controladas**
+
 Implementarás:
+
 - **Flujo dirigido**: Producer → Factory → Retailer → Consumer
 - **Sistema de aprobación** - el receptor debe aceptar
 - **Validación automática** de permisos por rol
 - **Trazabilidad completa** de movimientos
 
 ### 🎨 **Interfaz Moderna**
+
 Crearás:
+
 - **Design responsive** con Tailwind CSS
 - **Componentes reutilizables** con Shadcn UI
 - **Navegación intuitiva** según rol del usuario
@@ -249,32 +274,38 @@ Crearás:
 ### 🌐 **Páginas Principales**
 
 #### **`/` - Página Principal**
+
 - **No conectado**: Invitación a conectar MetaMask
 - **Conectado pero no registrado**: Formulario de registro por rol
 - **Conectado y pendiente**: Estado de espera de aprobación
 - **Conectado y aprobado**: Bienvenida con acceso a dashboard
 
 #### **`/dashboard` - Panel Principal**
+
 - **Resumen personalizado** según rol
 - **Estadísticas** de tokens y transferencias
 - **Accesos rápidos** a funcionalidades principales
 
 #### **`/tokens` - Gestión de Tokens**
+
 - **Lista de tokens** propiedad del usuario
 - **Crear token** (`/tokens/create`)
 - **Detalles** (`/tokens/[id]`)
 - **Transferir** (`/tokens/[id]/transfer`)
 
 #### **`/transfers` - Transferencias**
+
 - **Pendientes de aceptación**
 - **Historial completo**
 - **Acciones**: Aceptar/Rechazar
 
 #### **`/admin` - Administración** (solo Admin)
-- **Panel de administración del sistema
+
+- \*\*Panel de administración del sistema
 - **Gestión de usuarios** (`/admin/users`)
 
 #### **`/profile` - Perfil**
+
 - **Información del usuario**
 - **Portfolio de tokens**
 
@@ -313,6 +344,7 @@ Tu tarea es crear toda esta estructura desde cero:
 ## 🔄 Flujos de Trabajo
 
 ### 1. **Registro de Usuario**
+
 ```mermaid
 graph TD
     A[Conectar MetaMask] --> B[Seleccionar Rol]
@@ -326,6 +358,7 @@ graph TD
 ```
 
 ### 2. **Creación de Token**
+
 ```mermaid
 graph TD
     A[Usuario Aprobado] --> B["Crear Token"]
@@ -340,6 +373,7 @@ graph TD
 ```
 
 ### 3. **Transferencia**
+
 ```mermaid
 graph TD
     A[Propietario Token] --> B["Transferir Token"]
@@ -360,6 +394,7 @@ graph TD
 ### **🔥 PARTE 1: SMART CONTRACT (sc/src/SupplyChain.sol)**
 
 #### **Enums a Definir**
+
 ```solidity
 // ⚠️ TU TAREA: Definir estos enums
 enum UserStatus { /* Estados del usuario */ Pending, Approved, Rejected, Canceled }
@@ -367,6 +402,7 @@ enum TransferStatus { /* Estados de transferencia */ Pending, Accepted, Rejected
 ```
 
 #### **Structs a Implementar**
+
 ```solidity
     enum UserStatus { Pending, Approved, Rejected, Canceled }
     enum TransferStatus { Pending, Accepted, Rejected }
@@ -421,6 +457,7 @@ enum TransferStatus { /* Estados de transferencia */ Pending, Accepted, Rejected
 ```
 
 #### **Funciones del Contrato a Implementar**
+
 ```solidity
 // ⚠️ TU TAREA: Programar estas funciones principales
 
@@ -447,6 +484,7 @@ function getUserTransfers(address userAddress) public view returns (uint[] memor
 ```
 
 #### **Tests a Escribir (sc/test/SupplyChain.t.sol)**
+
 ```solidity
 // ⚠️ TU TAREA: Escribir y hacer pasar estos tests
 contract SupplyChainTest is Test {
@@ -515,6 +553,7 @@ contract SupplyChainTest is Test {
 ### **🌐 PARTE 2: FRONTEND (web/)**
 
 #### **Páginas a Crear (app/)**
+
 ```typescript
 // ⚠️ TU TAREA: Crear todas estas páginas
 
@@ -535,6 +574,7 @@ app/
 ```
 
 #### **Contextos y Hooks a Programar**
+
 ```typescript
 // ⚠️ TU TAREA: Implementar Web3 Provider con localStorage
 // contexts/Web3Context.tsx
@@ -554,6 +594,7 @@ export function useWallet() {
 ```
 
 #### **Servicios Web3 a Implementar**
+
 ```typescript
 // ⚠️ TU TAREA: Crear servicio de interacción con blockchain
 // lib/web3.ts
@@ -566,6 +607,7 @@ class Web3Service {
 ```
 
 #### **Componentes UI a Desarrollar**
+
 ```typescript
 // ⚠️ TU TAREA: Crear componentes base y específicos
 components/
@@ -581,17 +623,18 @@ components/
 ```
 
 #### **Configuración a Crear**
+
 ```typescript
 // ⚠️ TU TAREA: Configurar integración blockchain
 // contracts/config.ts
 export const CONTRACT_CONFIG = {
   address: "0x...", // Dirección de tu contrato desplegado
   abi: [], // ABI generado por Foundry
-  adminAddress: "0x..." // Admin del sistema
+  adminAddress: "0x...", // Admin del sistema
 };
 
 // Configuración de red Anvil
-export const NETWORK_CONFIG = { };
+export const NETWORK_CONFIG = {};
 ```
 
 ---
@@ -601,26 +644,29 @@ export const NETWORK_CONFIG = { };
 ### 🚨 **Problemas de Conexión**
 
 **Error**: "MetaMask not detected"
+
 ```typescript
 // Solución: Verificar que MetaMask esté instalado
-if (typeof window.ethereum === 'undefined') {
-  alert('Please install MetaMask!');
+if (typeof window.ethereum === "undefined") {
+  alert("Please install MetaMask!");
   return;
 }
 ```
 
 **Error**: "Wrong network"
+
 ```typescript
 // Solución: Verificar chain ID
-const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+const chainId = await window.ethereum.request({ method: "eth_chainId" });
 if (parseInt(chainId, 16) !== 31337) {
-  alert('Please connect to Anvil network (Chain ID: 31337)');
+  alert("Please connect to Anvil network (Chain ID: 31337)");
 }
 ```
 
 ### 🚨 **Problemas de Smart Contract**
 
 **Error**: "Contract not deployed"
+
 ```bash
 # Solución: Verificar que Anvil esté corriendo y redesplegar
 anvil & # En un terminal
@@ -628,6 +674,7 @@ forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --private-key 0
 ```
 
 **Error**: "Transaction reverted"
+
 ```solidity
 // Causa común: Usuario no aprobado
 // Solución: Verificar status del usuario en /admin/users
@@ -636,6 +683,7 @@ forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --private-key 0
 ### 🚨 **Problemas de Frontend**
 
 **Error**: Next.js params Promise
+
 ```tsx
 // ❌ Incorrecto en Next.js 15+
 function Page({ params }: { params: { id: string } }) {
@@ -643,17 +691,18 @@ function Page({ params }: { params: { id: string } }) {
 }
 
 // ✅ Correcto
-import { use } from 'react';
+import { use } from "react";
 function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
 }
 ```
 
 **Error**: "localStorage is not defined"
+
 ```typescript
 // Solución: Verificar que estamos en el cliente
-if (typeof window !== 'undefined') {
-  localStorage.setItem('key', 'value');
+if (typeof window !== "undefined") {
+  localStorage.setItem("key", "value");
 }
 ```
 
@@ -662,6 +711,7 @@ if (typeof window !== 'undefined') {
 ## 🧪 Testing y Validación
 
 ### **Tests de Smart Contract**
+
 ```bash
 cd sc
 
@@ -676,6 +726,7 @@ forge coverage
 ```
 
 ### **Validación de Frontend**
+
 ```bash
 cd web
 
@@ -713,6 +764,7 @@ npm run dev
 ## 🎓 Plan de Desarrollo para Estudiantes
 
 ### **🚀 FASE 1: FUNDAMENTOS (OBLIGATORIO)**
+
 1. **Configurar entorno de desarrollo**
    - Instalar Node.js, Foundry, MetaMask
    - Crear estructura de carpetas del proyecto
@@ -729,6 +781,7 @@ npm run dev
    - Crear todas las páginas básicas
 
 ### **🔥 FASE 2: FUNCIONALIDAD CORE (OBLIGATORIO)**
+
 4. **Sistema de Autenticación**
    - Conectar con MetaMask
    - Registro de usuarios por roles
@@ -749,17 +802,20 @@ npm run dev
 ## 📚 Recursos Adicionales
 
 ### **Documentación Oficial**
+
 - [Solidity Docs](https://docs.soliditylang.org/)
 - [Foundry Book](https://book.getfoundry.sh/)
 - [Next.js Docs](https://nextjs.org/docs)
 - [Ethers.js Docs](https://docs.ethers.org/)
 
 ### **Tutoriales Recomendados**
+
 - [CryptoZombies](https://cryptozombies.io/) - Aprender Solidity
 - [Buildspace](https://buildspace.so/) - Proyectos Web3
 - [Next.js Tutorial](https://nextjs.org/learn) - React y Next.js
 
 ### **Herramientas de Desarrollo**
+
 - [Remix IDE](https://remix.ethereum.org/) - Editor Solidity online
 - [Hardhat](https://hardhat.org/) - Alternativa a Foundry
 - [OpenZeppelin](https://openzeppelin.com/) - Contratos seguros
@@ -769,6 +825,7 @@ npm run dev
 ## ✅ Checklist de Desarrollo
 
 ### **🔧 CONFIGURACIÓN INICIAL**
+
 - [ ] Node.js (18+) y npm instalados y verificados
 - [ ] Foundry instalado (`curl -L https://foundry.paradigm.xyz | bash`)
 - [ ] MetaMask instalado y configurado
@@ -776,6 +833,7 @@ npm run dev
 - [ ] Anvil corriendo en puerto 8545
 
 ### **⚡ SMART CONTRACT**
+
 - [ ] `SupplyChain.sol` programado con todas las estructuras
 - [ ] Enums `UserStatus` y `TransferStatus` definidos
 - [ ] Structs `Token`, `Transfer`, `User` implementados
@@ -786,6 +844,7 @@ npm run dev
 - [ ] Contrato desplegado exitosamente en Anvil
 
 ### **🌐 FRONTEND**
+
 - [ ] Proyecto Next.js inicializado con TypeScript
 - [ ] Dependencias instaladas (ethers, tailwind, radix-ui)
 - [ ] `Web3Context` programado con localStorage
@@ -804,6 +863,7 @@ npm run dev
 - [ ] Componentes UI base creados
 
 ### **🔗 INTEGRACIÓN**
+
 - [ ] Conexión MetaMask funcionando
 - [ ] Registro de usuarios por rol implementado
 - [ ] Aprobación por admin operativa
@@ -814,6 +874,7 @@ npm run dev
 - [ ] Persistencia en localStorage implementada
 
 ### **📱 FUNCIONALIDAD COMPLETA**
+
 - [ ] Flujo completo Producer→Factory→Retailer→Consumer
 - [ ] Validaciones de permisos por rol
 - [ ] Estados visuales correctos (pending, approved, etc.)
@@ -821,19 +882,19 @@ npm run dev
 - [ ] Design responsive funcionando
 - [ ] Build de producción sin errores
 
-
 ### **🎯 ENTREGA FINAL**
+
 - [ ] **Demo funcionando completamente** 🎉
 - [ ] Repositorio publico con workflow de testing.
 - [ ] README con instrucciones de instalación
 - [ ] Video demo de maximo 5 minutos
-
 
 ---
 
 ## 🤝 Soporte y Comunidad
 
 ### **💡 Tips para el Desarrollo**
+
 - **Commits frecuentes** con mensajes descriptivos
 - **Testing exhaustivo** - los tests son tu red de seguridad
 - **Debugging metódico** - usa console.log y Foundry traces
@@ -841,6 +902,7 @@ npm run dev
 - **Backup de private keys** de prueba (nunca usar en mainnet)
 
 ### **🆘 Cuando Necesites Ayuda**
+
 1. **Revisa este README** - contiene toda la información necesaria
 2. **Consulta la documentación oficial** de las tecnologías
 3. **Utiliza los debugging tools** de Foundry y Chrome DevTools
@@ -852,23 +914,27 @@ npm run dev
 #### **📊 DISTRIBUCIÓN DE PUNTOS**
 
 **🔥 SMART CONTRACT (4.0 puntos)**
-- **Estructuras y Funciones** 
-- **Tests Unitarios** 
-- **Deploy y Configuración** 
+
+- **Estructuras y Funciones**
+- **Tests Unitarios**
+- **Deploy y Configuración**
 
 **🌐 FRONTEND (3.0 puntos)**
-- **Páginas y Navegación** 
-- **Integración Web3** 
-- **UI/UX y Componentes** 
-- **Flujo Completo de Usuario** 
+
+- **Páginas y Navegación**
+- **Integración Web3**
+- **UI/UX y Componentes**
+- **Flujo Completo de Usuario**
 - **Trazabilidad y Permisos**
 
 **📝 CALIDAD DEL CÓDIGO (0.5 puntos)**
-- **Organización y Limpieza** 
+
+- **Organización y Limpieza**
 - **Documentación**
 
 #### **⭐ EXTRAS 1 puntos**
-- **Calidad Excepcional** 
+
+- **Calidad Excepcional**
   - Tests de frontend implementados
   - Manejo de errores robusto
   - Performance optimizada
@@ -876,11 +942,12 @@ npm run dev
   - Deploy en testnet real
 
 #### **⭐ PRESENTACION VIDEO DE MAXIMO 5 MINUTOS (1.5 punto) **
+
 - **Presentación video**
 - **Demo funcionando completamente**
 
-
 #### **❌ PENALIZACIONES**
+
 - **Tests fallando**: -1.0 pt por cada test crítico que falle
 - **Aplicación no funcional**: -2.0 pts si no se puede ejecutar
 - **Smart contract sin deploy**: -1.5 pts
@@ -888,14 +955,18 @@ npm run dev
 - **Código sin comentarios**: -0.5 pts
 
 #### **📋 MÍNIMO PARA APROBAR: 6.0/10**
+
 Para obtener la nota mínima de aprobación debes cumplir:
+
 - ✅ Smart contract deployado y con tests básicos pasando
 - ✅ Frontend conectando con MetaMask
 - ✅ Al menos 3 páginas principales funcionando
 - ✅ Flujo básico de registro y tokens operativo
 
 ### **🏆 Objetivos de Aprendizaje Alcanzados**
+
 Al completar este proyecto habrás aprendido:
+
 - ✅ **Solidity** - Programación de smart contracts
 - ✅ **Foundry** - Testing y deployment de contratos
 - ✅ **Next.js/React** - Desarrollo frontend moderno
@@ -911,6 +982,7 @@ Al completar este proyecto habrás aprendido:
 **Recuerda**: Este es un proyecto desafiante pero muy recompensante. Solo tienes este README y las imágenes de referencia - ¡todo el código debe ser creado por ti!
 
 **Próximos pasos**:
+
 1. 📋 Estudia bien este README y las imágenes de referencia
 2. 🛠️ Configura tu entorno de desarrollo
 3. ⚡ Empieza por el smart contract y haz que los tests pasen

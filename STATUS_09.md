@@ -9,12 +9,14 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 📅 Hitos y Progreso Reciente
 
 ### 1. **Smart Contract (Parte 1) — COMPLETADO**
+
 - Contrato `SupplyChain.sol` programado y desplegado en Anvil
 - Tests unitarios en Foundry **todos pasando**
 - ABI y dirección configurados en el frontend
 - Funciones `getAllUsers()` (onlyAdmin) y `changeStatusUser()` verificadas
 
 ### 2. **Frontend — Semana 1 (MVP) — COMPLETADO**
+
 - **Infraestructura React + Vite + Tailwind** lista
 - **Web3Provider**: Persistencia de sesión en localStorage, manejo de eventos MetaMask (`accountsChanged`, `chainChanged`)
   - **Corrección crítica**: Sincronización de signer/contract al cambiar cuenta en MetaMask
@@ -25,6 +27,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 - **Página Admin Users**: **✅ COMPLETADA** - Gestión completa de usuarios con aprobación/rechazo
 
 ### 3. **Panel de Administración — COMPLETADO (17 octubre 2025)**
+
 - **Ruta `/admin/users`** funcional con control de acceso (solo Admin)
 - **Listado completo de usuarios** desde blockchain:
   - Integración con `getAllUsers()` del contrato usando signer (onlyAdmin)
@@ -42,6 +45,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
   - Auto-fetch al detectar rol Admin
 
 ### 4. **Testing y Calidad**
+
 - **31 tests automatizados** cubriendo:
   - Persistencia y eventos Web3 (4 tests)
   - Servicio Web3 (12 tests)
@@ -62,6 +66,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 📝 Notas Técnicas y Lecciones Aprendidas
 
 ### **Corrección Crítica: Sincronización Web3**
+
 - **Problema identificado**: Al cambiar de cuenta en MetaMask, el `address` se actualizaba pero el `signer` y `contract` permanecían vinculados a la cuenta anterior.
 - **Solución implementada**: Refrescar `signer` y `contract` en el handler `accountsChanged`:
   ```typescript
@@ -73,17 +78,20 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 - **Impacto**: Garantiza que las llamadas `onlyAdmin` funcionen correctamente con el msg.sender actual.
 
 ### **Decisión de Diseño: Listado Completo vs. Solo Pendientes**
+
 - **Requisito inicial**: Mostrar solo usuarios pendientes.
 - **Cambio solicitado**: Mostrar TODOS los usuarios para que admin vea estado completo del sistema.
 - **Implementación**: Eliminado filtro en `getUsersPending()`, retorna resultado completo de `getAllUsers()`.
 - **Beneficio**: Admin no necesita adivinar quién fue aprobado/rechazado, todo visible en una tabla.
 
 ### **Integración Blockchain**
+
 - **`changeStatusUser()`**: Transacción firmada con signer, espera confirmación con `tx.wait()`.
 - **`getUsersPending()`**: Usa signer para satisfacer `onlyAdmin` del contrato.
 - **Mapeo de enums**: Frontend (Pending/Approved/Rejected) ↔ Contrato (0/1/2) con helper `toContractStatus()`.
 
 ### **Patrón TDD Aplicado**
+
 - RED: 4 tests definiendo comportamiento esperado.
 - GREEN: Implementación mínima en `Users.tsx` y `contract.ts`.
 - REFACTOR: 5 iteraciones (sync Web3, listado completo, botones inteligentes, tests ampliados, limpieza).
@@ -93,6 +101,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 🚦 Estado Actual vs Objetivos del Proyecto
 
 ### ✅ **Completado**
+
 - [x] Smart contract funcional y testeado
 - [x] Conexión Web3 y persistencia localStorage
 - [x] Manejo de eventos MetaMask con sincronización correcta de signer
@@ -107,6 +116,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 - [x] Tests automatizados (31/31 pasando)
 
 ### 🔄 **En Progreso / Pendiente**
+
 - [ ] **Gestión de tokens** (`/tokens`, `/tokens/create`): Creación y visualización de tokens
 - [ ] **Transferencias** (`/tokens/[id]/transfer`, `/transfers`): Flujo dirigido y aceptación/rechazo
 - [ ] **Dashboard personalizado** (`/dashboard`): Resumen por rol
@@ -120,6 +130,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 📆 Próximos Pasos y Plazos (Plan de Choque)
 
 ### **Semana 2 (18–24 octubre 2025)**
+
 - [x] **Panel de administración funcional**: `/admin/users` ✅ **COMPLETADO 17/oct**
 - [ ] **Gestión de Tokens**: `/tokens/create`, `/tokens` (Producer, Factory, Retailer)
   - Producer: crear materias primas (parentId=0)
@@ -128,6 +139,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 - [ ] **Inicio de transferencias**: `/tokens/[id]/transfer` (flujo dirigido)
 
 ### **Semana 3 (25–31 octubre 2025)**
+
 - [ ] **Aprobación de transferencias**: `/transfers` (aceptar/rechazar)
 - [ ] **Trazabilidad completa**: `/tokens/[id]` (árbol de parentId)
 - [ ] **Dashboard y perfil**: `/dashboard`, `/profile`
@@ -146,6 +158,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ---
 
 ## 📋 Checklist de Desarrollo (Resumen)
+
 - [x] Smart contract y tests pasando
 - [x] Conexión Web3 y persistencia
 - [x] Registro y feedback de usuario
@@ -159,6 +172,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 📊 Métricas de Calidad
 
 ### **Testing**
+
 - **Total**: 31/31 tests pasando (100% éxito)
 - **Cobertura**:
   - Web3Provider: persistencia y eventos (4 tests)
@@ -169,11 +183,13 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
   - Admin Users panel (4 tests)
 
 ### **Código**
+
 - **Build**: ✅ Sin errores TypeScript
 - **Linter**: ✅ Sin warnings
 - **Commits**: Documentados en PROGRESS.md (pendiente separación por fase TDD)
 
 ### **Integración Blockchain**
+
 - ✅ Conexión con contrato via TypeChain + ethers v6
 - ✅ Transacciones firmadas y confirmadas
 - ✅ Lectura de estado con control de acceso (onlyAdmin)
@@ -184,10 +200,12 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 🔧 Archivos Clave Modificados en esta Sesión
 
 ### **Nuevos**
+
 - `web/src/pages/admin/Users.tsx` — Panel completo de gestión de usuarios
 - `web/src/__tests__/admin.users.test.tsx` — Suite TDD (4 tests)
 
 ### **Actualizados**
+
 - `web/src/lib/contract.ts` — +`AdminUserRow`, +`changeStatusUser()`, ~`getUsersPending()`
 - `web/src/contexts/Web3Provider.tsx` — Fix sincronización signer en `accountsChanged`
 - `web/src/components/layout/Header.tsx` — Limpieza imports no usados
@@ -195,6 +213,7 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 - `web/src/__tests__/web3provider.persistence.events.test.tsx` — Limpieza anotaciones RED
 
 ### **Documentación**
+
 - `PROGRESS.md` — Nueva sección "Fase 5: Admin Users Panel (TDD) + Web3 Account Sync"
 
 ---
@@ -202,10 +221,12 @@ El proyecto **Supply Chain Tracker** continúa avanzando con metodología TDD ri
 ## 🚀 Resumen de Progreso desde STATUS_08
 
 ### **Antes** (16 octubre):
+
 - ❌ Panel admin pendiente
 - ⚠️ Posible desincronización Web3 al cambiar cuenta
 
 ### **Después** (17 octubre):
+
 - ✅ Panel admin 100% funcional con integración blockchain
 - ✅ Web3 sincronizado correctamente (signer/contract refreshed)
 - ✅ 31/31 tests pasando (4 nuevos para admin)

@@ -7,6 +7,7 @@ El proyecto Supply Chain Tracker ha alcanzado un hito clave: la **infraestructur
 ---
 
 ## 1. 🏗️ Estado del Smart Contract (sc/)
+
 - ✅ `SupplyChain.sol` implementado con todas las estructuras, enums y funciones requeridas.
 - ✅ Tests unitarios completos y **todos pasando** (19/19).
 - ✅ Scripts de despliegue y verificación (`Deploy.s.sol`, `Verify.s.sol`) implementados y documentados.
@@ -14,6 +15,7 @@ El proyecto Supply Chain Tracker ha alcanzado un hito clave: la **infraestructur
 - ✅ Contrato desplegado en Anvil, dirección y ABI exportados correctamente.
 
 ## 2. 🌐 Estado del Frontend (web/)
+
 - ✅ Proyecto React+Vite+TypeScript inicializado y estructurado.
 - ✅ Dependencias principales y de desarrollo instaladas (ethers v6, tailwindcss, typechain, etc.).
 - ✅ TailwindCSS funcionando y verificado visualmente.
@@ -27,17 +29,20 @@ El proyecto Supply Chain Tracker ha alcanzado un hito clave: la **infraestructur
 - ✅ Script npm para regenerar la configuración del contrato (`regen:contracts`).
 
 ## 3. 📦 Estructura de Carpetas y Archivos
+
 - ✅ Estructura base creada: `src/config/`, `src/contexts/`, `src/types/`.
 - ⚠️ Faltan carpetas vacías: `src/components/`, `src/hooks/`, `src/lib/`, `src/pages/` (planificadas, pero no creadas aún).
 - ❌ No existen aún: `src/hooks/useWallet.ts`, `src/lib/web3.ts` (planificados para la siguiente fase).
 
 ## 4. 🔗 Integración y Automatización
+
 - ✅ Automatización de generación de config y tipos.
 - ✅ Integración Web3 funcional (conexión MetaMask, instancia de contrato, provider, signer).
 - ❌ Persistencia de sesión Web3 en localStorage aún no implementada.
 - ❌ Manejo de eventos de MetaMask (cambio de cuenta/red) pendiente.
 
 ## 5. 📝 Checklist de Requisitos (README.md)
+
 - [x] Smart contract completo, tests pasando, deploy verificado.
 - [x] Frontend inicializado, dependencias instaladas, Tailwind funcionando.
 - [x] Web3Provider y hook de acceso implementados.
@@ -48,6 +53,7 @@ El proyecto Supply Chain Tracker ha alcanzado un hito clave: la **infraestructur
 - [ ] Componentes UI y páginas funcionales (dashboard, tokens, admin, etc.).
 
 ## 6. 🚦 Próximos Pasos (Punto 4 del Informe)
+
 1. Crear carpetas y archivos base faltantes (`components/`, `hooks/`, `lib/`, `pages/`).
 2. Implementar persistencia de sesión Web3 (localStorage) y reconexión automática.
 3. Crear `useWallet.ts` y `web3.ts` según el plan.
@@ -55,15 +61,18 @@ El proyecto Supply Chain Tracker ha alcanzado un hito clave: la **infraestructur
 5. Implementar flujo de registro, roles y panel de administración.
 
 ## 7. 💤 Recomendación
+
 El avance es excelente y la base técnica es sólida. Es un buen momento para descansar y retomar con energía la siguiente fase, centrada en la funcionalidad core y la experiencia de usuario.
 
 ---
 
 **Estado actual:**
+
 - 🟢 Smart contract y backend: 100% completo y verificado.
 - 🟡 Frontend: Base sólida, integración Web3 funcional, estructura y automatización listas. Faltan persistencia, hooks/servicios y páginas/componentes funcionales.
 
 **Próxima acción:**
+
 - Continuar con el punto 4 del informe tras el descanso.
 
 ---

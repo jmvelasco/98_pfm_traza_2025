@@ -3,6 +3,7 @@
 ## 📊 RESUMEN EJECUTIVO
 
 ### Estado de Requisitos: **95% COMPLETADO** ✅
+
 - **Gestión de Roles**: 100% implementado con sistema completo de solicitud/aprobación
 - **Sistema de Tokens**: 100% implementado con consumo de stock padre
 - **Transferencias**: 100% implementado con flujo de 3 pasos
@@ -10,6 +11,7 @@
 - **NatSpec Documentation**: 100% completado en español
 
 ### Estado de Testing: **EXCELENTE** ✅
+
 - **19 tests pasando** con cobertura completa
 - **Casos límite cubiertos**: permisos, balances insuficientes, estados inválidos
 - **Flujos completos probados**: cadena completa Producer→Factory→Retailer→Consumer
@@ -18,27 +20,28 @@
 
 ## 📋 MATRIZ DE COBERTURA DE REQUISITOS
 
-| Requisito (README.md) | Estado | Detalle de Implementación |
-|----------------------|--------|---------------------------|
-| **Gestión de Roles** | ✅ CUBIERTO | `requestUserRole()`, `changeStatusUser()`, `getUserInfo()`, `isAdmin()` |
-| **Enums UserStatus/TransferStatus** | ✅ CUBIERTO | Definidos correctamente con Pending, Approved, Rejected, Canceled |
-| **Structs (Token, Transfer, User)** | ✅ CUBIERTO | Implementados según especificación con todos los campos |
-| **Creación de Materias Primas** | ✅ CUBIERTO | Solo Producers, `parentId = 0`, validación en `createToken()` |
-| **Creación de Productos Derivados** | ✅ CUBIERTO | Solo Factory/Retailer, consumo de stock padre implementado |
-| **Consumo de Stock Padre** | ✅ CUBIERTO | Lógica de deducción en líneas 281-287 de `createToken()` |
-| **Sistema de Transferencias** | ✅ CUBIERTO | `requestTransfer()` → `acceptTransfer()` / `rejectTransfer()` |
-| **Validación de Permisos por Rol** | ✅ CUBIERTO | Producers no pueden transferir derivados, validaciones en `requestTransfer()` |
-| **Trazabilidad Completa** | ✅ CUBIERTO | `getTokenLineage()` recorre cadena hasta materia prima |
-| **Eventos de Auditoría** | ✅ CUBIERTO | TokenCreated, TransferRequested, TransferAccepted, etc. |
-| **Modificadores de Acceso** | ✅ CUBIERTO | `onlyAdmin()`, `onlyApprovedUser()` implementados |
-| **Gestión de Balances** | ✅ CUBIERTO | `getTokenBalance()`, `setTokenBalance()` (admin) |
-| **Funciones Auxiliares** | ✅ CUBIERTO | `getUserTokens()`, `getAllUsers()`, `getTransfer()` |
+| Requisito (README.md)               | Estado      | Detalle de Implementación                                                     |
+| ----------------------------------- | ----------- | ----------------------------------------------------------------------------- |
+| **Gestión de Roles**                | ✅ CUBIERTO | `requestUserRole()`, `changeStatusUser()`, `getUserInfo()`, `isAdmin()`       |
+| **Enums UserStatus/TransferStatus** | ✅ CUBIERTO | Definidos correctamente con Pending, Approved, Rejected, Canceled             |
+| **Structs (Token, Transfer, User)** | ✅ CUBIERTO | Implementados según especificación con todos los campos                       |
+| **Creación de Materias Primas**     | ✅ CUBIERTO | Solo Producers, `parentId = 0`, validación en `createToken()`                 |
+| **Creación de Productos Derivados** | ✅ CUBIERTO | Solo Factory/Retailer, consumo de stock padre implementado                    |
+| **Consumo de Stock Padre**          | ✅ CUBIERTO | Lógica de deducción en líneas 281-287 de `createToken()`                      |
+| **Sistema de Transferencias**       | ✅ CUBIERTO | `requestTransfer()` → `acceptTransfer()` / `rejectTransfer()`                 |
+| **Validación de Permisos por Rol**  | ✅ CUBIERTO | Producers no pueden transferir derivados, validaciones en `requestTransfer()` |
+| **Trazabilidad Completa**           | ✅ CUBIERTO | `getTokenLineage()` recorre cadena hasta materia prima                        |
+| **Eventos de Auditoría**            | ✅ CUBIERTO | TokenCreated, TransferRequested, TransferAccepted, etc.                       |
+| **Modificadores de Acceso**         | ✅ CUBIERTO | `onlyAdmin()`, `onlyApprovedUser()` implementados                             |
+| **Gestión de Balances**             | ✅ CUBIERTO | `getTokenBalance()`, `setTokenBalance()` (admin)                              |
+| **Funciones Auxiliares**            | ✅ CUBIERTO | `getUserTokens()`, `getAllUsers()`, `getTransfer()`                           |
 
 ---
 
 ## 🔍 ANÁLISIS DE SEGURIDAD Y CÓDIGO
 
 ### ✅ **Fortalezas Implementadas**
+
 1. **Validaciones Robustas**: Todos los require statements están correctamente implementados
 2. **Modificadores de Seguridad**: `onlyAdmin()` y `onlyApprovedUser()` funcionan correctamente
 3. **Consumo de Stock**: Lógica crítica de deducción implementada y probada
@@ -48,6 +51,7 @@
 ### ⚠️ **Áreas de Mejora Identificadas**
 
 #### 1. **Eficiencia de Gas**
+
 ```solidity
 // PROBLEMA: Múltiples comparaciones keccak256
 keccak256(abi.encodePacked(_role)) == keccak256(abi.encodePacked("Producer")) ||
@@ -59,6 +63,7 @@ enum UserRole { Producer, Factory, Retailer, Consumer }
 ```
 
 #### 2. **Estructura de Token Balance**
+
 ```solidity
 // PROBLEMA ACTUAL: Mapping anidado
 mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
@@ -67,6 +72,7 @@ mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
 ```
 
 #### 3. **Optimización de getTokenLineage**
+
 ```solidity
 // PROBLEMA: Doble iteración (líneas 484-489 y 501-513)
 // MEJORA: Usar un array temporal con tamaño máximo conocido
@@ -77,6 +83,7 @@ mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
 ## 🧪 CALIDAD DEL TESTING
 
 ### ✅ **Cobertura Excelente**
+
 - **19 tests pasando** cubren todos los flujos críticos
 - **Casos límite probados**:
   - ✅ Usuario no registrado intenta operar
@@ -88,6 +95,7 @@ mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
   - ✅ Transferencia a usuario no aprobado
 
 ### 📊 **Tests Críticos Implementados**
+
 1. **Gestión de Usuarios**: `testUserRegistration()`, `testAdminApproveUser()`, `testOnlyApprovedUsersCanOperate()`
 2. **Creación de Tokens**: `testCreateTokenByProducer()`, `testCreateTokenByFactory()`, `testFactoryConsumesParentToken()`
 3. **Transferencias**: `testTransferRequestCreatesPendingTransfer()`, `testAcceptTransferMovesBalance()`
@@ -103,6 +111,7 @@ mapping(uint256 => mapping(address => uint256)) internal tokenBalances;
 ### **Componentes Clave**
 
 #### 1. **Structs Centrales**
+
 ```solidity
 struct User {
     uint256 id;           // ID único del usuario
@@ -133,6 +142,7 @@ struct Transfer {
 ```
 
 #### 2. **Mappings Centrales**
+
 ```solidity
 mapping(uint256 => Token) public tokens;                    // tokens[id] → Token
 mapping(uint256 => Transfer) public transfers;              // transfers[id] → Transfer
@@ -143,6 +153,7 @@ mapping(address => uint256[]) private userTokensList;       // address → token
 ```
 
 ### **Patrón de Tokenización**
+
 - **Estado Actual**: Sistema centralizado con mappings internos
 - **Ventajas**: Control total, lógica de negocio personalizada
 - **Consideración Futura**: Migración a ERC-1155 para interoperabilidad
@@ -188,6 +199,7 @@ graph TD
 ```
 
 **Código Crítico - Consumo de Stock:**
+
 ```solidity
 // Líneas 281-287: Lógica de consumo
 require(
@@ -225,18 +237,19 @@ graph TD
 
 ### **Eventos de Auditoría Implementados**
 
-| Evento | Propósito | Cuándo se Emite |
-|--------|-----------|-----------------|
-| `TokenCreated` | Auditoría de creación de productos | Cada vez que se crea un token |
-| `TransferRequested` | Trazabilidad de solicitudes | Al solicitar una transferencia |
-| `TransferAccepted` | Confirmación de transferencias | Al aceptar una transferencia |
-| `TransferRejected` | Registro de rechazos | Al rechazar una transferencia |
-| `UserRoleRequested` | Auditoría de registros | Al solicitar un rol |
-| `UserStatusChanged` | Cambios de estado | Al aprobar/rechazar usuarios |
+| Evento              | Propósito                          | Cuándo se Emite                |
+| ------------------- | ---------------------------------- | ------------------------------ |
+| `TokenCreated`      | Auditoría de creación de productos | Cada vez que se crea un token  |
+| `TransferRequested` | Trazabilidad de solicitudes        | Al solicitar una transferencia |
+| `TransferAccepted`  | Confirmación de transferencias     | Al aceptar una transferencia   |
+| `TransferRejected`  | Registro de rechazos               | Al rechazar una transferencia  |
+| `UserRoleRequested` | Auditoría de registros             | Al solicitar un rol            |
+| `UserStatusChanged` | Cambios de estado                  | Al aprobar/rechazar usuarios   |
 
 ### **Funciones Públicas Principales**
 
 #### **Gestión de Usuarios**
+
 - `requestUserRole(string memory _role)` - Solicitar rol
 - `changeStatusUser(address userAddress, UserStatus newStatus)` - Cambiar estado (Admin)
 - `getUserInfo(address userAddress)` - Obtener información de usuario
@@ -244,6 +257,7 @@ graph TD
 - `getAllUsers()` - Listar todos los usuarios (Admin)
 
 #### **Gestión de Tokens**
+
 - `createToken(...)` - Crear token con validaciones de rol
 - `getToken(uint tokenId)` - Obtener información completa
 - `getTokenBalance(uint tokenId, address userAddress)` - Consultar balance
@@ -252,6 +266,7 @@ graph TD
 - `getUserTokens(address userAddress)` - Tokens creados por usuario
 
 #### **Gestión de Transferencias**
+
 - `requestTransfer(uint256 tokenId, address to, uint256 amount)` - Solicitar transferencia
 - `acceptTransfer(uint256 transferId)` - Aceptar transferencia
 - `rejectTransfer(uint256 transferId)` - Rechazar transferencia
@@ -262,18 +277,21 @@ graph TD
 ## 🎯 CONCLUSIONES Y RECOMENDACIONES
 
 ### ✅ **Estado Actual: PRODUCCIÓN READY**
+
 - **Cumplimiento de Requisitos**: 95% completo
 - **Calidad de Código**: Excelente con documentación NatSpec completa
 - **Testing**: Cobertura exhaustiva con 19 tests pasando
 - **Seguridad**: Validaciones robustas implementadas
 
 ### 🚀 **Recomendaciones de Mejora**
+
 1. **Migración a ERC-1155** para estandarización
 2. **Optimización de Gas** usando enums en lugar de strings
 3. **Implementación de Upgradeable Proxies** para futuras mejoras
 4. **Auditoría Externa** antes de despliegue en mainnet
 
 ### 📊 **Métricas de Calidad**
+
 - **Líneas de Código**: 660 líneas
 - **Funciones Públicas**: 15 funciones documentadas
 - **Tests**: 19 tests con 100% de cobertura

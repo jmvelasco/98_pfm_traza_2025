@@ -17,6 +17,7 @@ anvil
 ```
 
 This will start a local testnet with:
+
 - Chain ID: 31337
 - RPC URL: http://localhost:8545
 - Available test accounts with 10000 ETH each
@@ -62,6 +63,7 @@ forge script script/Deploy.s.sol \
 ```
 
 Important parameters:
+
 - `--fork-url`: Points to your Ethereum node (Anvil in this case)
 - `--broadcast`: Actually sends the transactions
 - `--sender`: The address that will deploy the contract (use one from Anvil's output)
@@ -82,33 +84,33 @@ contract VerifyDeployment is Script {
     function run() public {
         // Address of our deployed contract
         address deployedContract = 0x5FbDB2315678afecb367f032d93F642f64180aa3;
-        
+
         // Create an instance of our contract
         SupplyChain supplyChain = SupplyChain(deployedContract);
-        
+
         // Start broadcast for any state-changing calls
         vm.startBroadcast();
-        
+
         // Get admin and user info
         address admin = supplyChain.admin();
         SupplyChain.User memory ourUser = supplyChain.getUserInfo(msg.sender);
-        
+
         // Log verification details
         console2.log("Contract admin:", admin);
         console2.log("Our address:", msg.sender);
         console2.log("Our role:", ourUser.role);
         console2.log("Our status:", uint256(ourUser.status));
-        
+
         // Get all users to verify initialization
         SupplyChain.User[] memory users = supplyChain.getAllUsers();
         console2.log("Number of users:", users.length);
-        
+
         if (users.length > 0) {
             console2.log("First user address:", users[0].userAddress);
             console2.log("First user role:", users[0].role);
             console2.log("First user status:", uint256(users[0].status));
         }
-        
+
         vm.stopBroadcast();
     }
 }
@@ -129,13 +131,14 @@ forge script script/Verify.s.sol \
 ## Step 6: Ensure RPC node is up and running via curl
 
 ```bash
-curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \ 
+curl -X POST --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
     -H "Content-Type: application/json" http://127.0.0.1:8545
 ```
 
 ### Expected Verification Output
 
 A successful deployment should show:
+
 - Contract admin matches the deployer address
 - Admin user is properly initialized
 - User status is Approved (1)
@@ -167,6 +170,7 @@ A successful deployment should show:
 ## Next Steps
 
 After successful deployment and verification, you can:
+
 1. Create test tokens
 2. Add and approve new users
 3. Test transfer functionality
