@@ -29,4 +29,38 @@ describe('Producer Dashboard', () => {
       expect(screen.getByText(/Send materials to processing facilities/i)).toBeInTheDocument();
     });
   });
+
+  test('renders pending transfers list when there are items', async () => {
+    vi.mock('../hooks/useWallet', () => ({
+      useWallet: () => ({ address: '0x123', isConnected: true }),
+    }));
+    vi.mock('../hooks/useUserInfo', () => ({
+      useUserInfo: () => ({
+        userInfo: { role: 'Producer', status: 'Approved' },
+        loading: false,
+        error: null,
+      }),
+    }));
+    vi.mock('../lib/contract', () => ({
+      getPendingTransfersBySender: vi.fn().mockResolvedValue([
+        {
+          id: 'tx1',
+          tokenId: 1,
+          tokenName: 'Wheat',
+          amount: 10,
+          to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          status: 'Pending',
+          createdAt: 1700000000,
+        },
+      ]),
+    }));
+
+    render(<Dashboard />);
+
+    // Should show the Pending Transfers section with a row containing Wheat
+    expect(await screen.findByText(/Pending Transfers/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
+    expect(screen.getByText('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBeInTheDocument();
+    expect(screen.getByText(/^Pending$/i)).toBeInTheDocument();
+  });
 });

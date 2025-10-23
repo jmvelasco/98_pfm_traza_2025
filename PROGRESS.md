@@ -1386,6 +1386,22 @@ Tras unificar el manejo de errores, alineamos también la validación del formul
 - 🟢 Suite completa en verde: **73/73 tests pasando** tras el cambio.
 - Commit aplicado: `refactor: update field validation to CreateRawMaterial submit button`.
 
+#### **Refactor 6: Address validation UX en TransferForm (23 Oct 2025)**
+
+Para mejorar la claridad y accesibilidad de la validación de direcciones en el flujo de transferencia, se añadió ayuda inline y atributos ARIA sin cambiar el patrón base de deshabilitar el submit cuando el input es inválido.
+
+**Cambios aplicados**:
+
+- ✅ Ayuda inline cuando `destination` está relleno pero es sintácticamente inválido: “Enter a valid Ethereum address.”
+- ✅ Atributos de accesibilidad: `aria-invalid="true"` y `aria-describedby="destination-help"` cuando aplica.
+- ✅ Mantener patrón: botón deshabilitado si la dirección es inválida, sin popups nativos (`noValidate`).
+- ✅ Test añadido (TDD): asegura aparición y limpieza de la ayuda al corregir la dirección.
+
+**Verificación**:
+
+- 🟢 Suite completa en verde: **74/74 tests pasando** tras añadir el test.
+- Commit: `feat(green): TransferForm show inline helper for invalid address (aria-invalid + helper)`.
+
 ### 📊 Estado Final de Fase 7
 
 **Completado**:
@@ -1395,6 +1411,14 @@ Tras unificar el manejo de errores, alineamos también la validación del formul
 - ✅ UX unificada entre CreateRawMaterial y TransferToFactory
 - ✅ Código organizado con estructura escalable
 - ✅ Empty state implementado y testeado
+- ✅ Address validation UX mejorada en TransferForm (ayuda inline + ARIA) — 74/74 tests
+- ✅ Pending Transfers (Productor):
+  - Empty state implementado con test
+  - Renderizado de lista básica (Token/Amount/Recipient/Status) con test
+  - Integrado en Dashboard (se reemplaza sección hardcoded por `<PendingTransfers />`)
+  - Test de integración en `producer.dashboard.test.tsx` verifica renderizado de la lista
+  - Mock de `getPendingTransfersBySender(address)` en tests
+  - Suite total actualizada: 77/77 tests pasando
 - ✅ Documentación completa y actualizada
 - ✅ 73/73 tests pasando sin regresiones
 
@@ -1408,4 +1432,4 @@ Tras unificar el manejo de errores, alineamos también la validación del formul
 
 _Sesión actualizada: 23 octubre 2025_  
 _Estado: ✅ FASE 7 COMPLETADA_  
-_Tests: 73/73 pasando (100% éxito)_
+_Tests: 77/77 pasando (100% éxito)_

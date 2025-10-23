@@ -4,6 +4,7 @@ import * as contract from '../../lib/contract';
 
 export default function PendingTransfers() {
   const { address } = useWallet();
+  console.log({ address });
   type Row = {
     id: string | number;
     tokenId: number;
@@ -19,9 +20,13 @@ export default function PendingTransfers() {
   useEffect(() => {
     let mounted = true;
     async function load() {
+      console.log('load');
+
       try {
         if (!address) return;
         const data = await (contract as any).getPendingTransfersBySender(address);
+        console.log({ data });
+
         if (mounted) setRows(data as Row[]);
       } catch {
         if (mounted) setRows([]);

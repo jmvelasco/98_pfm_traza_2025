@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import MyTokens from '../components/tokenOps/MyTokens';
+import PendingTransfers from '../components/tokenOps/PendingTransfers';
 import { RoleActions } from '../components/tokenOps/RoleActions';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
@@ -73,14 +74,7 @@ export default function Dashboard() {
       </section>
 
       {/* Pending Transfers Section */}
-      {role !== UserRole.Consumer && (
-        <section>
-          <h2 className="text-xl font-semibold text-blue-400 mb-4">Pending Transfers</h2>
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500">No pending transfers at the moment.</p>
-          </div>
-        </section>
-      )}
+      {role !== UserRole.Consumer && <PendingTransfers />}
     </div>
   );
 }
