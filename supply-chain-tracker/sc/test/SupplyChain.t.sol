@@ -1097,6 +1097,148 @@ contract SupplyChainTest is Test {
         assertEq(recipientPending.length, 1, "Factory should have 1 pending transfer (one was accepted)");
         assertEq(recipientPending[0].id, 2, "Remaining pending transfer should be ID 2");
     }
+    // -----------------------------------------------------------
+    // Pending transfers: indexed getters with pagination (tests-first)
+    // -----------------------------------------------------------
+
+    // 4.1 Indexing on Request
+    function testListPendingTransfers_BySenderAndRecipient() public {
+        // Arrange: Register and approve users, create token
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+        vm.prank(producer); supplyChain.requestUserRole("Producer");
+        vm.prank(factory); supplyChain.requestUserRole("Factory");
+        vm.prank(retailer); supplyChain.requestUserRole("Retailer");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+        vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
+
+        // Act: Producer requests transfers
+        vm.startPrank(producer);
+        supplyChain.requestTransfer(1, factory, 100);
+        supplyChain.requestTransfer(1, retailer, 50);
+        supplyChain.requestTransfer(1, factory, 25);
+        vm.stopPrank();
+
+        // Assert: Paginated getters
+        (SupplyChain.Transfer[] memory sent, uint256 totalSent) = supplyChain.getPendingBySender(producer, 0, 10);
+        (SupplyChain.Transfer[] memory recFactory, uint256 totalRecFactory) = supplyChain.getPendingByRecipient(factory, 0, 10);
+        (SupplyChain.Transfer[] memory recRetailer, uint256 totalRecRetailer) = supplyChain.getPendingByRecipient(retailer, 0, 10);
+
+        assertEq(sent.length, 3, "Producer should have 3 pending sent");
+        assertEq(totalSent, 3, "Producer total sent should be 3");
+        assertEq(recFactory.length, 2, "Factory should have 2 pending received");
+        assertEq(totalRecFactory, 2, "Factory total received should be 2");
+        assertEq(recRetailer.length, 1, "Retailer should have 1 pending received");
+        assertEq(totalRecRetailer, 1, "Retailer total received should be 1");
+    }
+
+    // 4.2 Removal on Accept/Reject
+    function testPendingTransfers_ClearedOnAcceptAndReject() public {
+        // Arrange
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        vm.prank(producer); supplyChain.requestUserRole("Producer");
+        vm.prank(factory); supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+        vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
+        vm.startPrank(producer);
+        supplyChain.requestTransfer(1, factory, 100);
+        supplyChain.requestTransfer(1, factory, 200);
+        vm.stopPrank();
+
+        // Act: Accept first, reject second
+        vm.prank(factory); supplyChain.acceptTransfer(1);
+        vm.prank(factory); supplyChain.rejectTransfer(2);
+
+        // Assert
+        (SupplyChain.Transfer[] memory sent, uint256 totalSent) = supplyChain.getPendingBySender(producer, 0, 10);
+        (SupplyChain.Transfer[] memory recFactory, uint256 totalRecFactory) = supplyChain.getPendingByRecipient(factory, 0, 10);
+        assertEq(sent.length, 0, "Producer should have 0 pending after accept/reject");
+        assertEq(totalSent, 0, "Producer total sent should be 0");
+        assertEq(recFactory.length, 0, "Factory should have 0 pending after accept/reject");
+        assertEq(totalRecFactory, 0, "Factory total received should be 0");
+    }
+
+    // 4.3 Pagination Slices
+    function testPendingTransfers_PaginationBySender() public {
+        // Arrange
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        vm.prank(producer); supplyChain.requestUserRole("Producer");
+        vm.prank(factory); supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+        vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
+        vm.startPrank(producer);
+        for (uint256 i = 0; i < 7; i++) {
+            supplyChain.requestTransfer(1, factory, 10 + i);
+        }
+        vm.stopPrank();
+
+        // Assert: Pagination
+        (SupplyChain.Transfer[] memory page1, uint256 total1) = supplyChain.getPendingBySender(producer, 0, 3);
+        assertEq(page1.length, 3, "Page 1 should have 3 items");
+        assertEq(total1, 7, "Total should be 7");
+        (SupplyChain.Transfer[] memory page2, ) = supplyChain.getPendingBySender(producer, 3, 3);
+        assertEq(page2.length, 3, "Page 2 should have 3 items");
+        (SupplyChain.Transfer[] memory page3, ) = supplyChain.getPendingBySender(producer, 6, 3);
+        assertEq(page3.length, 1, "Page 3 should have 1 item");
+        (SupplyChain.Transfer[] memory pageEmpty, ) = supplyChain.getPendingBySender(producer, 10, 3);
+        assertEq(pageEmpty.length, 0, "Out of range page should be empty");
+    }
+
+    // 4.4 Defensive Consistency
+    function testPendingTransfers_IgnoresNonPendingTransfers() public {
+        // Arrange
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        vm.prank(producer); supplyChain.requestUserRole("Producer");
+        vm.prank(factory); supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+        vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
+    vm.prank(producer); supplyChain.requestTransfer(1, factory, 100);
+    // Accept the transfer so it is no longer pending
+    vm.prank(factory); supplyChain.acceptTransfer(1);
+
+        // Assert: Should not be returned by paginated getter
+        (SupplyChain.Transfer[] memory sent, uint256 totalSent) = supplyChain.getPendingBySender(producer, 0, 10);
+        assertEq(sent.length, 0, "No pending transfers should be returned if status is not Pending");
+        assertEq(totalSent, 0, "Total should be 0 if status is not Pending");
+    }
+
+    // 4.5 Backward Compatibility
+    function testTransferLifecycle_AcceptMaintainsStatus() public {
+        // Arrange
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        vm.prank(producer); supplyChain.requestUserRole("Producer");
+        vm.prank(factory); supplyChain.requestUserRole("Factory");
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+        vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
+        vm.prank(producer); supplyChain.requestTransfer(1, factory, 100);
+        vm.prank(factory); supplyChain.acceptTransfer(1);
+        // Assert: Should not revert, and transfer should be accepted
+        SupplyChain.Transfer memory t = supplyChain.transfers(1);
+        assertEq(uint256(t.status), uint256(SupplyChain.TransferStatus.Accepted), "Transfer should be accepted");
+    }
 
 }
+
+
 
