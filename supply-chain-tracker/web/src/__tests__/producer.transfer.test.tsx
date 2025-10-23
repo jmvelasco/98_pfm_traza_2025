@@ -148,4 +148,32 @@ describe('TransferForm', () => {
       expect(screen.queryByText(/insufficient balance/i)).not.toBeInTheDocument()
     );
   });
+
+  it('shows inline helper for invalid destination and clears when valid', async () => {
+    render(<TransferForm tokenId={1} parentId={0} balance={100} />);
+    const user = userEvent.setup();
+
+    const destInput = screen.getByLabelText(/destination/i);
+    await user.type(destInput, '0x123');
+
+    // Helper appears and submit stays disabled
+    expect(await screen.findByText(/enter a valid ethereum address/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /request transfer/i })).toBeDisabled();
+
+    // Accessibility attributes reflect invalid state
+    expect(destInput).toHaveAttribute('aria-invalid', 'true');
+    const describedBy = destInput.getAttribute('aria-describedby');
+    expect(describedBy).toBeTruthy();
+    if (describedBy) {
+      expect(document.getElementById(describedBy)).toBeTruthy();
+    }
+
+    // Fix the address -> helper disappears and aria-invalid removed
+    await user.clear(destInput);
+    await user.type(destInput, '0x1111111111111111111111111111111111111111');
+    await waitFor(() =>
+      expect(screen.queryByText(/enter a valid ethereum address/i)).not.toBeInTheDocument()
+    );
+    expect(destInput).not.toHaveAttribute('aria-invalid', 'true');
+  });
 });

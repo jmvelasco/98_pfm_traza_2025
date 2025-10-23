@@ -174,18 +174,35 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
         <label htmlFor="destination" className="block text-sm font-medium text-gray-700 mb-1">
           Destination
         </label>
-        <input
-          id="destination"
-          name="destination"
-          value={destination}
-          placeholder="0x1234…"
-          disabled={loading}
-          onChange={(e) => {
-            setDestination(e.target.value);
-            if (message) setMessage(null);
-          }}
-          className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/** Inline syntactic validation helper for destination */}
+        {/** Consider non-empty AND invalid as error state */}
+        {/** This complements disabled submit and improves UX clarity */}
+        {(() => {
+          const destInvalid = destination !== '' && !isValidAddress(destination);
+          return (
+            <>
+              <input
+                id="destination"
+                name="destination"
+                value={destination}
+                placeholder="0x1234…"
+                disabled={loading}
+                aria-invalid={destInvalid ? 'true' : undefined}
+                aria-describedby={destInvalid ? 'destination-help' : undefined}
+                onChange={(e) => {
+                  setDestination(e.target.value);
+                  if (message) setMessage(null);
+                }}
+                className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {destInvalid && (
+                <div id="destination-help" className="mt-1 text-xs text-red-600">
+                  Enter a valid Ethereum address.
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
       <div>
         <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
