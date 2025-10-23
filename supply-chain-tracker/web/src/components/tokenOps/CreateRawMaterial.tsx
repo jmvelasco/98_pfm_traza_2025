@@ -4,10 +4,8 @@ import ActionCard from '../ui/ActionCard';
 
 export default function CreateRawMaterial() {
   const [showForm, setShowForm] = useState(false);
-  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success' | 'error'>(
-    'none'
-  );
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     totalSupply: '',
@@ -20,8 +18,8 @@ export default function CreateRawMaterial() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowFeedback('pending');
-    setErrorMessage(null);
+    setLoading(true);
+    setMessage('Minting raw material...');
     try {
       await createToken({
         name: formData.name,
@@ -32,19 +30,27 @@ export default function CreateRawMaterial() {
         }),
         parentId: 0,
       });
-      setShowFeedback('success');
+      setMessage('Token created!');
+      // Reset form after success
       setTimeout(() => {
-        setShowFeedback('none');
-        setShowForm(false);
+        setMessage(null);
         setFormData({ name: '', totalSupply: '', content: '' });
-        setErrorMessage(null);
       }, 2000);
     } catch (error) {
       console.error('Error minting token:', error);
-      setErrorMessage((error as any)?.message || 'Mint failed');
-      setShowFeedback('error');
+      setMessage((error as any)?.message || 'Mint failed');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const statusColor = message
+    ? message === 'Token created!'
+      ? 'text-green-600'
+      : message === 'Minting raw material...'
+        ? 'text-blue-600'
+        : 'text-red-600'
+    : '';
 
   return (
     <ActionCard
@@ -53,7 +59,7 @@ export default function CreateRawMaterial() {
       icon="🌾"
       onClick={showForm ? undefined : handleClick}
     >
-      {showForm && showFeedback === 'none' && (
+      {showForm && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div>
             <label htmlFor="token-name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -64,7 +70,11 @@ export default function CreateRawMaterial() {
               type="text"
               required
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              disabled={loading}
+              onChange={(e) => {
+                setFormData({ ...formData, name: e.target.value });
+                if (message) setMessage(null);
+              }}
               className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Wheat"
             />
@@ -79,7 +89,11 @@ export default function CreateRawMaterial() {
               required
               min="1"
               value={formData.totalSupply}
-              onChange={(e) => setFormData({ ...formData, totalSupply: e.target.value })}
+              disabled={loading}
+              onChange={(e) => {
+                setFormData({ ...formData, totalSupply: e.target.value });
+                if (message) setMessage(null);
+              }}
               className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., 500"
             />
@@ -92,39 +106,40 @@ export default function CreateRawMaterial() {
               id="token-content"
               required
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              disabled={loading}
+              onChange={(e) => {
+                setFormData({ ...formData, content: e.target.value });
+                if (message) setMessage(null);
+              }}
               rows={3}
               className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Describe the raw material..."
             />
           </div>
+          {message && (
+            <div
+              data-testid={
+                message === 'Token created!'
+                  ? 'mint-success'
+                  : message === 'Minting raw material...'
+                    ? 'minting-feedback'
+                    : 'mint-error'
+              }
+              className={`text-sm ${statusColor}`}
+              role="status"
+              aria-live="polite"
+            >
+              {message}
+            </div>
+          )}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60"
           >
-            Mint
+            {loading ? 'Minting…' : 'Mint'}
           </button>
         </form>
-      )}
-      {showFeedback === 'pending' && (
-        <div data-testid="minting-feedback" className="mt-3 text-blue-600 text-sm">
-          Minting raw material...
-        </div>
-      )}
-      {showFeedback === 'success' && (
-        <div data-testid="mint-success" className="mt-3 text-green-600 text-sm">
-          Token created!
-        </div>
-      )}
-      {showFeedback === 'error' && errorMessage && (
-        <div
-          data-testid="mint-error"
-          className="mt-3 text-red-600 text-sm"
-          role="status"
-          aria-live="polite"
-        >
-          {errorMessage}
-        </div>
       )}
     </ActionCard>
   );

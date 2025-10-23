@@ -58,11 +58,13 @@ describe('Producer RoleActions', () => {
       // Wait for success message
       expect(await screen.findByTestId('mint-success')).toBeInTheDocument();
 
-      // Wait for form to reset (success message disappears, form closes)
+      // Wait for form to reset (success message disappears, fields are cleared)
       await new Promise((resolve) => setTimeout(resolve, 2100));
       expect(screen.queryByTestId('mint-success')).toBeNull();
-      // Form should be closed
-      expect(screen.queryByLabelText(/name/i)).toBeNull();
+      // Form should still be visible but fields should be empty
+      const nameInputAfter = screen.getByLabelText(/name/i) as HTMLInputElement;
+      expect(nameInputAfter).toBeInTheDocument();
+      expect(nameInputAfter.value).toBe('');
 
       // Check that createToken was called with proper parameters from form
       expect(createToken).toHaveBeenCalledWith(
