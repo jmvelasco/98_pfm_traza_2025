@@ -971,4 +971,132 @@ contract SupplyChainTest is Test {
         
     }
 
+    // Tests for getPendingTransfersBySender and getPendingTransfersByRecipient
+    function testGetPendingTransfersBySender() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+
+        // Setup roles
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // Create token
+        vm.prank(producer);
+        supplyChain.createToken("Wheat", 1000, "{}", 0);
+
+        // Producer requests 2 transfers to factory
+        vm.startPrank(producer);
+        supplyChain.requestTransfer(1, factory, 100);
+        supplyChain.requestTransfer(1, retailer, 50);
+        vm.stopPrank();
+
+        // Query pending transfers by sender (producer)
+        SupplyChain.Transfer[] memory pendingTransfers = supplyChain.getPendingTransfersBySender(producer);
+
+        // Assertions
+        assertEq(pendingTransfers.length, 2, "Producer should have 2 pending transfers");
+        assertEq(pendingTransfers[0].from, producer, "First transfer from should be producer");
+        assertEq(pendingTransfers[0].to, factory, "First transfer to should be factory");
+        assertEq(pendingTransfers[0].amount, 100, "First transfer amount should be 100");
+        assertEq(uint256(pendingTransfers[0].status), uint256(SupplyChain.TransferStatus.Pending), "First transfer should be pending");
+
+        assertEq(pendingTransfers[1].from, producer, "Second transfer from should be producer");
+        assertEq(pendingTransfers[1].to, retailer, "Second transfer to should be retailer");
+        assertEq(pendingTransfers[1].amount, 50, "Second transfer amount should be 50");
+    }
+
+    function testGetPendingTransfersByRecipient() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+        address retailer = RETAILER_ADDRESS;
+
+        // Setup roles
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+        vm.prank(retailer);
+        supplyChain.requestUserRole("Retailer");
+
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(retailer, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // Create token
+        vm.prank(producer);
+        supplyChain.createToken("Wheat", 1000, "{}", 0);
+
+        // Producer requests transfers to factory
+        vm.startPrank(producer);
+        supplyChain.requestTransfer(1, factory, 100);
+        supplyChain.requestTransfer(1, factory, 200);
+        supplyChain.requestTransfer(1, retailer, 50);
+        vm.stopPrank();
+
+        // Query pending transfers by recipient (factory)
+        SupplyChain.Transfer[] memory pendingTransfers = supplyChain.getPendingTransfersByRecipient(factory);
+
+        // Assertions
+        assertEq(pendingTransfers.length, 2, "Factory should have 2 pending transfers");
+        assertEq(pendingTransfers[0].to, factory, "First transfer to should be factory");
+        assertEq(pendingTransfers[0].amount, 100, "First transfer amount should be 100");
+        assertEq(pendingTransfers[1].to, factory, "Second transfer to should be factory");
+        assertEq(pendingTransfers[1].amount, 200, "Second transfer amount should be 200");
+    }
+
+    function testGetPendingTransfersExcludesAccepted() public {
+        address producer = PRODUCER_ADDRESS;
+        address factory = FACTORY_ADDRESS;
+
+        // Setup roles
+        vm.prank(producer);
+        supplyChain.requestUserRole("Producer");
+        vm.prank(factory);
+        supplyChain.requestUserRole("Factory");
+
+        vm.startPrank(ADMIN);
+        supplyChain.changeStatusUser(producer, SupplyChain.UserStatus.Approved);
+        supplyChain.changeStatusUser(factory, SupplyChain.UserStatus.Approved);
+        vm.stopPrank();
+
+        // Create token
+        vm.prank(producer);
+        supplyChain.createToken("Wheat", 1000, "{}", 0);
+
+        // Producer requests 2 transfers
+        vm.startPrank(producer);
+        supplyChain.requestTransfer(1, factory, 100);
+        supplyChain.requestTransfer(1, factory, 200);
+        vm.stopPrank();
+
+        // Factory accepts first transfer
+        vm.prank(factory);
+        supplyChain.acceptTransfer(1);
+
+        // Query pending transfers - should only have 1 now
+        SupplyChain.Transfer[] memory senderPending = supplyChain.getPendingTransfersBySender(producer);
+        SupplyChain.Transfer[] memory recipientPending = supplyChain.getPendingTransfersByRecipient(factory);
+
+        // Assertions
+        assertEq(senderPending.length, 1, "Producer should have 1 pending transfer (one was accepted)");
+        assertEq(senderPending[0].id, 2, "Remaining pending transfer should be ID 2");
+        
+        assertEq(recipientPending.length, 1, "Factory should have 1 pending transfer (one was accepted)");
+        assertEq(recipientPending[0].id, 2, "Remaining pending transfer should be ID 2");
+    }
+
 }
+

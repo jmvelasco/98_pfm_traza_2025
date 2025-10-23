@@ -13,7 +13,7 @@ import type {
   ContractRunner,
   ContractMethod,
   Listener,
-} from 'ethers';
+} from "ethers";
 import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from './common';
+} from "./common";
 
 export declare namespace SupplyChain {
   export type UserStruct = {
@@ -31,12 +31,12 @@ export declare namespace SupplyChain {
     status: BigNumberish;
   };
 
-  export type UserStructOutput = [id: bigint, userAddress: string, role: string, status: bigint] & {
-    id: bigint;
-    userAddress: string;
-    role: string;
-    status: bigint;
-  };
+  export type UserStructOutput = [
+    id: bigint,
+    userAddress: string,
+    role: string,
+    status: bigint
+  ] & { id: bigint; userAddress: string; role: string; status: bigint };
 
   export type TransferStruct = {
     id: BigNumberish;
@@ -55,7 +55,7 @@ export declare namespace SupplyChain {
     tokenId: bigint,
     dateCreated: bigint,
     amount: bigint,
-    status: bigint,
+    status: bigint
   ] & {
     id: bigint;
     from: string;
@@ -70,103 +70,217 @@ export declare namespace SupplyChain {
 export interface SupplyChainInterface extends Interface {
   getFunction(
     nameOrSignature:
-      | 'acceptTransfer'
-      | 'addressToUserId'
-      | 'admin'
-      | 'changeStatusUser'
-      | 'createToken'
-      | 'getAllUsers'
-      | 'getToken'
-      | 'getTokenBalance'
-      | 'getTokenLineage'
-      | 'getTransfer'
-      | 'getUserInfo'
-      | 'getUserTokens'
-      | 'isAdmin'
-      | 'nextTokenId'
-      | 'nextTransferId'
-      | 'nextUserId'
-      | 'rejectTransfer'
-      | 'requestTransfer'
-      | 'requestUserRole'
-      | 'setTokenBalance'
-      | 'tokens'
-      | 'transfers'
-      | 'users'
+      | "acceptTransfer"
+      | "addressToUserId"
+      | "admin"
+      | "changeStatusUser"
+      | "createToken"
+      | "getAllUsers"
+      | "getPendingTransfersByRecipient"
+      | "getPendingTransfersBySender"
+      | "getToken"
+      | "getTokenBalance"
+      | "getTokenLineage"
+      | "getTransfer"
+      | "getUserInfo"
+      | "getUserTokens"
+      | "isAdmin"
+      | "nextTokenId"
+      | "nextTransferId"
+      | "nextUserId"
+      | "rejectTransfer"
+      | "requestTransfer"
+      | "requestUserRole"
+      | "setTokenBalance"
+      | "tokens"
+      | "transfers"
+      | "users"
   ): FunctionFragment;
 
   getEvent(
     nameOrSignatureOrTopic:
-      | 'TokenCreated'
-      | 'TransferAccepted'
-      | 'TransferRejected'
-      | 'TransferRequested'
-      | 'UserRoleRequested'
-      | 'UserStatusChanged'
+      | "TokenCreated"
+      | "TransferAccepted"
+      | "TransferRejected"
+      | "TransferRequested"
+      | "UserRoleRequested"
+      | "UserStatusChanged"
   ): EventFragment;
 
-  encodeFunctionData(functionFragment: 'acceptTransfer', values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: 'addressToUserId', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'admin', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: 'changeStatusUser',
+    functionFragment: "acceptTransfer",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addressToUserId",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(functionFragment: "admin", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "changeStatusUser",
     values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: 'createToken',
+    functionFragment: "createToken",
     values: [string, BigNumberish, string, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'getAllUsers', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'getToken', values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: 'getTokenBalance',
+    functionFragment: "getAllUsers",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPendingTransfersByRecipient",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getPendingTransfersBySender",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getToken",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTokenBalance",
     values: [BigNumberish, AddressLike]
   ): string;
-  encodeFunctionData(functionFragment: 'getTokenLineage', values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: 'getTransfer', values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: 'getUserInfo', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'getUserTokens', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'isAdmin', values: [AddressLike]): string;
-  encodeFunctionData(functionFragment: 'nextTokenId', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'nextTransferId', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'nextUserId', values?: undefined): string;
-  encodeFunctionData(functionFragment: 'rejectTransfer', values: [BigNumberish]): string;
   encodeFunctionData(
-    functionFragment: 'requestTransfer',
+    functionFragment: "getTokenLineage",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTransfer",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getUserInfo",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getUserTokens",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isAdmin",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "nextTokenId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "nextTransferId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "nextUserId",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "rejectTransfer",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "requestTransfer",
     values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'requestUserRole', values: [string]): string;
   encodeFunctionData(
-    functionFragment: 'setTokenBalance',
+    functionFragment: "requestUserRole",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setTokenBalance",
     values: [BigNumberish, AddressLike, BigNumberish]
   ): string;
-  encodeFunctionData(functionFragment: 'tokens', values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: 'transfers', values: [BigNumberish]): string;
-  encodeFunctionData(functionFragment: 'users', values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "tokens",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transfers",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "users", values: [BigNumberish]): string;
 
-  decodeFunctionResult(functionFragment: 'acceptTransfer', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'addressToUserId', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'admin', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'changeStatusUser', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'createToken', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getAllUsers', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getToken', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getTokenBalance', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getTokenLineage', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getTransfer', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getUserInfo', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'getUserTokens', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'isAdmin', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'nextTokenId', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'nextTransferId', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'nextUserId', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'rejectTransfer', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'requestTransfer', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'requestUserRole', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'setTokenBalance', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'tokens', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'transfers', data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: 'users', data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addressToUserId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "admin", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeStatusUser",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "createToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAllUsers",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPendingTransfersByRecipient",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getPendingTransfersBySender",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenBalance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTokenLineage",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "isAdmin", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "nextTokenId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "nextTransferId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "nextUserId", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "rejectTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestUserRole",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setTokenBalance",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "tokens", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "transfers", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "users", data: BytesLike): Result;
 }
 
 export namespace TokenCreatedEvent {
@@ -174,9 +288,14 @@ export namespace TokenCreatedEvent {
     tokenId: BigNumberish,
     creator: AddressLike,
     name: string,
-    totalSupply: BigNumberish,
+    totalSupply: BigNumberish
   ];
-  export type OutputTuple = [tokenId: bigint, creator: string, name: string, totalSupply: bigint];
+  export type OutputTuple = [
+    tokenId: bigint,
+    creator: string,
+    name: string,
+    totalSupply: bigint
+  ];
   export interface OutputObject {
     tokenId: bigint;
     creator: string;
@@ -219,14 +338,14 @@ export namespace TransferRequestedEvent {
     from: AddressLike,
     to: AddressLike,
     tokenId: BigNumberish,
-    amount: BigNumberish,
+    amount: BigNumberish
   ];
   export type OutputTuple = [
     transferId: bigint,
     from: string,
     to: string,
     tokenId: bigint,
-    amount: bigint,
+    amount: bigint
   ];
   export interface OutputObject {
     transferId: bigint;
@@ -306,27 +425,54 @@ export interface SupplyChain extends BaseContract {
     event: TCEvent
   ): Promise<Array<TypedListener<TCEvent>>>;
   listeners(eventName?: string): Promise<Array<Listener>>;
-  removeAllListeners<TCEvent extends TypedContractEvent>(event?: TCEvent): Promise<this>;
+  removeAllListeners<TCEvent extends TypedContractEvent>(
+    event?: TCEvent
+  ): Promise<this>;
 
-  acceptTransfer: TypedContractMethod<[transferId: BigNumberish], [void], 'nonpayable'>;
+  acceptTransfer: TypedContractMethod<
+    [transferId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
-  addressToUserId: TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
+  addressToUserId: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
-  admin: TypedContractMethod<[], [string], 'view'>;
+  admin: TypedContractMethod<[], [string], "view">;
 
   changeStatusUser: TypedContractMethod<
     [userAddress: AddressLike, newStatus: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   createToken: TypedContractMethod<
-    [name: string, totalSupply: BigNumberish, features: string, parentId: BigNumberish],
+    [
+      name: string,
+      totalSupply: BigNumberish,
+      features: string,
+      parentId: BigNumberish
+    ],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  getAllUsers: TypedContractMethod<[], [SupplyChain.UserStructOutput[]], 'view'>;
+  getAllUsers: TypedContractMethod<
+    [],
+    [SupplyChain.UserStructOutput[]],
+    "view"
+  >;
+
+  getPendingTransfersByRecipient: TypedContractMethod<
+    [recipient: AddressLike],
+    [SupplyChain.TransferStructOutput[]],
+    "view"
+  >;
+
+  getPendingTransfersBySender: TypedContractMethod<
+    [sender: AddressLike],
+    [SupplyChain.TransferStructOutput[]],
+    "view"
+  >;
 
   getToken: TypedContractMethod<
     [tokenId: BigNumberish],
@@ -339,55 +485,67 @@ export interface SupplyChain extends BaseContract {
         features: string;
         parentId: bigint;
         dateCreated: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
 
   getTokenBalance: TypedContractMethod<
     [tokenId: BigNumberish, userAddress: AddressLike],
     [bigint],
-    'view'
+    "view"
   >;
 
-  getTokenLineage: TypedContractMethod<[tokenId: BigNumberish], [bigint[]], 'view'>;
+  getTokenLineage: TypedContractMethod<
+    [tokenId: BigNumberish],
+    [bigint[]],
+    "view"
+  >;
 
   getTransfer: TypedContractMethod<
     [transferId: BigNumberish],
     [SupplyChain.TransferStructOutput],
-    'view'
+    "view"
   >;
 
   getUserInfo: TypedContractMethod<
     [userAddress: AddressLike],
     [SupplyChain.UserStructOutput],
-    'view'
+    "view"
   >;
 
-  getUserTokens: TypedContractMethod<[userAddress: AddressLike], [bigint[]], 'view'>;
+  getUserTokens: TypedContractMethod<
+    [userAddress: AddressLike],
+    [bigint[]],
+    "view"
+  >;
 
-  isAdmin: TypedContractMethod<[userAddress: AddressLike], [boolean], 'view'>;
+  isAdmin: TypedContractMethod<[userAddress: AddressLike], [boolean], "view">;
 
-  nextTokenId: TypedContractMethod<[], [bigint], 'view'>;
+  nextTokenId: TypedContractMethod<[], [bigint], "view">;
 
-  nextTransferId: TypedContractMethod<[], [bigint], 'view'>;
+  nextTransferId: TypedContractMethod<[], [bigint], "view">;
 
-  nextUserId: TypedContractMethod<[], [bigint], 'view'>;
+  nextUserId: TypedContractMethod<[], [bigint], "view">;
 
-  rejectTransfer: TypedContractMethod<[transferId: BigNumberish], [void], 'nonpayable'>;
+  rejectTransfer: TypedContractMethod<
+    [transferId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   requestTransfer: TypedContractMethod<
     [tokenId: BigNumberish, to: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
-  requestUserRole: TypedContractMethod<[_role: string], [void], 'nonpayable'>;
+  requestUserRole: TypedContractMethod<[_role: string], [void], "nonpayable">;
 
   setTokenBalance: TypedContractMethod<
     [tokenId: BigNumberish, user: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
 
   tokens: TypedContractMethod<
@@ -401,9 +559,9 @@ export interface SupplyChain extends BaseContract {
         features: string;
         parentId: bigint;
         dateCreated: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
 
   transfers: TypedContractMethod<
@@ -417,9 +575,9 @@ export interface SupplyChain extends BaseContract {
         dateCreated: bigint;
         amount: bigint;
         status: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
 
   users: TypedContractMethod<
@@ -430,34 +588,63 @@ export interface SupplyChain extends BaseContract {
         userAddress: string;
         role: string;
         status: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
 
-  getFunction<T extends ContractMethod = ContractMethod>(key: string | FunctionFragment): T;
+  getFunction<T extends ContractMethod = ContractMethod>(
+    key: string | FunctionFragment
+  ): T;
 
   getFunction(
-    nameOrSignature: 'acceptTransfer'
-  ): TypedContractMethod<[transferId: BigNumberish], [void], 'nonpayable'>;
+    nameOrSignature: "acceptTransfer"
+  ): TypedContractMethod<[transferId: BigNumberish], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: 'addressToUserId'
-  ): TypedContractMethod<[arg0: AddressLike], [bigint], 'view'>;
-  getFunction(nameOrSignature: 'admin'): TypedContractMethod<[], [string], 'view'>;
+    nameOrSignature: "addressToUserId"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: 'changeStatusUser'
-  ): TypedContractMethod<[userAddress: AddressLike, newStatus: BigNumberish], [void], 'nonpayable'>;
+    nameOrSignature: "admin"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: 'createToken'
+    nameOrSignature: "changeStatusUser"
   ): TypedContractMethod<
-    [name: string, totalSupply: BigNumberish, features: string, parentId: BigNumberish],
+    [userAddress: AddressLike, newStatus: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'getAllUsers'
-  ): TypedContractMethod<[], [SupplyChain.UserStructOutput[]], 'view'>;
-  getFunction(nameOrSignature: 'getToken'): TypedContractMethod<
+    nameOrSignature: "createToken"
+  ): TypedContractMethod<
+    [
+      name: string,
+      totalSupply: BigNumberish,
+      features: string,
+      parentId: BigNumberish
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "getAllUsers"
+  ): TypedContractMethod<[], [SupplyChain.UserStructOutput[]], "view">;
+  getFunction(
+    nameOrSignature: "getPendingTransfersByRecipient"
+  ): TypedContractMethod<
+    [recipient: AddressLike],
+    [SupplyChain.TransferStructOutput[]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getPendingTransfersBySender"
+  ): TypedContractMethod<
+    [sender: AddressLike],
+    [SupplyChain.TransferStructOutput[]],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "getToken"
+  ): TypedContractMethod<
     [tokenId: BigNumberish],
     [
       [bigint, string, string, bigint, string, bigint, bigint] & {
@@ -468,52 +655,72 @@ export interface SupplyChain extends BaseContract {
         features: string;
         parentId: bigint;
         dateCreated: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
   getFunction(
-    nameOrSignature: 'getTokenBalance'
-  ): TypedContractMethod<[tokenId: BigNumberish, userAddress: AddressLike], [bigint], 'view'>;
+    nameOrSignature: "getTokenBalance"
+  ): TypedContractMethod<
+    [tokenId: BigNumberish, userAddress: AddressLike],
+    [bigint],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'getTokenLineage'
-  ): TypedContractMethod<[tokenId: BigNumberish], [bigint[]], 'view'>;
+    nameOrSignature: "getTokenLineage"
+  ): TypedContractMethod<[tokenId: BigNumberish], [bigint[]], "view">;
   getFunction(
-    nameOrSignature: 'getTransfer'
-  ): TypedContractMethod<[transferId: BigNumberish], [SupplyChain.TransferStructOutput], 'view'>;
+    nameOrSignature: "getTransfer"
+  ): TypedContractMethod<
+    [transferId: BigNumberish],
+    [SupplyChain.TransferStructOutput],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'getUserInfo'
-  ): TypedContractMethod<[userAddress: AddressLike], [SupplyChain.UserStructOutput], 'view'>;
+    nameOrSignature: "getUserInfo"
+  ): TypedContractMethod<
+    [userAddress: AddressLike],
+    [SupplyChain.UserStructOutput],
+    "view"
+  >;
   getFunction(
-    nameOrSignature: 'getUserTokens'
-  ): TypedContractMethod<[userAddress: AddressLike], [bigint[]], 'view'>;
+    nameOrSignature: "getUserTokens"
+  ): TypedContractMethod<[userAddress: AddressLike], [bigint[]], "view">;
   getFunction(
-    nameOrSignature: 'isAdmin'
-  ): TypedContractMethod<[userAddress: AddressLike], [boolean], 'view'>;
-  getFunction(nameOrSignature: 'nextTokenId'): TypedContractMethod<[], [bigint], 'view'>;
-  getFunction(nameOrSignature: 'nextTransferId'): TypedContractMethod<[], [bigint], 'view'>;
-  getFunction(nameOrSignature: 'nextUserId'): TypedContractMethod<[], [bigint], 'view'>;
+    nameOrSignature: "isAdmin"
+  ): TypedContractMethod<[userAddress: AddressLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: 'rejectTransfer'
-  ): TypedContractMethod<[transferId: BigNumberish], [void], 'nonpayable'>;
+    nameOrSignature: "nextTokenId"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: 'requestTransfer'
+    nameOrSignature: "nextTransferId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "nextUserId"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "rejectTransfer"
+  ): TypedContractMethod<[transferId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "requestTransfer"
   ): TypedContractMethod<
     [tokenId: BigNumberish, to: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
   getFunction(
-    nameOrSignature: 'requestUserRole'
-  ): TypedContractMethod<[_role: string], [void], 'nonpayable'>;
+    nameOrSignature: "requestUserRole"
+  ): TypedContractMethod<[_role: string], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: 'setTokenBalance'
+    nameOrSignature: "setTokenBalance"
   ): TypedContractMethod<
     [tokenId: BigNumberish, user: AddressLike, amount: BigNumberish],
     [void],
-    'nonpayable'
+    "nonpayable"
   >;
-  getFunction(nameOrSignature: 'tokens'): TypedContractMethod<
+  getFunction(
+    nameOrSignature: "tokens"
+  ): TypedContractMethod<
     [arg0: BigNumberish],
     [
       [bigint, string, string, bigint, string, bigint, bigint] & {
@@ -524,11 +731,13 @@ export interface SupplyChain extends BaseContract {
         features: string;
         parentId: bigint;
         dateCreated: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
-  getFunction(nameOrSignature: 'transfers'): TypedContractMethod<
+  getFunction(
+    nameOrSignature: "transfers"
+  ): TypedContractMethod<
     [arg0: BigNumberish],
     [
       [bigint, string, string, bigint, bigint, bigint, bigint] & {
@@ -539,11 +748,13 @@ export interface SupplyChain extends BaseContract {
         dateCreated: bigint;
         amount: bigint;
         status: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
-  getFunction(nameOrSignature: 'users'): TypedContractMethod<
+  getFunction(
+    nameOrSignature: "users"
+  ): TypedContractMethod<
     [arg0: BigNumberish],
     [
       [bigint, string, string, bigint] & {
@@ -551,48 +762,48 @@ export interface SupplyChain extends BaseContract {
         userAddress: string;
         role: string;
         status: bigint;
-      },
+      }
     ],
-    'view'
+    "view"
   >;
 
   getEvent(
-    key: 'TokenCreated'
+    key: "TokenCreated"
   ): TypedContractEvent<
     TokenCreatedEvent.InputTuple,
     TokenCreatedEvent.OutputTuple,
     TokenCreatedEvent.OutputObject
   >;
   getEvent(
-    key: 'TransferAccepted'
+    key: "TransferAccepted"
   ): TypedContractEvent<
     TransferAcceptedEvent.InputTuple,
     TransferAcceptedEvent.OutputTuple,
     TransferAcceptedEvent.OutputObject
   >;
   getEvent(
-    key: 'TransferRejected'
+    key: "TransferRejected"
   ): TypedContractEvent<
     TransferRejectedEvent.InputTuple,
     TransferRejectedEvent.OutputTuple,
     TransferRejectedEvent.OutputObject
   >;
   getEvent(
-    key: 'TransferRequested'
+    key: "TransferRequested"
   ): TypedContractEvent<
     TransferRequestedEvent.InputTuple,
     TransferRequestedEvent.OutputTuple,
     TransferRequestedEvent.OutputObject
   >;
   getEvent(
-    key: 'UserRoleRequested'
+    key: "UserRoleRequested"
   ): TypedContractEvent<
     UserRoleRequestedEvent.InputTuple,
     UserRoleRequestedEvent.OutputTuple,
     UserRoleRequestedEvent.OutputObject
   >;
   getEvent(
-    key: 'UserStatusChanged'
+    key: "UserStatusChanged"
   ): TypedContractEvent<
     UserStatusChangedEvent.InputTuple,
     UserStatusChangedEvent.OutputTuple,
@@ -600,7 +811,7 @@ export interface SupplyChain extends BaseContract {
   >;
 
   filters: {
-    'TokenCreated(uint256,address,string,uint256)': TypedContractEvent<
+    "TokenCreated(uint256,address,string,uint256)": TypedContractEvent<
       TokenCreatedEvent.InputTuple,
       TokenCreatedEvent.OutputTuple,
       TokenCreatedEvent.OutputObject
@@ -611,7 +822,7 @@ export interface SupplyChain extends BaseContract {
       TokenCreatedEvent.OutputObject
     >;
 
-    'TransferAccepted(uint256)': TypedContractEvent<
+    "TransferAccepted(uint256)": TypedContractEvent<
       TransferAcceptedEvent.InputTuple,
       TransferAcceptedEvent.OutputTuple,
       TransferAcceptedEvent.OutputObject
@@ -622,7 +833,7 @@ export interface SupplyChain extends BaseContract {
       TransferAcceptedEvent.OutputObject
     >;
 
-    'TransferRejected(uint256)': TypedContractEvent<
+    "TransferRejected(uint256)": TypedContractEvent<
       TransferRejectedEvent.InputTuple,
       TransferRejectedEvent.OutputTuple,
       TransferRejectedEvent.OutputObject
@@ -633,7 +844,7 @@ export interface SupplyChain extends BaseContract {
       TransferRejectedEvent.OutputObject
     >;
 
-    'TransferRequested(uint256,address,address,uint256,uint256)': TypedContractEvent<
+    "TransferRequested(uint256,address,address,uint256,uint256)": TypedContractEvent<
       TransferRequestedEvent.InputTuple,
       TransferRequestedEvent.OutputTuple,
       TransferRequestedEvent.OutputObject
@@ -644,7 +855,7 @@ export interface SupplyChain extends BaseContract {
       TransferRequestedEvent.OutputObject
     >;
 
-    'UserRoleRequested(address,string)': TypedContractEvent<
+    "UserRoleRequested(address,string)": TypedContractEvent<
       UserRoleRequestedEvent.InputTuple,
       UserRoleRequestedEvent.OutputTuple,
       UserRoleRequestedEvent.OutputObject
@@ -655,7 +866,7 @@ export interface SupplyChain extends BaseContract {
       UserRoleRequestedEvent.OutputObject
     >;
 
-    'UserStatusChanged(address,uint8)': TypedContractEvent<
+    "UserStatusChanged(address,uint8)": TypedContractEvent<
       UserStatusChangedEvent.InputTuple,
       UserStatusChangedEvent.OutputTuple,
       UserStatusChangedEvent.OutputObject
