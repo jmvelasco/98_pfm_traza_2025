@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import MyTokens from '../components/MyTokens';
+import MyTokens from '../components/tokenOps/MyTokens';
 import * as contractModule from '../lib/contract';
 
 // Mock contract module

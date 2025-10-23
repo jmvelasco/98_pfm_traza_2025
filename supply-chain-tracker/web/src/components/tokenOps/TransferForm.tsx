@@ -6,7 +6,7 @@ export type TransferFormProps = {
   balance: number;
 };
 
-import * as contract from '../lib/contract';
+import * as contract from '../../lib/contract';
 
 export default function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
   const [destination, setDestination] = useState('');

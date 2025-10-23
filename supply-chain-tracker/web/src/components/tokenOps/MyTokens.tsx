@@ -1,8 +1,8 @@
 import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
-import { CONTRACT_CONFIG } from '../config/contracts';
-import { getTokenDetails, getUserTokens, type TokenDetails } from '../lib/contract';
-import { SupplyChain__factory } from '../types/factories/SupplyChain__factory';
+import { CONTRACT_CONFIG } from '../../config/contracts';
+import { getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
+import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
 interface MyTokensProps {
   userAddress: string;

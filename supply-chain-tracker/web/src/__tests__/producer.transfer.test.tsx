@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import TransferForm from '../components/TransferForm';
+import TransferForm from '../components/tokenOps/TransferForm';
 import * as contract from '../lib/contract';
 
 // Mocks
