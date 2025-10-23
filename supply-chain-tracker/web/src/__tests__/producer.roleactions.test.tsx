@@ -13,8 +13,13 @@ vi.mock('../lib/contract', () => ({
   requestTransfer: vi.fn(),
 }));
 
-import { createToken } from '../lib/contract';
+// Mock wallet hook to avoid requiring Web3Provider in component tests
+vi.mock('../hooks/useWallet', () => ({
+  useWallet: () => ({ address: '0xTEST', isConnected: true }),
+}));
+
 import * as contractModule from '../lib/contract';
+import { createToken } from '../lib/contract';
 
 describe('Producer RoleActions', () => {
   describe('Minting Raw Materials', () => {

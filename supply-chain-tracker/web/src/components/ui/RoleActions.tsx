@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { createToken } from '../../lib/contract';
+import { useWallet } from '../../hooks/useWallet';
+import { createToken, getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
 import { UserRole } from '../../lib/enums';
 
 // Role-specific quick actions
@@ -8,17 +9,8 @@ export function RoleActions({ role }: { role: UserRole }) {
     case UserRole.Producer:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCardWithFeedback
-            title="Create Raw Material"
-            description="Register new raw materials in the system"
-            icon="🌾"
-          />
-          <ActionCard
-            title="Transfer to Factory"
-            description="Send materials to processing facilities"
-            icon="🏭"
-            disabled
-          />
+          <CreateRawMaterialCard />
+          <TransferToFactoryCard />
         </div>
       );
     case UserRole.Factory:
@@ -94,8 +86,8 @@ export function RoleActions({ role }: { role: UserRole }) {
   }
 }
 
-// ActionCard with local feedback for Producer mint action
-function ActionCardWithFeedback(props: ActionCardProps) {
+// CreateRawMaterialCard with local feedback for Producer mint action
+function CreateRawMaterialCard() {
   const [showForm, setShowForm] = useState(false);
   const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success'>('none');
   const [formData, setFormData] = useState({
@@ -103,11 +95,6 @@ function ActionCardWithFeedback(props: ActionCardProps) {
     totalSupply: '',
     content: '',
   });
-  const { title, description, icon, link, disabled } = props;
-  const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
-  const enabledClasses =
-    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
-  const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
   const handleClick = () => {
     setShowForm(true);
@@ -136,19 +123,15 @@ function ActionCardWithFeedback(props: ActionCardProps) {
       console.error('Error minting token:', error);
       setShowFeedback('none');
     }
-    if (props.onClick) props.onClick();
   };
 
-  const content = (
-    <>
-      <div className="text-4xl mb-3">{icon}</div>
-      <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
-      <p className="text-sm text-gray-600">{description}</p>
-      {disabled && (
-        <span className="inline-block mt-3 text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
-          Coming soon
-        </span>
-      )}
+  return (
+    <ActionCard
+      title="Create Raw Material"
+      description="Register new raw materials in the system"
+      icon="🌾"
+      onClick={showForm ? undefined : handleClick}
+    >
       {showForm && showFeedback === 'none' && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-3">
           <div>
@@ -212,27 +195,79 @@ function ActionCardWithFeedback(props: ActionCardProps) {
           Token created!
         </div>
       )}
-    </>
+    </ActionCard>
   );
+}
 
-  if (link && !disabled) {
-    return (
-      <a href={link} className={`${baseClasses} ${enabledClasses} block`}>
-        {content}
-      </a>
-    );
+// Minimal Transfer to Factory action with token selector
+function TransferToFactoryCard() {
+  const { address } = useWallet();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [eligible, setEligible] = useState<TokenDetails[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  async function loadTokens() {
+    if (!address) return;
+    setLoading(true);
+    try {
+      const ids = await getUserTokens(address);
+      const details = await Promise.all(ids.map((id) => getTokenDetails(id, address)));
+      const filtered = (details.filter(Boolean) as TokenDetails[]).filter(
+        (t) => t.parentId === 0 && t.balance > 0
+      );
+      setEligible(filtered);
+      setSelectedId(filtered.length ? filtered[0].id : null);
+    } finally {
+      setLoading(false);
+    }
   }
 
+  const handleOpen = () => {
+    setOpen(true);
+    // fire and forget
+    void loadTokens();
+  };
+
   return (
-    <div
-      className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}
-      onClick={disabled || showForm ? undefined : handleClick}
-      role={!disabled && !showForm ? 'button' : undefined}
-      tabIndex={!disabled && !showForm ? 0 : undefined}
-      aria-disabled={disabled}
+    <ActionCard
+      title="Transfer to Factory"
+      description="Send materials to processing facilities"
+      icon="🏭"
+      onClick={open ? undefined : handleOpen}
     >
-      {content}
-    </div>
+      {open && (
+        <div className="mt-4 space-y-3">
+          {loading ? (
+            <div className="text-sm text-blue-600">Loading tokens…</div>
+          ) : eligible.length === 0 ? (
+            <div className="text-sm text-gray-600">No raw tokens with balance available.</div>
+          ) : (
+            <div>
+              <label
+                htmlFor="transfer-token"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Token
+              </label>
+              <select
+                id="transfer-token"
+                aria-label="Token"
+                className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={selectedId ?? ''}
+                onChange={(e) => setSelectedId(Number(e.target.value))}
+              >
+                {eligible.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+    </ActionCard>
   );
 }
 
