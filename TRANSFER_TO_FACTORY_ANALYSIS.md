@@ -1,7 +1,8 @@
-# ON_GOING.md — Implementación TDD: Transfer Token to Factory (Frontend)
+# TRANSFER_TO_FACTORY_ANALYSIS.md — Transfer Token to Factory (Frontend) ✅ COMPLETED
 
-Fecha: 22 Oct 2025
+Fecha: 22-23 Oct 2025
 Rama: dev
+Estado: ✅ **IMPLEMENTADO Y TESTEADO** (73/73 tests passing)
 
 ## Alcance de esta iteración
 
@@ -132,3 +133,213 @@ Notas:
 1. RED: tests y scaffolding del componente (sin implementación de helper ni componente real).
 2. GREEN: implementación mínima en `contract.ts` y `TransferForm.tsx`.
 3. REFACTOR: ajustes de UX/errores y, si procede, integración inicial desde `MyTokens`.
+
+---
+
+## 🎉 IMPLEMENTACIÓN COMPLETADA (23 Oct 2025)
+
+### ✅ Tests Implementados (8 tests en producer.transfer.test.tsx)
+
+Todos los casos de prueba definidos en la sección RED han sido implementados y están **pasando**:
+
+1. ✅ "renders form and validates basic fields"
+2. ✅ "blocks transfer of derived tokens (parentId > 0)"
+3. ✅ "requires Factory approved recipient"
+4. ✅ "requires amount > 0 and <= balance"
+5. ✅ "calls requestTransfer on valid input and shows success"
+6. ✅ "surfaces contract errors"
+7. ✅ "disables inputs and button while requesting and shows Requesting… label"
+8. ✅ "clears message when user edits inputs after an error"
+
+**Nota sobre validación de dirección**: Se implementó mediante disabled button en lugar de mensaje de error inline. El botón permanece deshabilitado hasta que la dirección cumpla el formato 0x + 40 caracteres hexadecimales.
+
+### ✅ Tests de Integración (3 tests en producer.roleactions.test.tsx)
+
+1. ✅ "shows Transfer to Factory action card in Producer dashboard"
+2. ✅ "shows empty state when no raw tokens with balance are available"
+3. ✅ "submits valid transfer and shows pending → success feedback"
+
+### ✅ Componentes Implementados
+
+**`src/components/tokenOps/TransferToFactory.tsx`** (231 líneas):
+
+- `TransferToFactoryCard`: Componente principal con ActionCard
+- Carga automática de tokens al abrir (`loadTokens()`)
+- Filtrado de tokens elegibles: `parentId === 0 && balance > 0`
+- Selector de tokens con dropdown
+- Estados: loading, empty state, token selector + form
+- **Empty state**: "No raw tokens with balance available." (implementado y testeado)
+
+**`TransferForm`** (subcomponente exportado):
+
+- Props: `{ tokenId, parentId, balance }`
+- Validaciones:
+  - Sintáctica: dirección Ethereum (regex 0x + 40 hex)
+  - Negocio: rol Factory + status Approved (via `getUserInfo`)
+  - Balance: amount > 0 y <= balance
+- Bloqueador: tokens derivados (parentId > 0) muestran mensaje explicativo
+- Estados de feedback:
+  - Pending: "Requesting transfer" (azul) con flag transitorio para visibilidad en tests
+  - Success: "Transfer requested" (verde) + reset de amount
+  - Error: Mensajes específicos (rojo)
+- Inputs deshabilitados durante loading
+- Limpieza de mensajes al editar inputs
+
+### ✅ Helper de Contrato
+
+**`src/lib/contract.ts`**:
+
+```typescript
+export async function requestTransfer(
+  tokenId: number,
+  to: string,
+  amount: number
+): Promise<void> {
+  const { contract } = getWeb3State();
+  if (!contract) throw new Error("Contract not initialized");
+
+  const tx = await contract.requestTransfer(tokenId, to, amount);
+  await tx.wait(); // Espera confirmación on-chain
+}
+```
+
+### ✅ Integración en Dashboard
+
+**`src/components/tokenOps/RoleActions.tsx`**:
+
+- Producer role muestra dos ActionCards:
+  - Create Raw Material
+  - **Transfer to Factory** (NUEVO)
+- Grid responsive (1 col móvil, 2 cols desktop)
+
+### ✅ UX Unificada
+
+Aplicados estilos consistentes entre CreateRawMaterial y TransferToFactory:
+
+- Labels: `text-sm font-medium text-gray-700 mb-1`
+- Inputs: `w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500`
+- Buttons: `bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-60`
+- Feedback colors semánticos:
+  - Azul (`text-blue-600`): Pending/Loading
+  - Verde (`text-green-600`): Success
+  - Rojo (`text-red-600`): Error
+- `noValidate` en forms para control total de validación
+
+### ✅ Refactorización de Arquitectura
+
+Post-implementación, se reorganizó la estructura de componentes:
+
+**Antes**:
+
+```
+src/components/
+  TransferForm.tsx
+  MyTokens.tsx
+  RoleActions.tsx (monolítico)
+```
+
+**Después**:
+
+```
+src/components/
+  tokenOps/
+    RoleActions.tsx (orquestador)
+    CreateRawMaterial.tsx (extraído, 131 líneas)
+    TransferToFactory.tsx (renombrado, 231 líneas)
+    MyTokens.tsx (movido, 215 líneas)
+  ui/
+    ActionCard.tsx (extraído, 50 líneas)
+```
+
+**Beneficios**:
+
+- Separación de responsabilidades clara
+- Componentes independientes y testeables
+- ActionCard reutilizable para todos los roles
+- Fácil escalabilidad para Factory/Retailer/Consumer actions
+
+### ✅ Métricas Finales
+
+- **Tests totales**: 73/73 pasando (100%)
+  - TransferForm: 8 tests
+  - RoleActions (transfer): 3 tests
+  - Resto del proyecto: 62 tests previos
+- **Build/Typecheck**: Sin errores
+- **Commits TDD**: 6 commits estratégicos siguiendo RED→GREEN→REFACTOR
+- **Líneas de código**:
+  - Tests: ~180 líneas nuevas
+  - Componentes: ~380 líneas (TransferToFactory + refactors)
+  - Helpers: ~10 líneas (requestTransfer)
+
+### ✅ Criterios de Hecho — CUMPLIDOS
+
+- [x] Tests RED → GREEN pasando
+- [x] Linter/Typecheck sin errores
+- [x] UX con feedback Pending/Success/Error claro
+- [x] Sin console.error no controlados
+- [x] Documentación actualizada (este archivo + PROGRESS.md Fase 7)
+- [x] Empty state implementado y testeado
+- [x] Refactorización de componentes completada
+
+### 📋 Commits Relevantes
+
+1. `red: add transfer form tests (validation, states, submission flow)`
+2. `green: implement requestTransfer helper and TransferForm with validations`
+3. `green: integrate TransferToFactory in Producer dashboard with token selector`
+4. `style: unify form UX between CreateRawMaterial and TransferToFactory`
+5. `refactor: organise token operations components` (+ 4 refactors más)
+6. `test(green): add empty state test for TransferToFactory (already implemented)`
+
+### 🚀 Próximos Pasos (Fuera de esta Iteración)
+
+1. **Pending Transfers Section**:
+
+   - Mostrar lista de transferencias enviadas (status Pending)
+   - Botones para cancelar/ver detalles
+   - Actualización en tiempo real con eventos TransferRequested
+
+2. **Factory: Accept/Reject Transfers**:
+
+   - Página `/transfers` o sección en Dashboard Factory
+   - Listar transferencias entrantes pendientes
+   - Botones Accept/Reject con llamadas a `acceptTransfer(transferId)` y `rejectTransfer(transferId)`
+   - Eventos TransferAccepted/TransferRejected en tiempo real
+
+3. **Transferencias Factory→Retailer, Retailer→Consumer**:
+
+   - Reutilizar componente TransferForm adaptado por rol
+   - Validaciones específicas por cada flujo
+
+4. **Página `/tokens/[id]/transfer`**:
+
+   - Ruta dedicada para transferir desde detalle de token
+   - Botón "Transfer" en MyTokens que navega a esta ruta
+
+5. **Mejoras de UX**:
+   - Toasts para feedback global
+   - Autocomplete de direcciones Factory aprobadas
+   - Historial de transferencias por token
+
+### 📊 Estado del Proyecto
+
+**Completado en Transfer to Factory**:
+
+- ✅ Flujo completo Producer→Factory funcional
+- ✅ Validaciones exhaustivas (sintáctica, negocio, balance)
+- ✅ UX consistente y pulida
+- ✅ Tests robustos (73/73 pasando)
+- ✅ Arquitectura escalable y mantenible
+
+**Resto del README pendiente**:
+
+- ⏳ Factory: Accept/Reject transfers (siguiente prioridad)
+- ⏳ Transferencias F→R→C
+- ⏳ Trazabilidad completa (árbol parentId)
+- ⏳ Procesamiento de materiales
+- ⏳ Documentación IA.md y demo
+
+---
+
+_Actualizado: 23 de octubre de 2025_  
+_Estado: ✅ COMPLETADO_  
+_Tests: 73/73 passing_
