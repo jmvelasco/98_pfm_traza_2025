@@ -90,7 +90,10 @@ export function RoleActions({ role }: { role: UserRole }) {
 // CreateRawMaterialCard with local feedback for Producer mint action
 function CreateRawMaterialCard() {
   const [showForm, setShowForm] = useState(false);
-  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success'>('none');
+  const [showFeedback, setShowFeedback] = useState<'none' | 'pending' | 'success' | 'error'>(
+    'none'
+  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     totalSupply: '',
@@ -104,6 +107,7 @@ function CreateRawMaterialCard() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowFeedback('pending');
+    setErrorMessage(null);
     try {
       await createToken({
         name: formData.name,
@@ -119,10 +123,12 @@ function CreateRawMaterialCard() {
         setShowFeedback('none');
         setShowForm(false);
         setFormData({ name: '', totalSupply: '', content: '' });
+        setErrorMessage(null);
       }, 2000);
     } catch (error) {
       console.error('Error minting token:', error);
-      setShowFeedback('none');
+      setErrorMessage((error as any)?.message || 'Mint failed');
+      setShowFeedback('error');
     }
   };
 
@@ -187,13 +193,23 @@ function CreateRawMaterialCard() {
         </form>
       )}
       {showFeedback === 'pending' && (
-        <div data-testid="minting-feedback" className="mt-3 text-blue-600">
+        <div data-testid="minting-feedback" className="mt-3 text-blue-600 text-sm">
           Minting raw material...
         </div>
       )}
       {showFeedback === 'success' && (
-        <div data-testid="mint-success" className="mt-3 text-green-600">
+        <div data-testid="mint-success" className="mt-3 text-green-600 text-sm">
           Token created!
+        </div>
+      )}
+      {showFeedback === 'error' && errorMessage && (
+        <div
+          data-testid="mint-error"
+          className="mt-3 text-red-600 text-sm"
+          role="status"
+          aria-live="polite"
+        >
+          {errorMessage}
         </div>
       )}
     </ActionCard>

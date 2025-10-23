@@ -45,6 +45,11 @@
 - [❌ PENDING] Transfer event emitted for traceability
 - [❌ PENDING] Token ownership updates correctly
 
+NOTE: Search for UI polish proposals along this section implementation:
+
+- Create Raw Material validation process should be the same as Transfer to Factory validation process (submit button disabled)
+- Action cards has the same height and the submit button aligned to the bottom
+
 ### 4. Role and Access Control
 
 - [✅ DONE] All Producer actions are protected by `onlyApprovedUser` and role checks
