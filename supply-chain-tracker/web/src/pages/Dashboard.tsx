@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import MyTokens from '../components/MyTokens';
-import { RoleActions } from '../components/ui/RoleActions';
+import { RoleActions } from '../components/RoleActions';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';

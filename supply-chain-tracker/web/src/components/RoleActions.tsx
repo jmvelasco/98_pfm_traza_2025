@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useWallet } from '../../hooks/useWallet';
-import { createToken, getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
-import { UserRole } from '../../lib/enums';
-import TransferForm from '../TransferForm';
-import ActionCard from './ActionCard';
+import { useWallet } from '../hooks/useWallet';
+import { createToken, getTokenDetails, getUserTokens, type TokenDetails } from '../lib/contract';
+import { UserRole } from '../lib/enums';
+import TransferForm from './TransferForm';
+import ActionCard from './ui/ActionCard';
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
