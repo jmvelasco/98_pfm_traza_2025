@@ -199,7 +199,7 @@ describe('Producer RoleActions', () => {
 
     test('submits valid transfer and shows pending → success feedback', async () => {
       const producer = '0xPRODUCER0000000000000000000000000000000000';
-      const factory = '0xFACTORY0000000000000000000000000000000000';
+      const factory = '0x1234567890123456789012345678901234567890'; // Valid 40-char hex
 
       // Mock token loading: one raw token with balance
       vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([1]);
@@ -239,6 +239,9 @@ describe('Producer RoleActions', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       await user.type(destInput, factory);
       await user.type(amountInput, '50');
+
+      // Wait a tick for validation to settle
+      await new Promise((r) => setTimeout(r, 0));
 
       // Submit
       const submitBtn = screen.getByRole('button', { name: /request transfer/i });

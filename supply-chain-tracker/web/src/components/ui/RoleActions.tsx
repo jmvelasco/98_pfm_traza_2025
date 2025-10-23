@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useWallet } from '../../hooks/useWallet';
 import { createToken, getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
 import { UserRole } from '../../lib/enums';
+import TransferForm from '../TransferForm';
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
@@ -243,27 +244,40 @@ function TransferToFactoryCard() {
           ) : eligible.length === 0 ? (
             <div className="text-sm text-gray-600">No raw tokens with balance available.</div>
           ) : (
-            <div>
-              <label
-                htmlFor="transfer-token"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Token
-              </label>
-              <select
-                id="transfer-token"
-                aria-label="Token"
-                className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={selectedId ?? ''}
-                onChange={(e) => setSelectedId(Number(e.target.value))}
-              >
-                {eligible.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <>
+              <div>
+                <label
+                  htmlFor="transfer-token"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Token
+                </label>
+                <select
+                  id="transfer-token"
+                  aria-label="Token"
+                  className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedId ?? ''}
+                  onChange={(e) => setSelectedId(Number(e.target.value))}
+                >
+                  {eligible.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedId !== null &&
+                (() => {
+                  const token = eligible.find((t) => t.id === selectedId);
+                  return token ? (
+                    <TransferForm
+                      tokenId={token.id}
+                      parentId={token.parentId}
+                      balance={token.balance}
+                    />
+                  ) : null;
+                })()}
+            </>
           )}
         </div>
       )}
