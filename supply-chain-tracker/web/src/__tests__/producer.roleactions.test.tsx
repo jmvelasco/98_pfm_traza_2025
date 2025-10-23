@@ -197,6 +197,24 @@ describe('Producer RoleActions', () => {
       expect(options[0]).toHaveTextContent(/raw one/i);
     });
 
+    test('shows empty state when no raw tokens with balance are available', async () => {
+      // Mock: no tokens OR only tokens without balance or derived tokens
+      vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([]);
+
+      // Render and open transfer panel
+      render(<RoleActions role={UserRole.Producer} />);
+      const transferBtn = screen.getByRole('button', { name: /transfer to factory/i });
+      const user = userEvent.setup();
+      await user.click(transferBtn);
+
+      // Assert: empty state message appears
+      expect(await screen.findByText(/no raw tokens with balance available/i)).toBeInTheDocument();
+
+      // Assert: no token selector or form is shown
+      expect(screen.queryByLabelText(/token/i)).not.toBeInTheDocument();
+      expect(screen.queryByLabelText(/destination/i)).not.toBeInTheDocument();
+    });
+
     test('submits valid transfer and shows pending → success feedback', async () => {
       const producer = '0xPRODUCER0000000000000000000000000000000000';
       const factory = '0x1234567890123456789012345678901234567890'; // Valid 40-char hex
