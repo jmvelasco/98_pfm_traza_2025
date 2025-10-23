@@ -971,7 +971,7 @@ contract SupplyChainTest is Test {
         
     }
 
-    // Tests for getPendingTransfersBySender and getPendingTransfersByRecipient
+    // Tests for pending transfers by sender and recipient (legacy semantics, new API)
     function testGetPendingTransfersBySender() public {
         address producer = PRODUCER_ADDRESS;
         address factory = FACTORY_ADDRESS;
@@ -1001,11 +1001,12 @@ contract SupplyChainTest is Test {
         supplyChain.requestTransfer(1, retailer, 50);
         vm.stopPrank();
 
-        // Query pending transfers by sender (producer)
-        SupplyChain.Transfer[] memory pendingTransfers = supplyChain.getPendingTransfersBySender(producer);
+    // Query pending transfers by sender (producer)
+    (SupplyChain.Transfer[] memory pendingTransfers, uint256 total) = supplyChain.getPendingBySender(producer, 0, 10);
 
         // Assertions
-        assertEq(pendingTransfers.length, 2, "Producer should have 2 pending transfers");
+    assertEq(total, 2, "Producer total pending transfers should be 2");
+    assertEq(pendingTransfers.length, 2, "Producer should have 2 pending transfers");
         assertEq(pendingTransfers[0].from, producer, "First transfer from should be producer");
         assertEq(pendingTransfers[0].to, factory, "First transfer to should be factory");
         assertEq(pendingTransfers[0].amount, 100, "First transfer amount should be 100");
@@ -1046,11 +1047,12 @@ contract SupplyChainTest is Test {
         supplyChain.requestTransfer(1, retailer, 50);
         vm.stopPrank();
 
-        // Query pending transfers by recipient (factory)
-        SupplyChain.Transfer[] memory pendingTransfers = supplyChain.getPendingTransfersByRecipient(factory);
+    // Query pending transfers by recipient (factory)
+    (SupplyChain.Transfer[] memory pendingTransfers, uint256 total) = supplyChain.getPendingByRecipient(factory, 0, 10);
 
         // Assertions
-        assertEq(pendingTransfers.length, 2, "Factory should have 2 pending transfers");
+    assertEq(total, 2, "Factory total pending transfers should be 2");
+    assertEq(pendingTransfers.length, 2, "Factory should have 2 pending transfers");
         assertEq(pendingTransfers[0].to, factory, "First transfer to should be factory");
         assertEq(pendingTransfers[0].amount, 100, "First transfer amount should be 100");
         assertEq(pendingTransfers[1].to, factory, "Second transfer to should be factory");
@@ -1086,15 +1088,17 @@ contract SupplyChainTest is Test {
         vm.prank(factory);
         supplyChain.acceptTransfer(1);
 
-        // Query pending transfers - should only have 1 now
-        SupplyChain.Transfer[] memory senderPending = supplyChain.getPendingTransfersBySender(producer);
-        SupplyChain.Transfer[] memory recipientPending = supplyChain.getPendingTransfersByRecipient(factory);
+    // Query pending transfers - should only have 1 now
+    (SupplyChain.Transfer[] memory senderPending, uint256 totalSender) = supplyChain.getPendingBySender(producer, 0, 10);
+    (SupplyChain.Transfer[] memory recipientPending, uint256 totalRecipient) = supplyChain.getPendingByRecipient(factory, 0, 10);
 
         // Assertions
-        assertEq(senderPending.length, 1, "Producer should have 1 pending transfer (one was accepted)");
+    assertEq(totalSender, 1, "Producer total should be 1 after acceptance");
+    assertEq(senderPending.length, 1, "Producer should have 1 pending transfer (one was accepted)");
         assertEq(senderPending[0].id, 2, "Remaining pending transfer should be ID 2");
         
-        assertEq(recipientPending.length, 1, "Factory should have 1 pending transfer (one was accepted)");
+    assertEq(totalRecipient, 1, "Factory total should be 1 after acceptance");
+    assertEq(recipientPending.length, 1, "Factory should have 1 pending transfer (one was accepted)");
         assertEq(recipientPending[0].id, 2, "Remaining pending transfer should be ID 2");
     }
     // -----------------------------------------------------------
