@@ -55,12 +55,12 @@ export default function CreateRawMaterial() {
   return (
     <ActionCard
       title="Create Raw Material"
-      description="Register new raw materials in the system"
+      description="Mint a new raw material token to your address"
       icon="🌾"
       onClick={showForm ? undefined : handleClick}
     >
       {showForm && (
-        <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4" noValidate>
           <div>
             <label htmlFor="token-name" className="block text-sm font-medium text-gray-700 mb-1">
               Name
@@ -68,7 +68,6 @@ export default function CreateRawMaterial() {
             <input
               id="token-name"
               type="text"
-              required
               value={formData.name}
               disabled={loading}
               onChange={(e) => {
@@ -86,7 +85,6 @@ export default function CreateRawMaterial() {
             <input
               id="token-supply"
               type="number"
-              required
               min="1"
               value={formData.totalSupply}
               disabled={loading}
@@ -99,12 +97,11 @@ export default function CreateRawMaterial() {
             />
           </div>
           <div>
-            <label htmlFor="token-content" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
               Content
             </label>
             <textarea
-              id="token-content"
-              required
+              id="content"
               value={formData.content}
               disabled={loading}
               onChange={(e) => {
@@ -113,7 +110,7 @@ export default function CreateRawMaterial() {
               }}
               rows={3}
               className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Describe the raw material..."
+              placeholder="e.g., Organic wheat from local farm"
             />
           </div>
           {message && (
@@ -134,7 +131,13 @@ export default function CreateRawMaterial() {
           )}
           <button
             type="submit"
-            disabled={loading}
+            disabled={
+              loading ||
+              !formData.name ||
+              !formData.totalSupply ||
+              Number(formData.totalSupply) <= 0 ||
+              !formData.content
+            }
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60"
           >
             {loading ? 'Minting…' : 'Mint'}

@@ -22,7 +22,9 @@ describe('Producer Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/Producer Dashboard/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /Create Raw Material/i })).toBeInTheDocument();
-      expect(screen.getByText(/Register new raw materials in the system/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Mint a new raw material token to your address/i)
+      ).toBeInTheDocument();
       expect(screen.getByText(/Transfer to Factory/i)).toBeInTheDocument();
       expect(screen.getByText(/Send materials to processing facilities/i)).toBeInTheDocument();
     });
