@@ -196,5 +196,62 @@ describe('Producer RoleActions', () => {
       expect(options.length).toBe(1);
       expect(options[0]).toHaveTextContent(/raw one/i);
     });
+
+    test('submits valid transfer and shows pending → success feedback', async () => {
+      const producer = '0xPRODUCER0000000000000000000000000000000000';
+      const factory = '0xFACTORY0000000000000000000000000000000000';
+
+      // Mock token loading: one raw token with balance
+      vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([1]);
+      vi.mocked(contractModule.getTokenDetails as any).mockResolvedValue({
+        id: 1,
+        creator: producer,
+        name: 'Wheat',
+        totalSupply: 100,
+        features: '{}',
+        parentId: 0,
+        dateCreated: Date.now(),
+        balance: 100,
+      });
+
+      // Mock recipient validation: approved Factory
+      vi.mocked(contractModule.getUserInfo as any).mockResolvedValue({
+        role: 'Factory',
+        status: 'Approved',
+      });
+
+      // Mock requestTransfer: delayed resolution to observe pending state
+      vi.mocked(contractModule.requestTransfer as any).mockImplementation(
+        () => new Promise((resolve) => setTimeout(resolve, 100))
+      );
+
+      // Render and open panel
+      render(<RoleActions role={UserRole.Producer} />);
+      const transferBtn = screen.getByRole('button', { name: /transfer to factory/i });
+      const user = userEvent.setup();
+      await user.click(transferBtn);
+
+      // Wait for token selector to appear (token loads async)
+      await screen.findByLabelText(/token/i);
+
+      // Fill destination and amount
+      const destInput = screen.getByLabelText(/destination/i);
+      const amountInput = screen.getByLabelText(/amount/i);
+      await user.type(destInput, factory);
+      await user.type(amountInput, '50');
+
+      // Submit
+      const submitBtn = screen.getByRole('button', { name: /request transfer/i });
+      await user.click(submitBtn);
+
+      // Assert: pending feedback appears
+      expect(await screen.findByText(/requesting transfer/i)).toBeInTheDocument();
+
+      // Assert: success feedback appears after resolution
+      expect(await screen.findByText(/transfer requested/i)).toBeInTheDocument();
+
+      // Verify requestTransfer was called with correct args
+      expect(contractModule.requestTransfer).toHaveBeenCalledWith(1, factory, 50);
+    });
   });
 });
