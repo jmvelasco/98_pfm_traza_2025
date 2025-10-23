@@ -74,7 +74,10 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           id="destination"
           name="destination"
           value={destination}
-          onChange={(e) => setDestination(e.target.value)}
+          onChange={(e) => {
+            setDestination(e.target.value);
+            if (message) setMessage(null);
+          }}
         />
       </div>
       <div>
@@ -84,7 +87,10 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           name="amount"
           type="number"
           value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          onChange={(e) => {
+            setAmount(e.target.value);
+            if (message) setMessage(null);
+          }}
         />
       </div>
       {message && <div>{message}</div>}
