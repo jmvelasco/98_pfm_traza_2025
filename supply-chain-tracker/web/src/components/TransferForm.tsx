@@ -12,6 +12,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
   const [destination, setDestination] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   function isValidAddress(addr: string) {
     // Accepts 0x-prefixed, 40 hex chars (simple check)
@@ -55,6 +56,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
       return;
     }
     // Success flow
+    setLoading(true);
     setMessage('Requesting transfer');
     // Yield to allow the "Requesting transfer" message to render before proceeding
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -63,6 +65,8 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
       setMessage('Transfer requested');
     } catch (err: any) {
       setMessage(err?.message || 'Transfer failed');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -74,6 +78,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           id="destination"
           name="destination"
           value={destination}
+          disabled={loading}
           onChange={(e) => {
             setDestination(e.target.value);
             if (message) setMessage(null);
@@ -87,15 +92,23 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
           name="amount"
           type="number"
           value={amount}
+          disabled={loading}
           onChange={(e) => {
             setAmount(e.target.value);
             if (message) setMessage(null);
           }}
         />
       </div>
-      {message && <div>{message}</div>}
-      <button type="submit" disabled={!destination || !amount || !isValidAddress(destination)}>
-        Request Transfer
+      {message && (
+        <div aria-live="polite" role="status">
+          {message}
+        </div>
+      )}
+      <button
+        type="submit"
+        disabled={loading || !destination || !amount || !isValidAddress(destination)}
+      >
+        {loading ? 'Requesting…' : 'Request Transfer'}
       </button>
     </form>
   );
