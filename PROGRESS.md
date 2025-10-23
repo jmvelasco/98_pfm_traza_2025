@@ -1368,6 +1368,24 @@ src/
 
 Commit: `refactor: unify error handling pattern between CreateRawMaterial and TransferForm`
 
+#### **Refactor 5: Validación de CreateRawMaterial unificada con TransferForm (23 Oct 2025)**
+
+Tras unificar el manejo de errores, alineamos también la validación del formulario de creación de materias primas para que coincida con el patrón de `TransferForm`.
+
+**Cambios aplicados**:
+
+- ✅ Se añadió `noValidate` al `<form>` para gestionar validaciones desde la UI sin el popup nativo del navegador.
+- ✅ Se eliminaron los atributos `required` de los campos `name`, `totalSupply` y `content`.
+- ✅ Se implementó la lógica de deshabilitado del botón de submit basada en el estado de los campos: `loading || !name || !totalSupply || Number(totalSupply) <= 0 || !content`.
+- ✅ Limpieza de mensajes al escribir en cualquier input para evitar feedback obsoleto.
+- ✅ Se mantuvo el comportamiento de apertura mediante `ActionCard` (estado `showForm`) para preservar la interacción esperada en el Dashboard y compatibilidad con tests.
+- ✅ Se actualizó la descripción del `ActionCard` a: “Mint a new raw material token to your address” y se ajustó la expectativa correspondiente en `producer.dashboard.test.tsx`.
+
+**Verificación**:
+
+- 🟢 Suite completa en verde: **73/73 tests pasando** tras el cambio.
+- Commit aplicado: `refactor: update field validation to CreateRawMaterial submit button`.
+
 ### 📊 Estado Final de Fase 7
 
 **Completado**:
