@@ -1233,8 +1233,8 @@ contract SupplyChainTest is Test {
         vm.prank(producer); supplyChain.createToken("Wheat", 1000, "{}", 0);
         vm.prank(producer); supplyChain.requestTransfer(1, factory, 100);
         vm.prank(factory); supplyChain.acceptTransfer(1);
-        // Assert: Should not revert, and transfer should be accepted
-        SupplyChain.Transfer memory t = supplyChain.transfers(1);
+    // Assert: Should not revert, and transfer should be accepted
+    SupplyChain.Transfer memory t = supplyChain.getTransfer(1);
         assertEq(uint256(t.status), uint256(SupplyChain.TransferStatus.Accepted), "Transfer should be accepted");
     }
 

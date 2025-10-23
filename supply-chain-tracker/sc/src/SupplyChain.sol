@@ -70,6 +70,18 @@ contract SupplyChain {
     mapping(address => uint256[]) private userTokensList;
 
     // -----------------------------------------------------------
+    // Pending transfers indexing for efficient pagination
+    // -----------------------------------------------------------
+    // Address-scoped arrays of pending transfer IDs
+    mapping(address => uint256[]) private pendingBySender;
+    mapping(address => uint256[]) private pendingByRecipient;
+    // Position of a transferId within a sender/recipient array (index+1; 0 means absent)
+    mapping(uint256 => uint256) private senderPos;
+    mapping(uint256 => uint256) private recipientPos;
+    // Fast guard to check if a transfer is currently pending
+    mapping(uint256 => bool) private isPending;
+
+    // -----------------------------------------------------------
     // EVENTOS
     // -----------------------------------------------------------
 
@@ -478,7 +490,10 @@ contract SupplyChain {
             status: TransferStatus.Pending // Estado inicial: Pendiente (0)
         });
 
-        // Emitir evento
+    // Index as pending for paginated listing
+    _indexPending(nextTransferId);
+
+    // Emitir evento
         emit TransferRequested(nextTransferId, msg.sender, to, tokenId, amount);
 
         // Actualizar el id de la siguiente transferencia
@@ -514,10 +529,13 @@ contract SupplyChain {
         tokenBalances[t.tokenId][t.from] -= t.amount;
         tokenBalances[t.tokenId][t.to] += t.amount;
 
-        // Actualizar estado de la transferencia
-        t.status = TransferStatus.Accepted;
+    // Actualizar estado de la transferencia
+    t.status = TransferStatus.Accepted;
 
-        // Emitir evento
+    // Remove from pending indices
+    _unindexPending(transferId);
+
+    // Emitir evento
         emit TransferAccepted(transferId);
     }
 
@@ -541,11 +559,68 @@ contract SupplyChain {
         require(t.to == msg.sender, "SupplyChain: Only the recipient can reject this transfer.");
         require(t.status == TransferStatus.Pending, "SupplyChain: Transfer is not Pending.");
         
-        // // Actualizar estado de la transferencia
-        t.status = TransferStatus.Rejected;
+    // // Actualizar estado de la transferencia
+    t.status = TransferStatus.Rejected;
 
-        // Emitir evento
+    // Remove from pending indices
+    _unindexPending(transferId);
+
+    // Emitir evento
         emit TransferRejected(transferId);
+    }
+
+    // -----------------------------------------------------------
+    // Internal helpers for index maintenance
+    // -----------------------------------------------------------
+
+    function _indexPending(uint256 transferId) internal {
+        Transfer storage t = transfers[transferId];
+        isPending[transferId] = true;
+
+        // Sender side
+        pendingBySender[t.from].push(transferId);
+        senderPos[transferId] = pendingBySender[t.from].length; // index+1
+
+        // Recipient side
+        pendingByRecipient[t.to].push(transferId);
+        recipientPos[transferId] = pendingByRecipient[t.to].length; // index+1
+    }
+
+    function _unindexPending(uint256 transferId) internal {
+        if (!isPending[transferId]) return;
+        Transfer storage t = transfers[transferId];
+
+        // Sender side removal
+        uint256 sPos = senderPos[transferId];
+        if (sPos != 0) {
+            uint256 sIdx = sPos - 1;
+            uint256[] storage arrS = pendingBySender[t.from];
+            uint256 lastSIdx = arrS.length - 1;
+            if (sIdx != lastSIdx) {
+                uint256 movedIdS = arrS[lastSIdx];
+                arrS[sIdx] = movedIdS;
+                senderPos[movedIdS] = sIdx + 1;
+            }
+            arrS.pop();
+            senderPos[transferId] = 0;
+        }
+
+        // Recipient side removal
+        uint256 rPos = recipientPos[transferId];
+        if (rPos != 0) {
+            uint256 rIdx = rPos - 1;
+            uint256[] storage arrR = pendingByRecipient[t.to];
+            uint256 lastRIdx = arrR.length - 1;
+            if (rIdx != lastRIdx) {
+                uint256 movedIdR = arrR[lastRIdx];
+                arrR[rIdx] = movedIdR;
+                recipientPos[movedIdR] = rIdx + 1;
+            }
+            arrR.pop();
+            recipientPos[transferId] = 0;
+        }
+
+        isPending[transferId] = false;
     }
 
     /**
@@ -564,6 +639,74 @@ contract SupplyChain {
         require(t.id != 0, "SupplyChain: Transfer does not exist.");
 
         return t;
+    }
+
+    // -----------------------------------------------------------
+    // Pending transfers pagination (sender/recipient)
+    // -----------------------------------------------------------
+
+    function getPendingBySender(
+        address sender,
+        uint256 offset,
+        uint256 limit
+    ) public view returns (Transfer[] memory items, uint256 total) {
+        uint256[] storage ids = pendingBySender[sender];
+        total = ids.length;
+        if (offset >= total) {
+            return (new Transfer[](0), total);
+        }
+        uint256 end = offset + limit;
+        if (end > total) {
+            end = total;
+        }
+        uint256 sliceLen = end - offset;
+        Transfer[] memory temp = new Transfer[](sliceLen);
+        uint256 count = 0;
+        for (uint256 i = offset; i < end; i++) {
+            uint256 id = ids[i];
+            Transfer storage t2 = transfers[id];
+            if (isPending[id] && t2.status == TransferStatus.Pending) {
+                temp[count] = t2;
+                count++;
+            }
+        }
+        items = new Transfer[](count);
+        for (uint256 j = 0; j < count; j++) {
+            items[j] = temp[j];
+        }
+        return (items, total);
+    }
+
+    function getPendingByRecipient(
+        address recipient,
+        uint256 offset,
+        uint256 limit
+    ) public view returns (Transfer[] memory items, uint256 total) {
+        uint256[] storage ids = pendingByRecipient[recipient];
+        total = ids.length;
+        if (offset >= total) {
+            return (new Transfer[](0), total);
+        }
+        uint256 end = offset + limit;
+        if (end > total) {
+            end = total;
+        }
+        uint256 sliceLen = end - offset;
+        Transfer[] memory temp = new Transfer[](sliceLen);
+        uint256 count = 0;
+        for (uint256 i = offset; i < end; i++) {
+            uint256 id = ids[i];
+            Transfer storage t2 = transfers[id];
+            if (isPending[id] && t2.status == TransferStatus.Pending) {
+                temp[count] = t2;
+                count++;
+            }
+        }
+        items = new Transfer[](count);
+        for (uint256 j = 0; j < count; j++) {
+            items[j] = temp[j];
+        }
+        return (items, total);
     }
 
     // -----------------------------------------------------------
