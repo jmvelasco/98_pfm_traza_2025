@@ -79,6 +79,10 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
       throw new Error('MetaMask not available');
     }
 
+    // address is intentionally unused because the contract uses msg.sender
+    // Keep it in the signature to match existing call sites
+    void address;
+
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
@@ -89,6 +93,30 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
   } catch (error) {
     console.error('Error requesting role:', error);
     throw error;
+  }
+}
+
+/**
+ * Request a token transfer to another address (initiates a pending transfer)
+ * @param tokenId - ID of the token to transfer
+ * @param to - Recipient address
+ * @param amount - Amount to transfer
+ */
+export async function requestTransfer(tokenId: number, to: string, amount: number): Promise<void> {
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('No ethereum provider found');
+  }
+
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+
+    const tx = await (contract as any).requestTransfer(tokenId, to, amount);
+    await tx.wait();
+  } catch (e) {
+    console.error('Error requesting transfer:', e);
+    throw e;
   }
 }
 
