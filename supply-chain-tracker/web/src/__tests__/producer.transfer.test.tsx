@@ -92,4 +92,60 @@ describe('TransferForm', () => {
     await user.click(screen.getByRole('button', { name: /request transfer/i }));
     expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument();
   });
+
+  it('disables inputs and button while requesting and shows Requesting… label', async () => {
+    (contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' });
+    let resolveRequest: () => void;
+    (contract as any).requestTransfer.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRequest = resolve;
+        })
+    );
+
+    render(<TransferForm tokenId={1} parentId={0} balance={100} />);
+    const user = userEvent.setup();
+    const destInput = screen.getByLabelText(/destination/i) as HTMLInputElement;
+    const amountInput = screen.getByLabelText(/amount/i) as HTMLInputElement;
+    const submitBtn = screen.getByRole('button', { name: /request transfer/i });
+
+    await user.type(destInput, '0x1111111111111111111111111111111111111111');
+    await user.type(amountInput, '10');
+    await user.click(submitBtn);
+
+    // In-flight: disabled controls and updated label
+    expect(destInput).toBeDisabled();
+    expect(amountInput).toBeDisabled();
+    expect(screen.getByRole('button', { name: /requesting…/i })).toBeDisabled();
+    expect(await screen.findByText(/requesting transfer/i)).toBeInTheDocument();
+
+    // Resolve and verify back to normal
+    resolveRequest!();
+    await waitFor(() => expect(screen.getByText(/transfer requested/i)).toBeInTheDocument());
+    expect(destInput).not.toBeDisabled();
+    expect(amountInput).not.toBeDisabled();
+    // After success the amount is reset, so the button stays disabled until user fills it again
+    expect(screen.getByRole('button', { name: /request transfer/i })).toBeDisabled();
+  });
+
+  it('clears message when user edits inputs after an error', async () => {
+    render(<TransferForm tokenId={1} parentId={0} balance={100} />);
+    const user = userEvent.setup();
+    await user.type(
+      screen.getByLabelText(/destination/i),
+      '0x1111111111111111111111111111111111111111'
+    );
+    await user.type(screen.getByLabelText(/amount/i), '101');
+    await user.click(screen.getByRole('button', { name: /request transfer/i }));
+    expect(await screen.findByText(/insufficient balance/i)).toBeInTheDocument();
+
+    // Edit amount to clear the message
+    const amountInput2 = screen.getByLabelText(/amount/i);
+    await user.clear(amountInput2);
+    await user.type(amountInput2, '50');
+
+    await waitFor(() =>
+      expect(screen.queryByText(/insufficient balance/i)).not.toBeInTheDocument()
+    );
+  });
 });

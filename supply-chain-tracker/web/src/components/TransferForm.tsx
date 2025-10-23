@@ -63,6 +63,8 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
     try {
       await (contract as any).requestTransfer(tokenId, destination, amountNum);
       setMessage('Transfer requested');
+      // Reset amount after success; keep destination
+      setAmount('');
     } catch (err: any) {
       setMessage(err?.message || 'Transfer failed');
     } finally {
