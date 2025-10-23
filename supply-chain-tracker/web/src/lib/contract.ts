@@ -303,3 +303,88 @@ export async function getTokenDetails(
     return null;
   }
 }
+
+/**
+ * Pending transfer data structure
+ */
+export type PendingTransfer = {
+  id: string | number;
+  tokenId: number;
+  tokenName: string | null;
+  amount: number;
+  to: string;
+  status: string;
+  createdAt?: number;
+};
+
+/**
+ * Get pending transfers sent by a specific address
+ * @param senderAddress - Address of the sender
+ * @returns Array of pending transfers
+ */
+export async function getPendingTransfersBySender(
+  senderAddress: string
+): Promise<PendingTransfer[]> {
+  try {
+    if (typeof window === 'undefined' || !window.ethereum) {
+      return [];
+    }
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // Call contract method to get pending transfers
+    const transfers = await (contract as any).getPendingTransfersBySender(senderAddress);
+
+    if (!transfers || !Array.isArray(transfers)) {
+      return [];
+    }
+
+    // Map contract data to our PendingTransfer type
+    const mapped: PendingTransfer[] = await Promise.all(
+      transfers.map(async (t: any) => {
+        const tokenId = Number(t.tokenId ?? t[2] ?? 0);
+        let tokenName: string | null = null;
+
+        // Try to get token name
+        try {
+          const token = await contract.getToken(tokenId);
+          tokenName = token.name || null;
+        } catch {
+          // If we can't get the token name, leave it null
+        }
+
+        return {
+          id: Number(t.id ?? t[0] ?? 0),
+          tokenId,
+          tokenName,
+          amount: Number(t.amount ?? t[3] ?? 0),
+          to: String(t.to ?? t[1] ?? ''),
+          status: mapTransferStatus(Number(t.status ?? t[4] ?? 0)),
+          createdAt: Number(t.requestedAt ?? t[5] ?? 0),
+        };
+      })
+    );
+
+    return mapped;
+  } catch (error) {
+    console.error('Error getting pending transfers:', error);
+    return [];
+  }
+}
+
+/**
+ * Map contract transfer status enum to string
+ */
+function mapTransferStatus(status: number): string {
+  switch (status) {
+    case 0:
+      return 'Pending';
+    case 1:
+      return 'Accepted';
+    case 2:
+      return 'Rejected';
+    default:
+      return 'Unknown';
+  }
+}
