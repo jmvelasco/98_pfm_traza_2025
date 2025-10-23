@@ -57,7 +57,6 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <section>
-        <h2 className="text-xl font-semibold text-blue-400 mb-4">Quick Actions</h2>
         <RoleActions role={role} />
       </section>
 

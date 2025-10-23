@@ -17,8 +17,8 @@ export default function ActionCard({
   children,
 }: ActionCardProps & { children?: React.ReactNode }) {
   const baseClasses = 'bg-white rounded-lg shadow p-6 transition-all';
-  const enabledClasses =
-    'hover:shadow-lg cursor-pointer border-2 border-transparent hover:border-blue-500';
+  const ctaClasses = 'cursor-pointer hover:shadow-lg hover:border-blue-500 self-start';
+  const enabledClasses = 'border-2 border-transparent';
   const disabledClasses = 'opacity-60 cursor-not-allowed bg-gray-50';
 
   const content = (
@@ -45,10 +45,14 @@ export default function ActionCard({
 
   return (
     <div
-      className={`${baseClasses} ${disabled ? disabledClasses : enabledClasses}`}
+      className={`
+        ${baseClasses} 
+        ${disabled ? disabledClasses : enabledClasses} 
+        ${!!onClick && !disabled ? ctaClasses : ''}
+      `}
       onClick={disabled ? undefined : onClick}
-      role={onClick && !disabled ? 'button' : undefined}
-      tabIndex={onClick && !disabled ? 0 : undefined}
+      role={!!onClick && !disabled ? 'button' : undefined}
+      tabIndex={!!onClick && !disabled ? 0 : undefined}
       aria-disabled={disabled}
     >
       {content}
