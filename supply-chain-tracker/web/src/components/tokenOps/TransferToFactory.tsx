@@ -1,14 +1,100 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { useWallet } from '../../hooks/useWallet';
+import type { TokenDetails } from '../../lib/contract';
+import { getTokenDetails, getUserInfo, getUserTokens, requestTransfer } from '../../lib/contract';
+import ActionCard from '../ui/ActionCard';
 
-export type TransferFormProps = {
+export default function TransferToFactoryCard() {
+  const { address } = useWallet();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [eligible, setEligible] = useState<TokenDetails[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  async function loadTokens() {
+    if (!address) return;
+    setLoading(true);
+    try {
+      const ids = await getUserTokens(address);
+      const details = await Promise.all(ids.map((id) => getTokenDetails(id, address)));
+      const filtered = (details.filter(Boolean) as TokenDetails[]).filter(
+        (t) => t.parentId === 0 && t.balance > 0
+      );
+      setEligible(filtered);
+      setSelectedId(filtered.length ? filtered[0].id : null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleOpen = () => {
+    setOpen(true);
+    // fire and forget
+    void loadTokens();
+  };
+
+  return (
+    <ActionCard
+      title="Transfer to Factory"
+      description="Send materials to processing facilities"
+      icon="🏭"
+      onClick={open ? undefined : handleOpen}
+    >
+      {open && (
+        <div className="mt-4 space-y-3">
+          {loading ? (
+            <div className="text-sm text-blue-600">Loading tokens…</div>
+          ) : eligible.length === 0 ? (
+            <div className="text-sm text-gray-600">No raw tokens with balance available.</div>
+          ) : (
+            <>
+              <div>
+                <label
+                  htmlFor="transfer-token"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Token
+                </label>
+                <select
+                  id="transfer-token"
+                  aria-label="Token"
+                  className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={selectedId ?? ''}
+                  onChange={(e) => setSelectedId(Number(e.target.value))}
+                >
+                  {eligible.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedId !== null &&
+                (() => {
+                  const token = eligible.find((t) => t.id === selectedId);
+                  return token ? (
+                    <TransferForm
+                      tokenId={token.id}
+                      parentId={token.parentId}
+                      balance={token.balance}
+                    />
+                  ) : null;
+                })()}
+            </>
+          )}
+        </div>
+      )}
+    </ActionCard>
+  );
+}
+
+type TransferFormProps = {
   tokenId: number;
   parentId: number;
   balance: number;
 };
 
-import * as contract from '../../lib/contract';
-
-export default function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
+export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
   const [destination, setDestination] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -44,7 +130,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
     }
     // Business validation: recipient must be an Approved Factory
     try {
-      const info = await (contract as any).getUserInfo(destination);
+      const info = await getUserInfo(destination);
       const role = info?.role;
       const status = info?.status;
       if (role !== 'Factory' || status !== 'Approved') {
@@ -63,7 +149,7 @@ export default function TransferForm({ tokenId, parentId, balance }: TransferFor
     setShowPending(true);
     setTimeout(() => setShowPending(false), 10);
     try {
-      await (contract as any).requestTransfer(tokenId, destination, amountNum);
+      await requestTransfer(tokenId, destination, amountNum);
       setMessage('Transfer requested');
       // Reset amount after success; keep destination
       setAmount('');
