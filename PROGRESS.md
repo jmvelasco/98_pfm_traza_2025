@@ -1296,6 +1296,78 @@ src/
 
 - `docs: update TRANSFER_TO_FACTORY_ANALYSIS with completed implementation`
 
+#### **Refactor 4: Unificación de patrones de manejo de errores (23 Oct 2025)**
+
+**Problema detectado**: CreateRawMaterial y TransferForm manejaban estados y errores de forma diferente, creando inconsistencia en UX y complejidad de mantenimiento.
+
+**Análisis comparativo**:
+
+| Aspecto              | CreateRawMaterial (antes)            | TransferForm          |
+| -------------------- | ------------------------------------ | --------------------- |
+| **Estado**           | Enum `showFeedback` + `errorMessage` | `loading` + `message` |
+| **Visibilidad form** | Oculto durante feedback              | Siempre visible       |
+| **Inputs disabled**  | N/A (form oculto)                    | Sí durante loading    |
+| **Limpiar mensajes** | Auto después de timeout              | Manual al escribir    |
+| **Colores estado**   | Divs separados por estado            | className dinámico    |
+
+**Solución implementada en CreateRawMaterial**:
+
+1. **Reemplazado estado**:
+
+   - ❌ Removido: `showFeedback` enum y `errorMessage` string
+   - ✅ Añadido: `loading` boolean + `message` string | null
+
+2. **Form siempre visible**:
+
+   - Removido condicional `showFeedback === 'none'`
+   - Form permanece renderizado durante todos los estados
+
+3. **Inputs deshabilitados durante loading**:
+
+   ```typescript
+   <input
+     disabled={loading}
+     onChange={(e) => {
+       setFormData({ ...formData, name: e.target.value });
+       if (message) setMessage(null); // Limpiar mensaje al escribir
+     }}
+   />
+   ```
+
+4. **Colores dinámicos unificados**:
+
+   ```typescript
+   const statusColor = message
+     ? message === "Token created!"
+       ? "text-green-600"
+       : message === "Minting raw material..."
+       ? "text-blue-600"
+       : "text-red-600"
+     : "";
+   ```
+
+5. **Feedback consolidado**:
+   - Single div con data-testid dinámico según mensaje
+   - Mantiene compatibilidad con tests existentes
+
+**Test actualizado**:
+
+- Expectativa cambiada: form permanece visible tras success
+- Verificación: campos reseteados pero form sigue renderizado
+- `expect(nameInputAfter.value).toBe('')` en lugar de `expect(screen.queryByLabelText(/name/i)).toBeNull()`
+
+**Beneficios obtenidos**:
+
+✅ **Consistencia total**: Ambos formularios idéntico patrón  
+✅ **Simplicidad**: 2 estados en vez de 4 (showFeedback + errorMessage)  
+✅ **Mejor UX**: Usuario ve lo que envió, inputs deshabilitados previenen errores  
+✅ **Mantenibilidad**: Mismo código mental para ambos componentes  
+✅ **Testabilidad**: Assertions más claras sin visibilidad condicional
+
+**Resultado**: ✅ 73/73 tests pasando sin regresiones
+
+Commit: `refactor: unify error handling pattern between CreateRawMaterial and TransferForm`
+
 ### 📊 Estado Final de Fase 7
 
 **Completado**:
