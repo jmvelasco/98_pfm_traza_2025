@@ -76,8 +76,8 @@ export interface SupplyChainInterface extends Interface {
       | "changeStatusUser"
       | "createToken"
       | "getAllUsers"
-      | "getPendingTransfersByRecipient"
-      | "getPendingTransfersBySender"
+      | "getPendingByRecipient"
+      | "getPendingBySender"
       | "getToken"
       | "getTokenBalance"
       | "getTokenLineage"
@@ -129,12 +129,12 @@ export interface SupplyChainInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getPendingTransfersByRecipient",
-    values: [AddressLike]
+    functionFragment: "getPendingByRecipient",
+    values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getPendingTransfersBySender",
-    values: [AddressLike]
+    functionFragment: "getPendingBySender",
+    values: [AddressLike, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getToken",
@@ -224,11 +224,11 @@ export interface SupplyChainInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPendingTransfersByRecipient",
+    functionFragment: "getPendingByRecipient",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getPendingTransfersBySender",
+    functionFragment: "getPendingBySender",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getToken", data: BytesLike): Result;
@@ -462,15 +462,25 @@ export interface SupplyChain extends BaseContract {
     "view"
   >;
 
-  getPendingTransfersByRecipient: TypedContractMethod<
-    [recipient: AddressLike],
-    [SupplyChain.TransferStructOutput[]],
+  getPendingByRecipient: TypedContractMethod<
+    [recipient: AddressLike, offset: BigNumberish, limit: BigNumberish],
+    [
+      [SupplyChain.TransferStructOutput[], bigint] & {
+        items: SupplyChain.TransferStructOutput[];
+        total: bigint;
+      }
+    ],
     "view"
   >;
 
-  getPendingTransfersBySender: TypedContractMethod<
-    [sender: AddressLike],
-    [SupplyChain.TransferStructOutput[]],
+  getPendingBySender: TypedContractMethod<
+    [sender: AddressLike, offset: BigNumberish, limit: BigNumberish],
+    [
+      [SupplyChain.TransferStructOutput[], bigint] & {
+        items: SupplyChain.TransferStructOutput[];
+        total: bigint;
+      }
+    ],
     "view"
   >;
 
@@ -629,17 +639,27 @@ export interface SupplyChain extends BaseContract {
     nameOrSignature: "getAllUsers"
   ): TypedContractMethod<[], [SupplyChain.UserStructOutput[]], "view">;
   getFunction(
-    nameOrSignature: "getPendingTransfersByRecipient"
+    nameOrSignature: "getPendingByRecipient"
   ): TypedContractMethod<
-    [recipient: AddressLike],
-    [SupplyChain.TransferStructOutput[]],
+    [recipient: AddressLike, offset: BigNumberish, limit: BigNumberish],
+    [
+      [SupplyChain.TransferStructOutput[], bigint] & {
+        items: SupplyChain.TransferStructOutput[];
+        total: bigint;
+      }
+    ],
     "view"
   >;
   getFunction(
-    nameOrSignature: "getPendingTransfersBySender"
+    nameOrSignature: "getPendingBySender"
   ): TypedContractMethod<
-    [sender: AddressLike],
-    [SupplyChain.TransferStructOutput[]],
+    [sender: AddressLike, offset: BigNumberish, limit: BigNumberish],
+    [
+      [SupplyChain.TransferStructOutput[], bigint] & {
+        items: SupplyChain.TransferStructOutput[];
+        total: bigint;
+      }
+    ],
     "view"
   >;
   getFunction(

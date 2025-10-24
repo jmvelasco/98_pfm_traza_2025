@@ -42,23 +42,26 @@ describe('Producer Dashboard', () => {
       }),
     }));
     vi.mock('../lib/contract', () => ({
-      getPendingTransfersBySender: vi.fn().mockResolvedValue([
-        {
-          id: 'tx1',
-          tokenId: 1,
-          tokenName: 'Wheat',
-          amount: 10,
-          to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          status: 'Pending',
-          createdAt: 1700000000,
-        },
-      ]),
+      getPendingBySender: vi.fn().mockResolvedValue({
+        items: [
+          {
+            id: 'tx1',
+            tokenId: 1,
+            tokenName: 'Wheat',
+            amount: 10,
+            to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            status: 'Pending',
+            createdAt: 1700000000,
+          },
+        ],
+        total: 1,
+      }),
     }));
 
     render(<Dashboard />);
 
     // Should show the Pending Transfers section with a row containing Wheat
-    expect(await screen.findByText(/Pending Transfers/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /Pending Transfers/i })).toBeInTheDocument();
     expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
     expect(screen.getByText('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBeInTheDocument();
     expect(screen.getByText(/^Pending$/i)).toBeInTheDocument();

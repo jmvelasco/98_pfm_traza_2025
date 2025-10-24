@@ -8,7 +8,7 @@ vi.mock('../hooks/useWallet', () => ({
 }));
 
 vi.mock('../lib/contract', () => ({
-  getPendingTransfersBySender: vi.fn().mockResolvedValue([]),
+  getPendingBySender: vi.fn().mockResolvedValue({ items: [], total: 0 }),
 }));
 
 describe('PendingTransfers', () => {
@@ -19,26 +19,29 @@ describe('PendingTransfers', () => {
   });
 
   it('renders a list of pending transfers with basic fields', async () => {
-    (contract as any).getPendingTransfersBySender.mockResolvedValue([
-      {
-        id: 'tx1',
-        tokenId: 1,
-        tokenName: 'Wheat',
-        amount: 10,
-        to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-        status: 'Pending',
-        createdAt: 1700000000,
-      },
-      {
-        id: 'tx2',
-        tokenId: 2,
-        tokenName: null,
-        amount: 5,
-        to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-        status: 'Pending',
-        createdAt: 1700001000,
-      },
-    ]);
+    (contract as any).getPendingBySender.mockResolvedValue({
+      items: [
+        {
+          id: 'tx1',
+          tokenId: 1,
+          tokenName: 'Wheat',
+          amount: 10,
+          to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          status: 'Pending',
+          createdAt: 1700000000,
+        },
+        {
+          id: 'tx2',
+          tokenId: 2,
+          tokenName: null,
+          amount: 5,
+          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          status: 'Pending',
+          createdAt: 1700001000,
+        },
+      ],
+      total: 2,
+    });
 
     render(<PendingTransfers />);
 

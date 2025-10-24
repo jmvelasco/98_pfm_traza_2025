@@ -4,7 +4,7 @@
 // The frontend should never use strings directly or interact with TypeChain.
 
 import { ethers } from 'ethers';
-import { CONTRACT_CONFIG } from '../config/contracts';
+import { CONTRACT_CONFIG, NETWORK_CONFIG } from '../config/contracts';
 import { SupplyChain__factory } from '../types/factories/SupplyChain__factory';
 import {
   UserStatus as StatusEnum,
@@ -23,6 +23,60 @@ export type Users = {
   status: UserStatus | null;
 };
 
+// --- Provider helpers: ensure correct network and provide fallbacks ---
+async function ensureWalletOnCorrectNetwork(): Promise<void> {
+  if (typeof window === 'undefined' || !window.ethereum) return;
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const net = await provider.getNetwork();
+    const desired = BigInt(NETWORK_CONFIG.chainId);
+    if (net.chainId !== desired) {
+      // Try to switch; if not added, try to add it
+      const hexChainId = '0x' + NETWORK_CONFIG.chainId.toString(16);
+      try {
+        await window.ethereum.request?.({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: hexChainId }],
+        });
+      } catch (err: any) {
+        // 4902: Unrecognized chain; try to add
+        if (err?.code === 4902) {
+          await window.ethereum.request?.({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId: hexChainId,
+                chainName: NETWORK_CONFIG.name,
+                rpcUrls: [NETWORK_CONFIG.rpcUrl],
+                nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+              },
+            ],
+          });
+        } else {
+          throw err;
+        }
+      }
+    }
+  } catch {
+    // Silent: we'll fallback to RPC provider for reads
+  }
+}
+
+async function getReadProvider(): Promise<ethers.JsonRpcProvider> {
+  // Always use direct JSON-RPC for READS to avoid wallet cached blockTag issues
+  // (e.g., BlockOutOfRangeError when Anvil restarts and wallet still references old height)
+  return new ethers.JsonRpcProvider(NETWORK_CONFIG.rpcUrl);
+}
+
+async function getSignerOnCorrectNetwork(): Promise<ethers.Signer> {
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('MetaMask not available');
+  }
+  await ensureWalletOnCorrectNetwork();
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  return provider.getSigner();
+}
+
 /**
  * Get user information from the contract
  * @param address - Ethereum address of the user
@@ -31,11 +85,7 @@ export type Users = {
 export async function getUserInfo(address: string): Promise<UserInfo> {
   try {
     // Get provider from window.ethereum
-    if (typeof window === 'undefined' || !window.ethereum) {
-      return { role: null, status: null };
-    }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = await getReadProvider();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
 
     // Call getUserInfo from contract
@@ -75,16 +125,10 @@ export async function getUserInfo(address: string): Promise<UserInfo> {
  */
 export async function requestUserRole(address: string, role: UserRole): Promise<void> {
   try {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      throw new Error('MetaMask not available');
-    }
-
     // address is intentionally unused because the contract uses msg.sender
     // Keep it in the signature to match existing call sites
     void address;
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    const signer = await getSignerOnCorrectNetwork();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
 
     // Call requestUserRole from contract
@@ -103,13 +147,8 @@ export async function requestUserRole(address: string, role: UserRole): Promise<
  * @param amount - Amount to transfer
  */
 export async function requestTransfer(tokenId: number, to: string, amount: number): Promise<void> {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('No ethereum provider found');
-  }
-
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    const signer = await getSignerOnCorrectNetwork();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
 
     const tx = await (contract as any).requestTransfer(tokenId, to, amount);
@@ -126,13 +165,8 @@ export async function requestTransfer(tokenId: number, to: string, amount: numbe
  * @param newStatus - new status to set (Approved/Rejected/Pending)
  */
 export async function changeStatusUser(userAddress: string, newStatus: UserStatus): Promise<void> {
-  if (typeof window === 'undefined' || !window.ethereum) {
-    throw new Error('MetaMask not available');
-  }
-
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    const signer = await getSignerOnCorrectNetwork();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
 
     const tx = await contract.changeStatusUser(userAddress, toContractStatus(newStatus));
@@ -246,11 +280,7 @@ export type TokenDetails = {
  */
 export async function getUserTokens(userAddress: string): Promise<number[]> {
   try {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      return [];
-    }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = await getReadProvider();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
 
     // Call getUserTokens from contract
@@ -275,11 +305,7 @@ export async function getTokenDetails(
   userAddress: string
 ): Promise<TokenDetails | null> {
   try {
-    if (typeof window === 'undefined' || !window.ethereum) {
-      return null;
-    }
-
-    const provider = new ethers.BrowserProvider(window.ethereum);
+    const provider = await getReadProvider();
     const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
 
     // Get token info
@@ -318,6 +344,111 @@ export type PendingTransfer = {
 };
 
 /**
+ * New paginated API: list pending transfers sent by an address
+ * Returns items and total so the caller can paginate.
+ */
+export async function getPendingBySender(
+  senderAddress: string,
+  offset = 0,
+  limit = 10
+): Promise<{ items: PendingTransfer[]; total: number }> {
+  try {
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // Call contract method to get paginated pending transfers
+    const result: any = await (contract as any).getPendingBySender(
+      senderAddress,
+      BigInt(offset),
+      BigInt(limit)
+    );
+
+    // Ethers v6 can return either tuple [items, total] or object with named props
+    const items = (result?.[0] ?? result?.items ?? []) as any[];
+    const totalRaw = result?.[1] ?? result?.total ?? 0n;
+    const total = Number(totalRaw);
+
+    const mapped: PendingTransfer[] = await Promise.all(
+      items.map(async (t: any) => {
+        const tokenId = Number(t.tokenId ?? t[3] ?? 0);
+        let tokenName: string | null = null;
+        try {
+          const token = await contract.getToken(tokenId);
+          tokenName = token.name || null;
+        } catch {
+          // ignore
+        }
+        return {
+          id: Number(t.id ?? t[0] ?? 0),
+          tokenId,
+          tokenName,
+          amount: Number(t.amount ?? t[5] ?? 0),
+          to: String(t.to ?? t[2] ?? ''),
+          status: mapTransferStatus(Number(t.status ?? t[6] ?? 0)),
+          createdAt: Number(t.dateCreated ?? t[4] ?? 0),
+        };
+      })
+    );
+
+    return { items: mapped, total };
+  } catch (error) {
+    console.error('Error getting paginated pending transfers (sender):', error);
+    return { items: [], total: 0 };
+  }
+}
+
+/**
+ * New paginated API: list pending transfers to be received by an address
+ */
+export async function getPendingByRecipient(
+  recipientAddress: string,
+  offset = 0,
+  limit = 10
+): Promise<{ items: PendingTransfer[]; total: number }> {
+  try {
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    const result: any = await (contract as any).getPendingByRecipient(
+      recipientAddress,
+      BigInt(offset),
+      BigInt(limit)
+    );
+
+    const items = (result?.[0] ?? result?.items ?? []) as any[];
+    const totalRaw = result?.[1] ?? result?.total ?? 0n;
+    const total = Number(totalRaw);
+
+    const mapped: PendingTransfer[] = await Promise.all(
+      items.map(async (t: any) => {
+        const tokenId = Number(t.tokenId ?? t[3] ?? 0);
+        let tokenName: string | null = null;
+        try {
+          const token = await contract.getToken(tokenId);
+          tokenName = token.name || null;
+        } catch {
+          // ignore
+        }
+        return {
+          id: Number(t.id ?? t[0] ?? 0),
+          tokenId,
+          tokenName,
+          amount: Number(t.amount ?? t[5] ?? 0),
+          to: String(t.to ?? t[2] ?? ''),
+          status: mapTransferStatus(Number(t.status ?? t[6] ?? 0)),
+          createdAt: Number(t.dateCreated ?? t[4] ?? 0),
+        };
+      })
+    );
+
+    return { items: mapped, total };
+  } catch (error) {
+    console.error('Error getting paginated pending transfers (recipient):', error);
+    return { items: [], total: 0 };
+  }
+}
+
+/**
  * Get pending transfers sent by a specific address
  * @param senderAddress - Address of the sender
  * @returns Array of pending transfers
@@ -330,43 +461,9 @@ export async function getPendingTransfersBySender(
       return [];
     }
 
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
-
-    // Call contract method to get pending transfers
-    const transfers = await (contract as any).getPendingTransfersBySender(senderAddress);
-
-    if (!transfers || !Array.isArray(transfers)) {
-      return [];
-    }
-
-    // Map contract data to our PendingTransfer type
-    const mapped: PendingTransfer[] = await Promise.all(
-      transfers.map(async (t: any) => {
-        const tokenId = Number(t.tokenId ?? t[2] ?? 0);
-        let tokenName: string | null = null;
-
-        // Try to get token name
-        try {
-          const token = await contract.getToken(tokenId);
-          tokenName = token.name || null;
-        } catch {
-          // If we can't get the token name, leave it null
-        }
-
-        return {
-          id: Number(t.id ?? t[0] ?? 0),
-          tokenId,
-          tokenName,
-          amount: Number(t.amount ?? t[3] ?? 0),
-          to: String(t.to ?? t[1] ?? ''),
-          status: mapTransferStatus(Number(t.status ?? t[4] ?? 0)),
-          createdAt: Number(t.requestedAt ?? t[5] ?? 0),
-        };
-      })
-    );
-
-    return mapped;
+    // Backward-compatible wrapper: fetch first page with a generous limit
+    const { items } = await getPendingBySender(senderAddress, 0, 50);
+    return items;
   } catch (error) {
     console.error('Error getting pending transfers:', error);
     return [];
