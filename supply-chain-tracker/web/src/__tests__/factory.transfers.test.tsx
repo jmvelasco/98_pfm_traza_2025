@@ -162,8 +162,35 @@ describe('PendingTransfersReceived', () => {
     expect(screen.getByText(/raw material d/i)).toBeInTheDocument();
   });
 
-  it.skip('handles on-chain errors gracefully (accept/reject)', async () => {
-    // TODO: implement
+  it('handles on-chain errors gracefully (accept)', async () => {
+    const initialItems = [
+      {
+        id: 5,
+        tokenId: 20,
+        tokenName: 'Raw Material E',
+        amount: 10,
+        from: '0xproducer5',
+        to: '0xfactory',
+        status: 'PENDING',
+      },
+    ];
+    (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
+    (contract as any).acceptTransfer.mockRejectedValue(new Error('boom'));
+
+    const PendingTransfersReceived = (
+      await import('../components/tokenOps/PendingTransfersReceived')
+    ).default;
+    render(<PendingTransfersReceived />);
+
+    const rowE = await screen.findByText(/raw material e/i);
+    const acceptBtn = rowE
+      .closest('tr')!
+      .querySelector('button[name="accept"]') as HTMLButtonElement;
+    acceptBtn.click();
+
+    expect(await screen.findByText(/boom/i)).toBeInTheDocument();
+    // List unchanged
+    expect(screen.getByText(/raw material e/i)).toBeInTheDocument();
   });
 
   it.skip('disables buttons while processing', async () => {

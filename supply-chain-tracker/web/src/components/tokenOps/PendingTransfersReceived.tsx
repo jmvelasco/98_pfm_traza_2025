@@ -2,6 +2,7 @@ import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import * as contract from '../../lib/contract';
 import PendingTransfersTable from './PendingTransfersTable';
+import { useState } from 'react';
 
 export default function PendingTransfersReceived() {
   const { address } = useWallet();
@@ -10,21 +11,33 @@ export default function PendingTransfersReceived() {
     address,
     pageSize: 5,
   });
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function onAccept(id: number | string) {
-    await (contract as any).acceptTransfer(Number(id));
-    refresh();
+    setActionError(null);
+    try {
+      await (contract as any).acceptTransfer(Number(id));
+      refresh();
+    } catch (err: any) {
+      setActionError(err?.message || 'Operation failed');
+    }
   }
 
   async function onReject(id: number | string) {
-    await (contract as any).rejectTransfer(Number(id));
-    refresh();
+    setActionError(null);
+    try {
+      await (contract as any).rejectTransfer(Number(id));
+      refresh();
+    } catch (err: any) {
+      setActionError(err?.message || 'Operation failed');
+    }
   }
 
   return (
     <section>
       <h2 className="text-xl font-semibold text-blue-400 mb-4">Received Pending Transfers</h2>
-      {error && <div className="text-red-600 mb-2">{error}</div>}
+  {error && <div className="text-red-600 mb-2">{error}</div>}
+  {actionError && <div className="text-red-600 mb-2">{actionError}</div>}
       {loading && <div className="text-gray-500">Loading...</div>}
       {!loading && (
         <PendingTransfersTable
