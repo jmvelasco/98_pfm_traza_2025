@@ -1,4 +1,14 @@
-# 🚀 Migration Plan: Pending Transfers Strategy C2 (Indexed SC Getters + Pagination)
+---
+**ADR**: 002
+**Title**: Pending Transfers Migration to C2 (Indexed SC Getters + Pagination)
+**Status**: ✅ Implemented
+**Date**: 23 October 2025
+**Implementation**: Completed in PROGRESS.md Fase 8 (23 Oct 2025)
+**Superseded by**: PROGRESS.md (Fase 8) for implementation details
+**Purpose**: Detailed 11-section migration plan from C1 to C2 with tests-first approach
+**Retain for**: Implementation reference, deployment checklist, rollback procedures, onboarding
+---
+
 
 Date: 23 Oct 2025
 Goal: Evolve from current C1 approach to C2 — smart-contract indexed getters with pagination — with tests-first across smart contract and frontend.

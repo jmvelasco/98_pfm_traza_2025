@@ -1,4 +1,13 @@
-# 🔍 Pending Transfers Not Showing - Deep Analysis
+---
+**ADR**: 004
+**Title**: Pending Transfers Not Showing - Debug Analysis
+**Status**: ✅ Resolved
+**Date**: 23 October 2025
+**Resolution**: Root cause identified; led to Strategy C2 implementation
+**Purpose**: Diagnostic record of issue investigation that informed architectural decision
+**Retain for**: Debugging reference, understanding problem context that drove C2 adoption
+---
+
 
 **Date**: 23 October 2025  
 **Issue**: No pending transfers displayed in Producer dashboard  

@@ -1442,7 +1442,7 @@ _Tests: 77/77 pasando (100% éxito)_
 
 Evolucionar el listado de transferencias pendientes desde enfoque básico (C1) a modelo eficiente con índices en smart contract y getters paginados (**Strategy C2**), mejorando performance, escalabilidad y UX mediante TDD.
 
-**Contexto de decisión**: Se evaluaron 3 estrategias (doc: `PENDING_TRANSFERS_STRATEGY_COMPARISON.md`):
+**Contexto de decisión**: Se evaluaron 3 estrategias (doc: `docs/adr/001-pending-transfers-strategy-comparison.md`):
 
 - **Strategy A**: Event Logs Indexing (frontend-only) — Good, pero dependiente de provider
 - **Strategy B**: State Scan via `nextTransferId` (frontend-only) — Simple pero O(N) calls
@@ -1450,7 +1450,7 @@ Evolucionar el listado de transferencias pendientes desde enfoque básico (C1) a
 
 **Razón de C2**: Mejor performance (O(K) vs O(N)), API limpia, paginación nativa, evolvable para filtros futuros.
 
-**Plan detallado**: `PENDING_TRANSFERS_MIGRATION_TO_C2.md` (11 secciones con tests-first, deployment checklist, rollback plan).
+**Plan detallado**: `docs/adr/002-pending-transfers-migration-to-c2.md` (11 secciones con tests-first, deployment checklist, rollback plan).
 
 ### 📋 Estado Inicial (C1 - Limitaciones)
 
@@ -1698,7 +1698,7 @@ npm test
 - ✅ Smart contract: 5 tests + implementación + cleanup legacy
 - ✅ Frontend: Helpers paginados + componente + tests
 - ✅ Tooling: Redeploy + regen via npm scripts
-- ✅ Docs: Plan en `PENDING_TRANSFERS_MIGRATION_TO_C2.md`
+- ✅ Docs: Plan en `docs/adr/002-pending-transfers-migration-to-c2.md`
 
 **Métricas**:
 

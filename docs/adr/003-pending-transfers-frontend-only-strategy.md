@@ -1,4 +1,13 @@
-# 📦 Pending Transfers without Smart Contract Changes
+---
+**ADR**: 003
+**Title**: Pending Transfers Frontend-Only Strategy (Alternative)
+**Status**: ⚠️ Not Selected (Explored but not implemented)
+**Date**: 23 October 2025
+**Decision**: Rejected in favor of Strategy C2 (Smart Contract indexed getters)
+**Purpose**: Analysis of frontend-only approaches without SC changes
+**Retain for**: Future reference if SC modifications become restricted, architectural context
+---
+
 
 Date: 23 Oct 2025
 Scope: Show Producer pending transfers in the frontend using current SupplyChain.sol, assuming we cannot modify or redeploy the contract.

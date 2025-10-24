@@ -1,6 +1,28 @@
+---
+**ADR**: 001
+**Title**: Pending Transfers Strategy Comparison
+**Status**: ✅ Accepted (Strategy C2 Selected)
+**Date**: 23 October 2025
+**Implementation**: Completed in PROGRESS.md Fase 8 (23 Oct 2025)
+**Superseded by**: PROGRESS.md (Fase 8) for implementation details
+**Purpose**: Decision record comparing strategies A, B, and C2 for pending transfers
+**Retain for**: Traceability, architectural decisions, onboarding reference
+---
+
 # 🔄 Pending Transfers – Strategy Comparison & Recommendation
 
 Date: 23 Oct 2025
+Scope: Compare three strategies to show Pending Transfers in the frontend and decide the best option. For this comparison we assume we CAN request smart contract changes.
+
+---
+
+## Context
+
+We want the Producer dashboard to show Pending Transfers. Today's smart contract didn't expose a listing API; the frontend mocked the helper and passed tests but real usage failed. We explored two frontend-only approaches and one smart contract change:
+
+1. Event Logs Indexing (frontend-only)
+2. State Scan via `nextTransferId` + `getTransfer` (frontend-only)
+3. Smart Contract Getters (SC change) — add `getPendingTransfersBySender` / `getPendingTransfersByRecipient`
 Scope: Compare three strategies to show Pending Transfers in the frontend and decide the best option. For this comparison we assume we CAN request smart contract changes.
 
 ---

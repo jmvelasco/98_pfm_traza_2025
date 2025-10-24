@@ -40,10 +40,10 @@
 
 ### 3. Transfer Token to Factory
 
-- [❌ PENDING] Producer can initiate transfer of owned token to Factory (function like `transferToken(tokenId, toAddress)`)
-- [❌ PENDING] Transfer is only allowed to valid Factory addresses
-- [❌ PENDING] Transfer event emitted for traceability
-- [❌ PENDING] Token ownership updates correctly
+- [✅ DONE] Producer can initiate transfer of owned token to Factory (function like `transferToken(tokenId, toAddress)`)
+- [✅ DONE] Transfer is only allowed to valid Factory addresses
+- [✅ DONE] Transfer event emitted for traceability
+- [? PENDING] Token ownership updates correctly
 
 NOTE: Search for UI polish proposals along this section implementation:
 
@@ -57,19 +57,24 @@ NOTE: Search for UI polish proposals along this section implementation:
 
 ### 5. Traceability
 
-- [⏳ IN PROGRESS] Each token has a `parentId` (raw materials: `parentId=0`)
-- [❌ PENDING] Transfer history is recorded (events or mapping)
+- [✅ DONE] Each token has a `parentId` (raw materials: `parentId=0`)
+- [✅ DONE] Transfer history is recorded (events or mapping)
 - [❌ PENDING] Functions exist to retrieve token lineage (for traceability UI)
 
 ### 6. Testing
 
 - [✅ DONE] Unit tests for Producer minting, viewing, and transferring tokens
 - [✅ DONE] Tests for access control and edge cases (e.g., double transfer, invalid recipient)
+- [✅ DONE] Tests for pending transfers pagination (SC + frontend)
+- [✅ DONE] TransferForm validations tests
 
 ### 7. Frontend Integration
 
 - [✅ DONE] Dashboard actions for Producer trigger correct contract functions
 - [✅ DONE] UI feedback for success/failure of mint and transfer actions
+- [✅ DONE] Pending transfers list with pagination in Producer dashboard
+- [✅ DONE] TransferForm with validations (address, role, balance)
+- [✅ DONE] Empty states and loading spinners
 
 ---
 
