@@ -60,8 +60,8 @@ describe('Producer Dashboard', () => {
 
     render(<Dashboard />);
 
-    // Should show the Pending Transfers section with a row containing Wheat
-    expect(await screen.findByRole('heading', { name: /Pending Transfers/i })).toBeInTheDocument();
+    // Should show the Outgoing Transfers section with a row containing Wheat
+    expect(await screen.findByRole('heading', { name: /Outgoing Transfers/i })).toBeInTheDocument();
     expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
     expect(screen.getByText('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBeInTheDocument();
     expect(screen.getByText(/^Pending$/i)).toBeInTheDocument();

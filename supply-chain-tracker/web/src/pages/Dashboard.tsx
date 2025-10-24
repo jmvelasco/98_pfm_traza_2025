@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import MyTokens from '../components/tokenOps/MyTokens';
-import PendingTransfers from '../components/tokenOps/PendingTransfers';
 import PendingTransfersReceived from '../components/tokenOps/PendingTransfersReceived';
 import PendingTransfersSent from '../components/tokenOps/PendingTransfersSent';
 import { RoleActions } from '../components/tokenOps/RoleActions';
@@ -84,7 +83,7 @@ export default function Dashboard() {
               <PendingTransfersSent />
             </>
           ) : (
-            <PendingTransfers />
+            <PendingTransfersSent />
           )}
         </section>
       )}

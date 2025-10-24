@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import PendingTransfers from '../components/tokenOps/PendingTransfers';
+import PendingTransfersSent from '../components/tokenOps/PendingTransfersSent';
 import * as contract from '../lib/contract';
 
 vi.mock('../hooks/useWallet', () => ({
@@ -11,11 +11,11 @@ vi.mock('../lib/contract', () => ({
   getPendingBySender: vi.fn().mockResolvedValue({ items: [], total: 0 }),
 }));
 
-describe('PendingTransfers', () => {
+describe('PendingTransfersSent', () => {
   it('shows empty state when there are no pending transfers', async () => {
-    render(<PendingTransfers />);
-    expect(screen.getByRole('heading', { name: /Pending Transfers/i })).toBeInTheDocument();
-    expect(await screen.findByText(/No pending transfers at the moment\./i)).toBeInTheDocument();
+    render(<PendingTransfersSent />);
+    expect(screen.getByRole('heading', { name: /Outgoing Transfers/i })).toBeInTheDocument();
+    expect(await screen.findByText(/No pending transfers/i)).toBeInTheDocument();
   });
 
   it('renders a list of pending transfers with basic fields', async () => {
@@ -26,6 +26,7 @@ describe('PendingTransfers', () => {
           tokenId: 1,
           tokenName: 'Wheat',
           amount: 10,
+          from: '0xproducer',
           to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
           status: 'Pending',
           createdAt: 1700000000,
@@ -35,6 +36,7 @@ describe('PendingTransfers', () => {
           tokenId: 2,
           tokenName: null,
           amount: 5,
+          from: '0xproducer',
           to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
           status: 'Pending',
           createdAt: 1700001000,
@@ -43,7 +45,7 @@ describe('PendingTransfers', () => {
       total: 2,
     });
 
-    render(<PendingTransfers />);
+    render(<PendingTransfersSent />);
 
     // Renders token name or fallback "Token #ID"
     expect(await screen.findByText(/Wheat/i)).toBeInTheDocument();
