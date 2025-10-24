@@ -2131,3 +2131,56 @@ _Sesión actualizada: 24 octubre 2025, 14:30 GMT_
 _Estado: ✅ FASE 9 COMPLETADA_  
 _Tests: 106/106 pasando (27 SC + 79 web)_  
 _Build: ✅ Exitoso sin errores_
+
+---
+
+## ➕ Fase 10 — Factory: Accept/Reject Pending Transfers + Dual Lists (24 octubre 2025)
+
+### 🎯 Objetivo
+
+Completar la gestión de transferencias pendientes en el rol Factory: aceptar/rechazar solicitudes recibidas, mostrar listas Entrantes/Salientes con paginación y cubrir guards/estados clave en tests.
+
+### 🟢 Implementado
+
+- Base compartida + contenedores finos:
+  - `usePendingTransfersList(mode, address, pageSize)`: hook con `items`, `total`, `page`, `setPage`, `loading`, `error`, `refresh()` y clamp de página cuando el total decrece tras acciones.
+  - `PendingTransfersTable`: tabla presentacional con paginación y contador "Showing X–Y of Z"; slot opcional `renderActions`.
+  - `PendingTransfersReceived`: lista entrante (Factory) con acciones Accept/Reject y guard de destinatario.
+  - `PendingTransfersSent`: lista saliente (read-only).
+- Helpers reales en `web/src/lib/contract.ts`: `acceptTransfer(transferId)` y `rejectTransfer(transferId)` con signer + `tx.wait()`; lecturas reutilizan `getPendingBySender/Recipient` (RPC de lectura).
+- Dashboard (Factory): dos secciones independientes "Incoming Transfers" (acciones) y "Outgoing Transfers" (solo lectura) en `web/src/pages/Dashboard.tsx`.
+
+### 🧪 Tests
+
+- `web/src/__tests__/factory.transfers.test.tsx`: listado entrante paginado; Accept/Reject con refresh; errores; disabled/loading; guard recipient-only; independencia entre listas.
+- `web/src/__tests__/dashboard.test.tsx`: headings actualizados a "Incoming/Outgoing Transfers" y placeholders duplicados cuando no hay elementos.
+- `web/vitest.setup.ts`: stubs ENS (`resolveName/getResolver`) para reducir ruido en logs durante tests.
+
+### 🔧 Archivos clave
+
+- `web/src/hooks/usePendingTransfersList.ts`
+- `web/src/components/tokenOps/PendingTransfersTable.tsx`
+- `web/src/components/tokenOps/PendingTransfersReceived.tsx`
+- `web/src/components/tokenOps/PendingTransfersSent.tsx`
+- `web/src/pages/Dashboard.tsx`
+- `web/src/lib/contract.ts`
+- `web/src/__tests__/factory.transfers.test.tsx`
+- `web/src/__tests__/dashboard.test.tsx`
+- `web/vitest.setup.ts`
+
+### ✅ Verificación
+
+```
+✓ 88/88 tests web pasando
+```
+
+Notas: algunos mensajes `UNCONFIGURED_NAME` de ethers durante mocks; no afectan resultados.
+
+### ▶️ Próximos pasos
+
+- Refactor menor para unificar patrones de feedback (pending/success/error) entre contenedores y formularios (DRY).
+- Breve ADR documentando el patrón "dos contenedores finos + base compartida" para listas paginadas.
+
+_Sesión actualizada: 24 octubre 2025, 16:25 GMT_  
+_Estado: ✅ FASE 10 COMPLETADA_  
+_Tests web: 88/88 pasando_
