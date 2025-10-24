@@ -295,6 +295,35 @@ export async function getUserTokens(userAddress: string): Promise<number[]> {
 }
 
 /**
+ * Get user tokens based on actual balance (not just created tokens)
+ * This scans all tokens and returns those where the user has balance > 0
+ * @param userAddress - Ethereum address of the user
+ * @returns Array of token IDs where user has balance > 0
+ */
+export async function getUserTokensWithBalance(userAddress: string): Promise<number[]> {
+  try {
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // Get all tokens from ID 1 to nextTokenId
+    const nextId = Number(await contract.nextTokenId());
+    const tokenIds: number[] = [];
+
+    for (let id = 1; id < nextId; id++) {
+      const balance = await contract.getTokenBalance(id, userAddress);
+      if (Number(balance) > 0) {
+        tokenIds.push(id);
+      }
+    }
+
+    return tokenIds;
+  } catch (error) {
+    console.error('Error getting user tokens with balance:', error);
+    return [];
+  }
+}
+
+/**
  * Get token details by ID
  * @param tokenId - Token ID
  * @param userAddress - Address to check balance for
