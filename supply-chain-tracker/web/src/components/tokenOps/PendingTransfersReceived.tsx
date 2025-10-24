@@ -1,14 +1,20 @@
 import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
 import { useWallet } from '../../hooks/useWallet';
+import * as contract from '../../lib/contract';
 import PendingTransfersTable from './PendingTransfersTable';
 
 export default function PendingTransfersReceived() {
   const { address } = useWallet();
-  const { items, total, page, setPage, loading, error } = usePendingTransfersList({
+  const { items, total, page, setPage, loading, error, refresh } = usePendingTransfersList({
     mode: 'recipient',
     address,
     pageSize: 5,
   });
+
+  async function onAccept(id: number | string) {
+    await (contract as any).acceptTransfer(Number(id));
+    refresh();
+  }
 
   return (
     <section>
@@ -23,6 +29,16 @@ export default function PendingTransfersReceived() {
           pageSize={5}
           onPageChange={setPage}
           mode="recipient"
+          renderActions={(t) => (
+            <button
+              type="button"
+              name="accept"
+              className="px-2 py-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded"
+              onClick={() => onAccept(t.id)}
+            >
+              Accept
+            </button>
+          )}
         />
       )}
     </section>
