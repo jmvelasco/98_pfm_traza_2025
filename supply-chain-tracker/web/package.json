@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,css,md}\"",
-    "regen:contracts": "node ../../scripts/generate-contract-config.js"
+    "regen:contracts": "node ../../scripts/generate-contract-config.js",
+    "regen:types": "typechain --target ethers-v6 --out-dir src/types '../sc/out/SupplyChain.sol/SupplyChain.json'"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",
