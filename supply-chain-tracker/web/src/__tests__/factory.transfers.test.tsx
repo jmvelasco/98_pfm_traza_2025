@@ -39,10 +39,9 @@ describe('PendingTransfersReceived', () => {
       total: 3,
     });
 
-    // This will fail because PendingTransfersReceived does not exist yet
-    const { PendingTransfersReceived } = await import(
-      '../components/tokenOps/PendingTransfersReceived'
-    );
+    const PendingTransfersReceived = (
+      await import('../components/tokenOps/PendingTransfersReceived')
+    ).default;
     render(<PendingTransfersReceived />);
 
     expect(await screen.findByText(/raw material a/i)).toBeInTheDocument();

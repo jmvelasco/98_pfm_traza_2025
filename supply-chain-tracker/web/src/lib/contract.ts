@@ -338,6 +338,7 @@ export type PendingTransfer = {
   tokenId: number;
   tokenName: string | null;
   amount: number;
+  from: string;
   to: string;
   status: string;
   createdAt?: number;
@@ -383,6 +384,7 @@ export async function getPendingBySender(
           tokenId,
           tokenName,
           amount: Number(t.amount ?? t[5] ?? 0),
+          from: String(t.from ?? t[1] ?? ''),
           to: String(t.to ?? t[2] ?? ''),
           status: mapTransferStatus(Number(t.status ?? t[6] ?? 0)),
           createdAt: Number(t.dateCreated ?? t[4] ?? 0),
@@ -434,6 +436,7 @@ export async function getPendingByRecipient(
           tokenId,
           tokenName,
           amount: Number(t.amount ?? t[5] ?? 0),
+          from: String(t.from ?? t[1] ?? ''),
           to: String(t.to ?? t[2] ?? ''),
           status: mapTransferStatus(Number(t.status ?? t[6] ?? 0)),
           createdAt: Number(t.dateCreated ?? t[4] ?? 0),
