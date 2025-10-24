@@ -17,21 +17,27 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
 
   // Fetch owned tokens on mount
   useEffect(() => {
+    let mounted = true;
     if (!userAddress) {
       setLoading(false);
-      return;
+      return () => {
+        mounted = false;
+      };
     }
 
     async function fetchTokens() {
       try {
+        if (!mounted) return;
         setLoading(true);
         setError(null);
 
         // Get token IDs owned by user
         const tokenIds = await getUserTokens(userAddress);
+        if (!mounted) return;
 
         // Fetch details for each token
         const details = await Promise.all(tokenIds.map((id) => getTokenDetails(id, userAddress)));
+        if (!mounted) return;
 
         // Filter out nulls and merge with any tokens already appended via events
         const nonNull = details.filter((t): t is TokenDetails => t !== null);
@@ -50,13 +56,16 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
         ]);
       } catch (e) {
         console.error('Error fetching tokens:', e);
-        setError('Failed to load tokens');
+        if (mounted) setError('Failed to load tokens');
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     }
 
     fetchTokens();
+    return () => {
+      mounted = false;
+    };
   }, [userAddress]);
 
   // Listen to TokenCreated events
