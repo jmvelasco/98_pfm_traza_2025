@@ -2142,11 +2142,11 @@ Completar la gestión de transferencias pendientes en el rol Factory: aceptar/re
 
 ### 🟢 Implementado
 
-- Base compartida + contenedores finos:
+- Hook compartido + contenedores finos con tablas en línea:
   - `usePendingTransfersList(mode, address, pageSize)`: hook con `items`, `total`, `page`, `setPage`, `loading`, `error`, `refresh()` y clamp de página cuando el total decrece tras acciones.
-  - `PendingTransfersTable`: tabla presentacional con paginación y contador "Showing X–Y of Z"; slot opcional `renderActions`.
-  - `PendingTransfersReceived`: lista entrante (Factory) con acciones Accept/Reject y guard de destinatario.
-  - `PendingTransfersSent`: lista saliente (read-only).
+  - `PendingTransfersReceived`: lista entrante (Factory) con acciones Accept/Reject y guard de destinatario; tabla in-line especializada.
+  - `PendingTransfersSent`: lista saliente (read-only) con tabla in-line especializada.
+  - Nota: se descartó el componente compartido `PendingTransfersTable` para simplificar lógica y estilos; cada contenedor mantiene su propia tabla con la misma UX.
 - Helpers reales en `web/src/lib/contract.ts`: `acceptTransfer(transferId)` y `rejectTransfer(transferId)` con signer + `tx.wait()`; lecturas reutilizan `getPendingBySender/Recipient` (RPC de lectura).
 - Dashboard (Factory): dos secciones independientes "Incoming Transfers" (acciones) y "Outgoing Transfers" (solo lectura) en `web/src/pages/Dashboard.tsx`.
 
@@ -2159,7 +2159,6 @@ Completar la gestión de transferencias pendientes en el rol Factory: aceptar/re
 ### 🔧 Archivos clave
 
 - `web/src/hooks/usePendingTransfersList.ts`
-- `web/src/components/tokenOps/PendingTransfersTable.tsx`
 - `web/src/components/tokenOps/PendingTransfersReceived.tsx`
 - `web/src/components/tokenOps/PendingTransfersSent.tsx`
 - `web/src/pages/Dashboard.tsx`
