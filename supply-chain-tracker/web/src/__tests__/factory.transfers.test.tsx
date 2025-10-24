@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import * as contract from '../lib/contract';
 
@@ -193,8 +194,44 @@ describe('PendingTransfersReceived', () => {
     expect(screen.getByText(/raw material e/i)).toBeInTheDocument();
   });
 
-  it.skip('disables buttons while processing', async () => {
-    // TODO: implement
+  it('disables buttons while processing', async () => {
+    const initialItems = [
+      {
+        id: 6,
+        tokenId: 21,
+        tokenName: 'Raw Material F',
+        amount: 15,
+        from: '0xproducer6',
+        to: '0xfactory',
+        status: 'PENDING',
+      },
+    ];
+    (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
+    // Keep promise pending to observe disabled state
+    let resolveFn: () => void;
+    (contract as any).acceptTransfer.mockImplementation(
+      () => new Promise((resolve) => (resolveFn = resolve))
+    );
+
+    const PendingTransfersReceived = (
+      await import('../components/tokenOps/PendingTransfersReceived')
+    ).default;
+    render(<PendingTransfersReceived />);
+
+    const user = userEvent.setup();
+    const rowF = await screen.findByText(/raw material f/i);
+    const acceptBtn = rowF
+      .closest('tr')!
+      .querySelector('button[name="accept"]') as HTMLButtonElement;
+    expect(acceptBtn).toBeInTheDocument();
+    expect(acceptBtn).not.toBeDisabled();
+
+    await user.click(acceptBtn);
+    expect(acceptBtn).toBeDisabled();
+
+    // Now resolve and ensure cleanup happens
+    resolveFn!();
+    await waitFor(() => expect((contract as any).acceptTransfer).toHaveBeenCalledWith(6));
   });
 
   it.skip('respects pagination after actions', async () => {
