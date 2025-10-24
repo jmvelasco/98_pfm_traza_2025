@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { createToken } from '../../lib/contract';
 import ActionCard from '../ui/ActionCard';
+import Alert from '../ui/Alert';
 
 export default function CreateRawMaterial() {
   const [showForm, setShowForm] = useState(false);
@@ -43,14 +44,6 @@ export default function CreateRawMaterial() {
       setLoading(false);
     }
   };
-
-  const statusColor = message
-    ? message === 'Token created!'
-      ? 'text-green-600'
-      : message === 'Minting raw material...'
-        ? 'text-blue-600'
-        : 'text-red-600'
-    : '';
 
   return (
     <ActionCard
@@ -114,20 +107,24 @@ export default function CreateRawMaterial() {
             />
           </div>
           {message && (
-            <div
-              data-testid={
+            <Alert
+              testId={
                 message === 'Token created!'
                   ? 'mint-success'
                   : message === 'Minting raw material...'
                     ? 'minting-feedback'
                     : 'mint-error'
               }
-              className={`text-sm ${statusColor}`}
-              role="status"
-              aria-live="polite"
+              kind={
+                message === 'Token created!'
+                  ? 'success'
+                  : message === 'Minting raw material...'
+                    ? 'info'
+                    : 'error'
+              }
             >
               {message}
-            </div>
+            </Alert>
           )}
           <button
             type="submit"

@@ -3,6 +3,7 @@ import { useWallet } from '../../hooks/useWallet';
 import type { TokenDetails } from '../../lib/contract';
 import { getTokenDetails, getUserInfo, getUserTokens, requestTransfer } from '../../lib/contract';
 import ActionCard from '../ui/ActionCard';
+import Alert from '../ui/Alert';
 
 export default function TransferToFactoryCard() {
   const { address } = useWallet();
@@ -160,14 +161,6 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
     }
   }
 
-  const statusColor = message
-    ? message === 'Transfer requested'
-      ? 'text-green-600'
-      : message === 'Requesting transfer'
-        ? 'text-blue-600'
-        : 'text-red-600'
-    : '';
-
   return (
     <form data-testid="transfer-form" onSubmit={handleSubmit} noValidate className="mt-2 space-y-3">
       <div>
@@ -225,15 +218,19 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
           className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-      {(loading || showPending) && (
-        <div aria-live="polite" role="status" className="text-sm text-blue-600">
-          Requesting transfer
-        </div>
-      )}
+      {(loading || showPending) && <Alert kind="info">Requesting transfer</Alert>}
       {message && (
-        <div aria-live="polite" role="status" className={`text-sm ${statusColor}`}>
+        <Alert
+          kind={
+            message === 'Transfer requested'
+              ? 'success'
+              : message === 'Requesting transfer'
+                ? 'info'
+                : 'error'
+          }
+        >
           {message}
-        </div>
+        </Alert>
       )}
       <button
         type="submit"
