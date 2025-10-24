@@ -10,17 +10,26 @@
 - Dashboard Productor: MyTokens en tiempo real y feedback de mint implementados, deduplicación y cleanup robustos, 62/62 tests pasando.
 - Ethers v6-only, integración blockchain y UI/UX con feedback visual y componentes limpios.
 
-**Inconsistencias detectadas:**
+**Estado Actual (Actualización: 25 Oct 2025):**
 
-- La migración a ERC-1155 para balances de tokens está planificada pero no implementada (ver TODO.md en la documentación del smart contract(sc)).
-- El contrato actual usa strings para roles en vez de enums, lo que afecta eficiencia de gas (recomendación en SMART_CONTRACT.md en la documentación del smart contract(sc)).
-- Las páginas de gestión de tokens (/tokens, /tokens/create, /tokens/[id]) y transferencias dirigidas aún no están implementadas, aunque están planificadas y mencionadas como siguientes pasos.
-- Trazabilidad completa por parentId y árbol/lineage en UI pendiente.
-- Documentación IA (IA.md) y demo final aún no iniciadas.
+- Smart Contract completamente implementado y deployado en Anvil
+- Frontend completo con todas las páginas funcionales (Home, Dashboard, Tokens, Transfers, Admin)
+- Sistema de transferencias dirigidas Producer→Factory→Retailer→Consumer implementado
+- Accept/Reject de transferencias operativo para Factory y Retailer
+- Trazabilidad por parentId implementada en backend (pendiente árbol visual en UI)
+- Tests: 88/88 pasando (frontend + smart contract)
+- Build de producción exitoso sin errores
+
+**Pendiente para entrega final (31 Oct):**
+
+- Video demo de 5 minutos mostrando flujo completo
+- Deploy opcional en testnet (Sepolia/Mumbai)
+- Documentación IA.md (si aplica)
+- Refinamientos opcionales de UI/UX
 
 **Estado general:**
 
-- El proyecto avanza conforme al README y ROADMAP, con las funcionalidades base y paneles principales completados y testeados. Las funcionalidades avanzadas de tokens, transferencias y trazabilidad están pendientes pero planificadas para la siguiente fase antes del 31/oct.
+- Proyecto en fase final de consolidación con funcionalidad completa implementada y testeada. Solo falta video demo y documentación final para entrega sobresaliente.
 
 ---
 
@@ -43,12 +52,13 @@
 - [✅ DONE] Producer can initiate transfer of owned token to Factory (function like `transferToken(tokenId, toAddress)`)
 - [✅ DONE] Transfer is only allowed to valid Factory addresses
 - [✅ DONE] Transfer event emitted for traceability
-- [? PENDING] Token ownership updates correctly
+- [✅ DONE] Token ownership updates correctly (after Factory accepts)
 
-NOTE: Search for UI polish proposals along this section implementation:
+NOTE: UI polish completed:
 
-- Create Raw Material validation process should be the same as Transfer to Factory validation process (submit button disabled)
-- Action cards has the same height and the submit button aligned to the bottom
+- Create Raw Material validation process same as Transfer to Factory validation
+- Action cards have same height with submit button aligned to bottom
+- Form validations working correctly
 
 ### 4. Role and Access Control
 
@@ -59,7 +69,8 @@ NOTE: Search for UI polish proposals along this section implementation:
 
 - [✅ DONE] Each token has a `parentId` (raw materials: `parentId=0`)
 - [✅ DONE] Transfer history is recorded (events or mapping)
-- [❌ PENDING] Functions exist to retrieve token lineage (for traceability UI)
+- [✅ DONE] Functions exist to retrieve token lineage (getUserTransfers, getTransfer)
+- [🟡 PARTIAL] Visual tree/lineage UI (data available, tree component pending)
 
 ### 6. Testing
 
@@ -78,89 +89,99 @@ NOTE: Search for UI polish proposals along this section implementation:
 
 ---
 
-## ✅ Factory Code-Level Checklist
+## 🟡 Factory Code-Level Checklist
 
-### 1. Process Materials
+### 1. Process Materials / Accept Incoming Transfers
 
-- [❌ PENDING] Factory can process raw material tokens (consume/mutate tokens with `parentId=0`)
-- [❌ PENDING] Only users with Factory role and Approved status can process materials
-- [❌ PENDING] New product tokens created with `parentId` referencing consumed raw material
-- [❌ PENDING] Event emitted on product creation for traceability
+- [✅ DONE] Factory can accept incoming raw material transfers (acceptTransfer function)
+- [✅ DONE] Factory can reject unwanted transfers (rejectTransfer function)
+- [✅ DONE] Only users with Factory role and Approved status can process materials
+- [✅ DONE] New product tokens created with `parentId` referencing consumed raw material
+- [✅ DONE] Event emitted on product creation for traceability
 
 ### 2. View Owned Tokens
 
-- [❌ PENDING] Factory can query all tokens they own
-- [❌ PENDING] Token details (metadata, balances) are accessible
+- [✅ DONE] Factory can query all tokens they own (getTokenBalance, getUserTokens)
+- [✅ DONE] Token details (metadata, balances) are accessible
 
 ### 3. Transfer Token to Retailer
 
-- [❌ PENDING] Factory can transfer owned product tokens to Retailer
-- [❌ PENDING] Transfer is only allowed to valid Retailer addresses
-- [❌ PENDING] Transfer event emitted for traceability
-- [❌ PENDING] Token ownership updates correctly
+- [✅ DONE] Factory can transfer owned product tokens to Retailer (transfer function)
+- [✅ DONE] Transfer is only allowed to valid Retailer addresses
+- [✅ DONE] Transfer event emitted for traceability
+- [✅ DONE] Token ownership updates correctly (after Retailer accepts)
 
 ### 4. Role and Access Control
 
-- [❌ PENDING] All Factory actions are protected by `onlyApprovedUser` and role checks
+- [✅ DONE] All Factory actions are protected by `onlyApprovedUser` and role checks
 
 ### 5. Traceability
 
-- [❌ PENDING] Each product token has a `parentId` referencing its raw material
-- [❌ PENDING] Transfer history is recorded
-- [❌ PENDING] Functions exist to retrieve token lineage
+- [✅ DONE] Each product token has a `parentId` referencing its raw material
+- [✅ DONE] Transfer history is recorded
+- [✅ DONE] Functions exist to retrieve token lineage
 
 ### 6. Testing
 
-- [❌ PENDING] Unit tests for Factory processing, viewing, and transferring tokens
-- [❌ PENDING] Tests for access control and edge cases
+- [✅ DONE] Unit tests for Factory processing, viewing, and transferring tokens
+- [✅ DONE] Tests for access control and edge cases
+- [✅ DONE] Tests for accept/reject transfer functionality
 
 ### 7. Frontend Integration
 
-- [❌ PENDING] Dashboard actions for Factory trigger correct contract functions
-- [❌ PENDING] UI feedback for success/failure
+- [✅ DONE] Dashboard for Factory with pending incoming transfers list
+- [✅ DONE] PendingTransfersReceived component with Accept/Reject actions
+- [✅ DONE] PendingTransfersSent component for outgoing transfers
+- [✅ DONE] UI feedback for success/failure of all actions
+- [✅ DONE] Token creation form with parentId selection
 
 ---
 
-## ✅ Retailer Code-Level Checklist
+## 🟡 Retailer Code-Level Checklist
 
-### 1. Package Products
+### 1. Package Products / Accept Incoming Transfers
 
-- [❌ PENDING] Retailer can package product tokens (consume/mutate tokens with `parentId>0`)
-- [❌ PENDING] Only users with Retailer role and Approved status can package products
-- [❌ PENDING] New packaged tokens created with `parentId` referencing processed product
-- [❌ PENDING] Event emitted on packaging for traceability
+- [✅ DONE] Retailer can accept incoming product transfers (acceptTransfer function)
+- [✅ DONE] Retailer can reject unwanted transfers (rejectTransfer function)
+- [✅ DONE] Only users with Retailer role and Approved status can package products
+- [✅ DONE] New packaged tokens created with `parentId` referencing processed product
+- [✅ DONE] Event emitted on packaging for traceability
 
 ### 2. View Owned Tokens
 
-- [❌ PENDING] Retailer can query all tokens they own
-- [❌ PENDING] Token details (metadata, balances) are accessible
+- [✅ DONE] Retailer can query all tokens they own (getTokenBalance, getUserTokens)
+- [✅ DONE] Token details (metadata, balances) are accessible
 
 ### 3. Transfer Token to Consumer
 
-- [❌ PENDING] Retailer can transfer packaged tokens to Consumer
-- [❌ PENDING] Transfer is only allowed to valid Consumer addresses
-- [❌ PENDING] Transfer event emitted for traceability
-- [❌ PENDING] Token ownership updates correctly
+- [✅ DONE] Retailer can transfer packaged tokens to Consumer (transfer function)
+- [✅ DONE] Transfer is only allowed to valid Consumer addresses
+- [✅ DONE] Transfer event emitted for traceability
+- [✅ DONE] Token ownership updates correctly (Consumer receives final token)
 
 ### 4. Role and Access Control
 
-- [❌ PENDING] All Retailer actions are protected by `onlyApprovedUser` and role checks
+- [✅ DONE] All Retailer actions are protected by `onlyApprovedUser` and role checks
 
 ### 5. Traceability
 
-- [❌ PENDING] Each packaged token has a `parentId` referencing its product
-- [❌ PENDING] Transfer history is recorded
-- [❌ PENDING] Functions exist to retrieve token lineage
+- [✅ DONE] Each packaged token has a `parentId` referencing its product
+- [✅ DONE] Transfer history is recorded
+- [✅ DONE] Functions exist to retrieve token lineage
 
 ### 6. Testing
 
-- [❌ PENDING] Unit tests for Retailer packaging, viewing, and transferring tokens
-- [❌ PENDING] Tests for access control and edge cases
+- [✅ DONE] Unit tests for Retailer packaging, viewing, and transferring tokens
+- [✅ DONE] Tests for access control and edge cases
+- [✅ DONE] Tests for accept/reject transfer functionality
 
 ### 7. Frontend Integration
 
-- [❌ PENDING] Dashboard actions for Retailer trigger correct contract functions
-- [❌ PENDING] UI feedback for success/failure
+- [✅ DONE] Dashboard for Retailer with pending incoming transfers list
+- [✅ DONE] PendingTransfersReceived component with Accept/Reject actions
+- [✅ DONE] PendingTransfersSent component for outgoing transfers
+- [✅ DONE] UI feedback for success/failure of all actions
+- [✅ DONE] Token creation form with parentId selection
 
 ---
 
@@ -168,27 +189,30 @@ NOTE: Search for UI polish proposals along this section implementation:
 
 ### 1. View My Products
 
-- [❌ PENDING] Consumer can view all tokens they own
-- [❌ PENDING] Token details (metadata, balances) are accessible
+- [✅ DONE] Consumer can view all tokens they own (getUserTokens, getTokenBalance)
+- [✅ DONE] Token details (metadata, balances) are accessible
 
 ### 2. Check Traceability
 
-- [❌ PENDING] Consumer can view full traceability (parentId lineage) of owned tokens
-- [❌ PENDING] Functions exist to retrieve and display token history
+- [✅ DONE] Consumer can view full traceability (parentId lineage) of owned tokens
+- [✅ DONE] Functions exist to retrieve and display token history (getTransfer, getUserTransfers)
+- [🟡 PARTIAL] Visual tree/lineage UI (data available, tree component optional enhancement)
 
 ### 3. Role and Access Control
 
-- [❌ PENDING] All Consumer actions are protected by `onlyApprovedUser` and role checks
+- [✅ DONE] All Consumer actions are protected by `onlyApprovedUser` and role checks
+- [✅ DONE] Consumer cannot initiate transfers (end of supply chain)
 
 ### 4. Testing
 
-- [❌ PENDING] Unit tests for Consumer viewing and traceability
-- [❌ PENDING] Tests for access control and edge cases
+- [✅ DONE] Unit tests for Consumer viewing and traceability
+- [✅ DONE] Tests for access control and edge cases
 
 ### 5. Frontend Integration
 
-- [❌ PENDING] Dashboard actions for Consumer trigger correct contract functions
-- [❌ PENDING] UI feedback for success/failure
+- [✅ DONE] Dashboard for Consumer shows owned tokens
+- [✅ DONE] Token details page with traceability information
+- [✅ DONE] UI feedback for success/failure
 
 ---
 
@@ -202,7 +226,8 @@ NOTE: Search for UI polish proposals along this section implementation:
 
 ### 2. System Statistics
 
-- [❌ PENDING] Admin can view system-wide statistics (number of tokens, transfers, users per role, etc.)
+- [🟡 PARTIAL] Admin can view basic system-wide statistics (user count visible in admin panel)
+- [🟡 OPTIONAL] Advanced statistics dashboard (tokens count, transfers count, analytics) - not critical for delivery
 
 ### 3. Role and Access Control
 
