@@ -107,8 +107,59 @@ describe('PendingTransfersReceived', () => {
     expect(screen.getByText(/raw material b/i)).toBeInTheDocument();
   });
 
-  it.skip('rejects a transfer and updates UI', async () => {
-    // TODO: implement
+  it('rejects a transfer and updates UI', async () => {
+    const initialItems = [
+      {
+        id: 3,
+        tokenId: 12,
+        tokenName: 'Raw Material C',
+        amount: 20,
+        from: '0xproducer3',
+        to: '0xfactory',
+        status: 'PENDING',
+      },
+      {
+        id: 4,
+        tokenId: 13,
+        tokenName: 'Raw Material D',
+        amount: 40,
+        from: '0xproducer4',
+        to: '0xfactory',
+        status: 'PENDING',
+      },
+    ];
+    const afterRejectItems = [
+      {
+        id: 4,
+        tokenId: 13,
+        tokenName: 'Raw Material D',
+        amount: 40,
+        from: '0xproducer4',
+        to: '0xfactory',
+        status: 'PENDING',
+      },
+    ];
+    (contract as any).getPendingByRecipient
+      .mockResolvedValueOnce({ items: initialItems, total: 2 })
+      .mockResolvedValueOnce({ items: afterRejectItems, total: 1 });
+    (contract as any).rejectTransfer.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 0))
+    );
+
+    const PendingTransfersReceived = (
+      await import('../components/tokenOps/PendingTransfersReceived')
+    ).default;
+    render(<PendingTransfersReceived />);
+
+    expect(await screen.findByText(/raw material c/i)).toBeInTheDocument();
+    const rowC = screen.getByText(/raw material c/i).closest('tr')!;
+    const rejectBtn = rowC.querySelector('button[name="reject"]') as HTMLButtonElement;
+    expect(rejectBtn).toBeInTheDocument();
+    rejectBtn.click();
+
+    await waitFor(() => expect((contract as any).rejectTransfer).toHaveBeenCalledWith(3));
+    await waitFor(() => expect(screen.queryByText(/raw material c/i)).not.toBeInTheDocument());
+    expect(screen.getByText(/raw material d/i)).toBeInTheDocument();
   });
 
   it.skip('handles on-chain errors gracefully (accept/reject)', async () => {
