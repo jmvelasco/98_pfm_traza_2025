@@ -452,6 +452,36 @@ export async function getPendingByRecipient(
 }
 
 /**
+ * Accept a pending transfer by id
+ */
+export async function acceptTransfer(transferId: number): Promise<void> {
+  try {
+    const signer = await getSignerOnCorrectNetwork();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+    const tx = await (contract as any).acceptTransfer(BigInt(transferId));
+    await tx.wait();
+  } catch (e) {
+    console.error('Error accepting transfer:', e);
+    throw e;
+  }
+}
+
+/**
+ * Reject a pending transfer by id
+ */
+export async function rejectTransfer(transferId: number): Promise<void> {
+  try {
+    const signer = await getSignerOnCorrectNetwork();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+    const tx = await (contract as any).rejectTransfer(BigInt(transferId));
+    await tx.wait();
+  } catch (e) {
+    console.error('Error rejecting transfer:', e);
+    throw e;
+  }
+}
+
+/**
  * Get pending transfers sent by a specific address
  * @param senderAddress - Address of the sender
  * @returns Array of pending transfers

@@ -48,10 +48,15 @@ export function usePendingTransfersList({
           mode === 'sender'
             ? await contract.getPendingBySender(address, offset, pageSize)
             : await contract.getPendingByRecipient(address, offset, pageSize);
-        if (mounted) {
-          setItems(result.items);
-          setTotal(result.total);
+        if (!mounted) return;
+        const totalPages = Math.max(1, Math.ceil(result.total / pageSize));
+        // If current page overflowed (e.g., deleted last item on last page), jump back
+        if (result.total > 0 && page > totalPages) {
+          setPage(totalPages);
+          return; // next effect run will fetch with the corrected page
         }
+        setItems(result.items);
+        setTotal(result.total);
       } catch (err: any) {
         if (mounted) {
           setError(err?.message || 'Failed to load transfers');
@@ -68,7 +73,7 @@ export function usePendingTransfersList({
     return () => {
       mounted = false;
     };
-  }, [address, offset, pageSize, mode, refreshFlag]);
+  }, [address, offset, pageSize, mode, refreshFlag, page]);
 
   const refresh = () => setRefreshFlag((f) => f + 1);
 
