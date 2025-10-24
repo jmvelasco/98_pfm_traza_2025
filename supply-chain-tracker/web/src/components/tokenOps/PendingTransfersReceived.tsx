@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import * as contract from '../../lib/contract';
@@ -13,31 +13,6 @@ export default function PendingTransfersReceived() {
   });
   const [actionError, setActionError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | string | null>(null);
-
-  // Lightweight runtime diagnostics to investigate why actions may appear disabled
-  useEffect(() => {
-    if (import.meta.env.MODE === 'test') return; // avoid noisy test output
-    try {
-      const rows = items.map((t) => ({
-        id: t.id,
-        to: String(t.to || ''),
-        from: String(t.from || ''),
-        status: t.status,
-        canAct: !!address && !!t.to && address.toLowerCase() === String(t.to).toLowerCase(),
-        processingId,
-        address: address || '',
-      }));
-      // eslint-disable-next-line no-console
-      console.debug('[IncomingTransfers][diagnostic]', {
-        page,
-        total,
-        count: items.length,
-        rows,
-      });
-    } catch (_) {
-      // noop
-    }
-  }, [items, page, total, address, processingId]);
 
   async function onAccept(id: number | string) {
     setActionError(null);
@@ -125,7 +100,7 @@ export default function PendingTransfersReceived() {
                               <button
                                 type="button"
                                 name="accept"
-                                className="px-2 py-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded disabled:opacity-50"
+                                className="px-2 py-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded disabled:opacity-50 cursor-pointer"
                                 disabled={processingId === t.id}
                                 onClick={() => onAccept(t.id)}
                               >
@@ -134,7 +109,7 @@ export default function PendingTransfersReceived() {
                               <button
                                 type="button"
                                 name="reject"
-                                className="px-2 py-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded disabled:opacity-50"
+                                className="px-2 py-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded disabled:opacity-50 cursor-pointer"
                                 disabled={processingId === t.id}
                                 onClick={() => onReject(t.id)}
                               >
