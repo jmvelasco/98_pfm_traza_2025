@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
-import { getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
+import { getTokenDetails, getUserTokensWithBalance, type TokenDetails } from '../../lib/contract';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
 interface MyTokensProps {
@@ -31,8 +31,8 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
         setLoading(true);
         setError(null);
 
-        // Get token IDs owned by user
-        const tokenIds = await getUserTokens(userAddress);
+        // Get token IDs owned by user (based on balance > 0)
+        const tokenIds = await getUserTokensWithBalance(userAddress);
         if (!mounted) return;
 
         // Fetch details for each token

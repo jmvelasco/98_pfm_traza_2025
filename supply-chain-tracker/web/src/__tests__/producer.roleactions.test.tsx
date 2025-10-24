@@ -8,6 +8,7 @@ import { UserRole } from '../lib/enums';
 vi.mock('../lib/contract', () => ({
   createToken: vi.fn(),
   getUserTokens: vi.fn(),
+  getUserTokensWithBalance: vi.fn(),
   getTokenDetails: vi.fn(),
   getUserInfo: vi.fn(),
   requestTransfer: vi.fn(),
@@ -134,8 +135,8 @@ describe('Producer RoleActions', () => {
     test('opens Transfer to Factory panel and shows token selector (raw + balance > 0 only)', async () => {
       // Arrange mocks for token loading
       const producer = '0xPRODUCER0000000000000000000000000000000000';
-      // getUserTokens returns three IDs
-      vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([1, 2, 3]);
+      // getUserTokensWithBalance returns three IDs
+      vi.mocked(contractModule.getUserTokensWithBalance as any).mockResolvedValue([1, 2, 3]);
       // getTokenDetails returns: #1 raw with balance 100, #2 derived with balance 50, #3 raw with balance 0
       vi.mocked(contractModule.getTokenDetails as any).mockImplementation(async (id: number) => {
         if (id === 1) {
@@ -201,7 +202,7 @@ describe('Producer RoleActions', () => {
 
     test('shows empty state when no raw tokens with balance are available', async () => {
       // Mock: no tokens OR only tokens without balance or derived tokens
-      vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([]);
+      vi.mocked(contractModule.getUserTokensWithBalance as any).mockResolvedValue([]);
 
       // Render and open transfer panel
       render(<RoleActions role={UserRole.Producer} />);
@@ -222,7 +223,7 @@ describe('Producer RoleActions', () => {
       const factory = '0x1234567890123456789012345678901234567890'; // Valid 40-char hex
 
       // Mock token loading: one raw token with balance
-      vi.mocked(contractModule.getUserTokens as any).mockResolvedValue([1]);
+      vi.mocked(contractModule.getUserTokensWithBalance as any).mockResolvedValue([1]);
       vi.mocked(contractModule.getTokenDetails as any).mockResolvedValue({
         id: 1,
         creator: producer,

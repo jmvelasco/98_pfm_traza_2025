@@ -6,6 +6,7 @@ import * as contractModule from '../lib/contract';
 // Mock contract module
 vi.mock('../lib/contract', () => ({
   getUserTokens: vi.fn(),
+  getUserTokensWithBalance: vi.fn(),
   getTokenDetails: vi.fn(),
 }));
 
@@ -74,7 +75,7 @@ describe('MyTokens (TDD RED)', () => {
 
   it('shows empty state if user owns no tokens', async () => {
     // Arrange: mock contract to return no tokens
-    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
 
     render(<MyTokens userAddress="0x123" />);
     await waitFor(() => {
@@ -84,7 +85,7 @@ describe('MyTokens (TDD RED)', () => {
 
   it('shows list of owned tokens with metadata', async () => {
     // Arrange: mock contract to return mockTokens
-    vi.mocked(contractModule.getUserTokens).mockResolvedValue([1]);
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([1]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);
@@ -97,7 +98,7 @@ describe('MyTokens (TDD RED)', () => {
   it('updates UI in real time when TokenCreated event is emitted for user', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);
@@ -118,7 +119,7 @@ describe('MyTokens (TDD RED)', () => {
   it('does not update UI for TokenCreated events from other users', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0xABC" />);
@@ -137,7 +138,7 @@ describe('MyTokens (TDD RED)', () => {
   it('avoids duplicate appends when the same TokenCreated fires multiple times', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);

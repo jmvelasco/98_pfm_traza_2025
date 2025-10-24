@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { useWallet } from '../../hooks/useWallet';
 import type { TokenDetails } from '../../lib/contract';
-import { getTokenDetails, getUserInfo, getUserTokens, requestTransfer } from '../../lib/contract';
+import {
+  getTokenDetails,
+  getUserInfo,
+  getUserTokensWithBalance,
+  requestTransfer,
+} from '../../lib/contract';
 import ActionCard from '../ui/ActionCard';
 import Alert from '../ui/Alert';
 
@@ -16,7 +21,7 @@ export default function TransferToFactoryCard() {
     if (!address) return;
     setLoading(true);
     try {
-      const ids = await getUserTokens(address);
+      const ids = await getUserTokensWithBalance(address);
       const details = await Promise.all(ids.map((id) => getTokenDetails(id, address)));
       const filtered = (details.filter(Boolean) as TokenDetails[]).filter(
         (t) => t.parentId === 0 && t.balance > 0
