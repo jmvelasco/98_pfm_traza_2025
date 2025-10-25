@@ -29,11 +29,13 @@
 
 **Estado general:**
 
-- Proyecto en fase final de consolidación con funcionalidad completa implementada y testeada. Solo falta video demo y documentación final para entrega sobresaliente.
+## 📝 Backlog técnico (post-entrega)
 
----
-
-## ✅ Producer Code-Level Checklist
+- Optimización del listado de tokens por propietario (Smart Contract):
+  - Valorar implementar índice de tokens poseídos por dirección o actualizar `acceptTransfer()` para registrar el `tokenId` en la lista del receptor (evitar escaneo `1..nextTokenId`).
+  - Frontend: consumir el nuevo índice (O(1)) y retirar el helper de escaneo cuando esté disponible.
+  - Tests: añadir cobertura de actualización del índice en aceptar/rechazar, junto con regresión en listados/paginación.
+  - Nota: la solución actual (Opción 2) usa `getUserTokensWithBalance()` y es suficiente en el contexto educativo; escalar a índice on-chain si crece el dataset.
 
 ### 1. Mint Raw Material Token
 

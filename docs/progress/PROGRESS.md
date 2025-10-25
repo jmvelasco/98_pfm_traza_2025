@@ -1,3 +1,82 @@
+## ✨ Feature — Outgoing Transfers real-time refresh on TransferRequested (24 Oct 2025)
+
+### Contexto
+
+- Objetivo UX: ver en tiempo real el envío “Transfer to Factory” en la lista "Outgoing Transfers" sin recargar.
+- Estrategia: suscribir el frontend al evento `TransferRequested` y refrescar la paginación vía el hook de datos.
+
+### Cambios clave
+
+- `web/src/components/tokenOps/PendingTransfersSent.tsx`
+  - Nueva suscripción a `TransferRequested` (ethers v6 + TypeChain factory).
+  - Cuando `from === address` → invoca `refresh()` del hook `usePendingTransfersList`.
+  - Limpieza de listeners en unmount; sin duplicados (la fuente de verdad es el backend/paginación).
+
+### Tests (RED → GREEN)
+
+- Actualizado `src/__tests__/pending.transfers.test.tsx` con 3 casos:
+  - Añade item tras evento del propio usuario.
+  - Ignora eventos de otros remitentes.
+  - No duplica si el mismo evento llega 2 veces (refresca, pero la lista se mantiene única).
+
+Resultado suite: 93/93 tests pasando.
+
+### Quality gates
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (93/93)
+
+---
+
+## 🛠 Fix — MyTokens por balance tras aceptar transferencias (25 octubre 2025)
+
+### Contexto
+
+- Incidencia observada: al aceptar una transferencia Producer → Factory, el usuario con rol Factory no veía el token en su lista "My Tokens" aunque el balance sí aumentaba y el balance del Producer disminuía correctamente.
+- Causa raíz: el frontend listaba tokens mediante `getUserTokens()` (SC), que devuelve solo tokens creados por la dirección (lista de creación), no tokens poseídos. La propiedad de tokens reales está en `tokenBalances[tokenId][address]`.
+
+### Decisión
+
+- Elegimos la Opción 2 (solución frontend) por rapidez y menor impacto: listar tokens por balance real en lugar de por lista de creación.
+- Implementamos un helper `getUserTokensWithBalance(address)` que recorre `1..nextTokenId-1` y devuelve aquellos `tokenId` con `balance > 0` para la dirección indicada. Se usa siempre proveedor de solo lectura `JsonRpcProvider` para evitar problemas de blockTag en reinicios de Anvil.
+
+### Cambios clave
+
+- `web/src/lib/contract.ts`
+  - Nuevo: `getUserTokensWithBalance(address: string): Promise<number[]>` (lee `nextTokenId`, consulta `getTokenBalance(id, address)` y filtra `> 0`). Maneja errores devolviendo `[]`.
+- `web/src/components/tokenOps/MyTokens.tsx`
+  - Usa `getUserTokensWithBalance` en lugar de `getUserTokens` para poblar la lista.
+- `web/src/components/tokenOps/TransferToFactory.tsx`
+  - Actualiza la carga de tokens elegibles usando `getUserTokensWithBalance`; mantiene el filtrado `parentId === 0 && balance > 0`.
+
+### Tests (RED → GREEN)
+
+- Nuevo: `src/__tests__/contract.balance.test.ts` (export y manejo de errores del helper).
+- Actualizados:
+  - `src/__tests__/mytokens.test.tsx` (mocks migrados a `getUserTokensWithBalance`).
+  - `src/__tests__/dashboard.mytokens.test.tsx` (mocks migrados).
+  - `src/__tests__/producer.roleactions.test.tsx` (mocks migrados; evita crash en `TransferToFactory`).
+
+Resultado: 90/90 tests pasando.
+
+### Commits relevantes
+
+1. `test(red): contract getUserTokensWithBalance returns tokens by balance`
+2. `feat(green): contract getUserTokensWithBalance implementation`
+3. `feat(green): use getUserTokensWithBalance in components`
+
+### Quality gates
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (90/90)
+
+### Notas y siguientes pasos
+
+- Complejidad O(n) respecto a `nextTokenId`; aceptable para entorno educativo y dataset pequeño. Para producción, valorar índice por propietario en SC (Opción 1) o cache local con invalidación por eventos.
+- Alternativa futura (SC): actualizar `acceptTransfer()` para insertar en una lista de tokens poseídos por usuario evitando escaneos.
+
 # 📊 PROGRESS.md — Progreso de la Sesión TDD (13 octubre 2025)
 
 ## 🎯 Objetivo de la Sesión
