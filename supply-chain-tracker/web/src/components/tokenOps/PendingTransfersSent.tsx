@@ -1,13 +1,69 @@
+import { ethers } from 'ethers';
+import { useEffect } from 'react';
+import { CONTRACT_CONFIG } from '../../config/contracts';
 import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
 import { useWallet } from '../../hooks/useWallet';
+import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
 export default function PendingTransfersSent() {
   const { address } = useWallet();
-  const { items, total, page, setPage, loading, error } = usePendingTransfersList({
+  const { items, total, page, setPage, loading, error, refresh } = usePendingTransfersList({
     mode: 'sender',
     address,
     pageSize: 5,
   });
+
+  // Realtime: refresh list when a new TransferRequested is emitted from this address
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.ethereum || !address) return;
+
+    let provider: ethers.BrowserProvider | null = null;
+    let contract: any = null;
+    let handler: ((...args: any[]) => void) | null = null;
+    let eventFilter: any = null;
+
+    async function setup() {
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+        handler = (...eventArgs: any[]) => {
+          // ethers v6 typed event object style
+          if (eventArgs.length === 1 && eventArgs[0]?.args) {
+            const a = eventArgs[0].args;
+            const from = a?.from ?? a?.[1];
+            if (from && address && String(from).toLowerCase() === address.toLowerCase()) {
+              // Trigger a refresh; pagination and dedupe are handled by the hook/backend
+              refresh();
+            }
+          }
+        };
+
+        eventFilter = contract.filters.TransferRequested();
+        contract.on(eventFilter, handler);
+      } catch (e) {
+        console.error('Failed to setup TransferRequested listener:', e);
+      }
+    }
+
+    void setup();
+
+    return () => {
+      if (contract && handler) {
+        try {
+          if (typeof contract.off === 'function') {
+            contract.off(eventFilter ?? 'TransferRequested', handler);
+          } else if (typeof contract.removeListener === 'function') {
+            contract.removeListener(eventFilter ?? 'TransferRequested', handler);
+          } else if (typeof contract.removeAllListeners === 'function') {
+            contract.removeAllListeners(eventFilter ?? 'TransferRequested');
+          }
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+    };
+  }, [address, refresh]);
 
   return (
     <section>

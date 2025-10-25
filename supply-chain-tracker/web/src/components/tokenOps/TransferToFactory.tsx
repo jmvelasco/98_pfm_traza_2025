@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { ethers } from 'ethers';
+import { useEffect, useState } from 'react';
+import { CONTRACT_CONFIG } from '../../config/contracts';
 import { useWallet } from '../../hooks/useWallet';
 import type { TokenDetails } from '../../lib/contract';
 import {
@@ -7,6 +9,7 @@ import {
   getUserTokensWithBalance,
   requestTransfer,
 } from '../../lib/contract';
+import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 import ActionCard from '../ui/ActionCard';
 import Alert from '../ui/Alert';
 
@@ -101,6 +104,7 @@ type TransferFormProps = {
 };
 
 export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
+  const { address } = useWallet();
   const [destination, setDestination] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState<string | null>(null);
@@ -165,6 +169,62 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
       setLoading(false);
     }
   }
+
+  // When the transfer is effectively requested (event observed), clear the form and hide message
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.ethereum || !address) return;
+    const lowerAddr = address?.toLowerCase();
+
+    let provider: ethers.BrowserProvider | null = null;
+    let contract: any = null;
+    let handler: ((...args: any[]) => void) | null = null;
+    let eventFilter: any = null;
+
+    async function setup() {
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+        handler = (...eventArgs: any[]) => {
+          if (eventArgs.length === 1 && eventArgs[0]?.args) {
+            const a = eventArgs[0].args;
+            const from = a?.from ?? a?.[1];
+            if (from && lowerAddr && String(from).toLowerCase() === lowerAddr) {
+              // Considered "displayed" once the event is received by the app
+              setDestination('');
+              setAmount('');
+              setMessage(null);
+              setShowPending(false);
+            }
+          }
+        };
+
+        eventFilter = contract.filters.TransferRequested();
+        contract.on(eventFilter, handler);
+      } catch (e) {
+        // Non-fatal: if listener fails we keep default behavior
+        console.error('Failed to setup TransferRequested listener in form:', e);
+      }
+    }
+
+    void setup();
+
+    return () => {
+      if (contract && handler) {
+        try {
+          if (typeof contract.off === 'function') {
+            contract.off(eventFilter ?? 'TransferRequested', handler);
+          } else if (typeof contract.removeListener === 'function') {
+            contract.removeListener(eventFilter ?? 'TransferRequested', handler);
+          } else if (typeof contract.removeAllListeners === 'function') {
+            contract.removeAllListeners(eventFilter ?? 'TransferRequested');
+          }
+        } catch {
+          // ignore cleanup errors
+        }
+      }
+    };
+  }, [address]);
 
   return (
     <form data-testid="transfer-form" onSubmit={handleSubmit} noValidate className="mt-2 space-y-3">

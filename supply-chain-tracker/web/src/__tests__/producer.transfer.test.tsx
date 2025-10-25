@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { TransferForm } from '../components/tokenOps/TransferToFactory';
@@ -12,6 +12,44 @@ vi.mock('../lib/contract', () => ({
 vi.mock('../hooks/useWallet', () => ({
   useWallet: () => ({ address: '0xproducer' }),
 }));
+
+// Mock ethers BrowserProvider to avoid real provider checks
+vi.mock('ethers', () => ({
+  ethers: {
+    BrowserProvider: class {
+      constructor(_arg: any) {}
+    },
+  },
+}));
+
+// Mock SupplyChain__factory to capture TransferRequested listener
+vi.mock('../types/factories/SupplyChain__factory', () => {
+  let savedHandler: ((...args: any[]) => Promise<void> | void) | null = null;
+  const contract = {
+    filters: { TransferRequested: () => 'TransferRequested' },
+    on: (_filter: any, handler: any) => {
+      savedHandler = handler;
+    },
+    off: (_filter: any, handler: any) => {
+      if (savedHandler === handler) savedHandler = null;
+    },
+    removeAllListeners: () => {
+      savedHandler = null;
+    },
+  };
+  return {
+    SupplyChain__factory: {
+      connect: vi.fn(() => contract),
+    },
+    __mock: {
+      getListener: () => savedHandler,
+      contract,
+    },
+  };
+});
+
+// @ts-expect-error test-only mock export provided via vi.mock above
+import { __mock as factoryMock } from '../types/factories/SupplyChain__factory';
 
 describe('TransferForm', () => {
   it('renders form and validates basic fields', () => {
@@ -175,5 +213,40 @@ describe('TransferForm', () => {
       expect(screen.queryByText(/enter a valid ethereum address/i)).not.toBeInTheDocument()
     );
     expect(destInput).not.toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('clears form and hides success message after TransferRequested is observed', async () => {
+    // Arrange
+    (contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' });
+    (contract as any).requestTransfer.mockResolvedValue(undefined);
+    (window as any).ethereum = {};
+
+    render(<TransferForm tokenId={1} parentId={0} balance={100} />);
+    const user = userEvent.setup();
+
+    const destInput = screen.getByLabelText(/destination/i) as HTMLInputElement;
+    const amountInput = screen.getByLabelText(/amount/i) as HTMLInputElement;
+    await user.type(destInput, '0x1111111111111111111111111111111111111111');
+    await user.type(amountInput, '10');
+    await user.click(screen.getByRole('button', { name: /request transfer/i }));
+
+    // Success message appears
+    await waitFor(() => expect(screen.getByText(/transfer requested/i)).toBeInTheDocument());
+
+    // Act: emit TransferRequested(from=this user)
+    const listener = factoryMock.getListener();
+    expect(listener).toBeTruthy();
+    await act(async () => {
+      await listener!({
+        args: [1n, '0xproducer', '0x1111111111111111111111111111111111111111', 1n, 10n],
+      });
+    });
+
+    // Assert: form inputs cleared and message hidden
+    await waitFor(() => {
+      expect(destInput.value).toBe('');
+      expect(amountInput.value).toBe('');
+      expect(screen.queryByText(/transfer requested/i)).not.toBeInTheDocument();
+    });
   });
 });
