@@ -109,6 +109,18 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
     };
   }, [address, refresh, showAllStatuses]);
 
+  function transferStatusClass(status: any): string | undefined {
+    switch (status) {
+      case 'Pending':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Accepted':
+        return 'bg-green-100 text-green-800';
+      case 'Rejected':
+        return 'bg-red-100 text-red-800';
+      default:
+        return undefined;
+    }
+  }
   return (
     <section>
       <h2 className="text-xl font-semibold text-blue-400 mb-4">Outgoing Transfers</h2>
@@ -145,7 +157,7 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {items.map((t: any) => (
-                    <tr key={t.id}>
+                    <tr key={t.id} className={transferStatusClass(t.status)}>
                       <td className="px-4 py-2 text-gray-600">
                         {t.tokenName || `Token #${t.tokenId}`}
                       </td>
