@@ -1,3 +1,29 @@
+## ✅ Test — Dashboard Outgoing muestra todos los estados (25 Oct 2025)
+
+### Contexto
+
+- Evitar regresiones donde el Dashboard solo mostraba "Pending" aunque el componente soportaba Accepted/Rejected.
+- Asegurar que el Dashboard pasa `showAllStatuses={true}` y consume el hook `useTransfersListAll`.
+
+### Cambios clave
+
+- Nuevo test de integración: `web/src/__tests__/dashboard.outgoing.all-status.test.tsx`
+  - Mockea `useWallet` y `useUserInfo` como Producer aprobado.
+  - Mockea `useTransfersListAll` devolviendo elementos Accepted y Rejected.
+  - Verifica que la sección "Outgoing Transfers" renderiza ambos estados y resuelve nombres de token.
+
+### Resultado tests
+
+- Suite frontend: 98/98 passing.
+
+### Quality gates
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (98/98)
+
+---
+
 ## ✨ Feature — Outgoing Transfers real-time refresh on TransferRequested (24 Oct 2025)
 
 ### Contexto

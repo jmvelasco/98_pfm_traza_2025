@@ -21,6 +21,7 @@ Architecture Decision Records document significant architectural decisions made 
 | [002](./002-pending-transfers-migration-to-c2.md)        | Migration to C2 (Indexed SC Getters + Pagination) | ✅ Implemented   | 23 Oct 2025 |
 | [003](./003-pending-transfers-frontend-only-strategy.md) | Frontend-Only Strategy (Alternative)              | ⚠️ Not Selected  | 23 Oct 2025 |
 | [004](./004-pending-transfers-debug-analysis.md)         | Debug Analysis - Pending Transfers Not Showing    | ✅ Resolved      | 23 Oct 2025 |
+| [005](./005-frontend-event-sourcing-transfer-history.md) | Frontend Event Sourcing for Transfer History      | ✅ Implemented   | 25 Oct 2025 |
 
 ## ADR Status Legend
 
