@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { buildPendingSent } from './utils/builders';
 
 // Mock the hook to return controlled pagination data
 vi.mock('../hooks/useTransfersList', () => ({
@@ -18,80 +19,63 @@ describe('Transfers – Sent Pagination', () => {
 
       // Mock page 1: first 5 items of 7 total
       const page1Items = [
-        {
-          id: 1,
+        buildPendingSent(1, {
           tokenId: 101,
           tokenName: 'Item 1',
           amount: 10,
-          from: '0xproducer',
           to: '0xfactory',
-          status: 'Pending',
           createdAt: 1000,
-        },
-        {
-          id: 2,
+        }),
+        buildPendingSent(2, {
           tokenId: 102,
           tokenName: 'Item 2',
           amount: 20,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Accepted',
           createdAt: 2000,
-        },
-        {
-          id: 3,
+        }),
+        buildPendingSent(3, {
           tokenId: 103,
           tokenName: 'Item 3',
           amount: 15,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Rejected',
           createdAt: 3000,
-        },
-        {
-          id: 4,
+        }),
+        buildPendingSent(4, {
           tokenId: 104,
           tokenName: 'Item 4',
           amount: 25,
-          from: '0xproducer',
           to: '0xfactory',
-          status: 'Pending',
           createdAt: 4000,
-        },
-        {
-          id: 5,
+        }),
+        buildPendingSent(5, {
           tokenId: 105,
           tokenName: 'Item 5',
           amount: 30,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Accepted',
           createdAt: 5000,
-        },
+        }),
       ];
 
       // Mock page 2: last 2 items of 7 total
       const page2Items = [
-        {
-          id: 6,
+        buildPendingSent(6, {
           tokenId: 106,
           tokenName: 'Item 6',
           amount: 12,
-          from: '0xproducer',
           to: '0xfactory',
-          status: 'Pending',
           createdAt: 6000,
-        },
-        {
-          id: 7,
+        }),
+        buildPendingSent(7, {
           tokenId: 107,
           tokenName: 'Item 7',
           amount: 18,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Rejected',
           createdAt: 7000,
-        },
+        }),
       ];
 
       const mockSetPage = vi.fn();
@@ -211,51 +195,29 @@ describe('Transfers – Sent Pagination', () => {
       const { useTransfersList } = await import('../hooks/useTransfersList');
 
       const items = [
-        {
-          id: 1,
-          tokenId: 101,
-          tokenName: 'Item 1',
-          amount: 10,
-          from: '0xproducer',
-          to: '0xfactory',
-          status: 'Pending',
-        },
-        {
-          id: 2,
+        buildPendingSent(1, { tokenId: 101, tokenName: 'Item 1', amount: 10, to: '0xfactory' }),
+        buildPendingSent(2, {
           tokenId: 102,
           tokenName: 'Item 2',
           amount: 20,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Accepted',
-        },
-        {
-          id: 3,
+        }),
+        buildPendingSent(3, {
           tokenId: 103,
           tokenName: 'Item 3',
           amount: 15,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Rejected',
-        },
-        {
-          id: 4,
-          tokenId: 104,
-          tokenName: 'Item 4',
-          amount: 25,
-          from: '0xproducer',
-          to: '0xfactory',
-          status: 'Pending',
-        },
-        {
-          id: 5,
+        }),
+        buildPendingSent(4, { tokenId: 104, tokenName: 'Item 4', amount: 25, to: '0xfactory' }),
+        buildPendingSent(5, {
           tokenId: 105,
           tokenName: 'Item 5',
           amount: 30,
-          from: '0xproducer',
           to: '0xfactory',
           status: 'Accepted',
-        },
+        }),
       ];
 
       (useTransfersList as any).mockReturnValue({
@@ -287,15 +249,14 @@ describe('Transfers – Sent Pagination', () => {
     it('handles edge case: 12 items (3 pages)', async () => {
       const { useTransfersList } = await import('../hooks/useTransfersList');
 
-      const page1Items = Array.from({ length: 5 }, (_, i) => ({
-        id: i + 1,
-        tokenId: 101 + i,
-        tokenName: `Item ${i + 1}`,
-        amount: 10 + i,
-        from: '0xproducer',
-        to: '0xfactory',
-        status: 'Pending',
-      }));
+      const page1Items = Array.from({ length: 5 }, (_, i) =>
+        buildPendingSent(i + 1, {
+          tokenId: 101 + i,
+          tokenName: `Item ${i + 1}`,
+          amount: 10 + i,
+          to: '0xfactory',
+        })
+      );
 
       (useTransfersList as any).mockReturnValue({
         items: page1Items,
@@ -329,23 +290,13 @@ describe('Transfers – Sent Pagination', () => {
       const { useTransfersList } = await import('../hooks/useTransfersList');
 
       // Page 1 of 2, 7 total items, 5 in current page
-      const page1Items = [1, 2, 3, 4, 5].map((i) => ({
-        id: i,
-        tokenId: i,
-        tokenName: `T${i}`,
-        amount: i,
-        to: '0xB',
-        status: 'Pending',
-      }));
+      const page1Items = [1, 2, 3, 4, 5].map((i) =>
+        buildPendingSent(i, { tokenId: i, tokenName: `T${i}`, amount: i, to: '0xB' })
+      );
 
-      const page2Items = [6, 7].map((i) => ({
-        id: i,
-        tokenId: i,
-        tokenName: `T${i}`,
-        amount: i,
-        to: '0xB',
-        status: 'Pending',
-      }));
+      const page2Items = [6, 7].map((i) =>
+        buildPendingSent(i, { tokenId: i, tokenName: `T${i}`, amount: i, to: '0xB' })
+      );
 
       const mockSetPage = vi.fn();
       (useTransfersList as any).mockReturnValue({
@@ -402,23 +353,13 @@ describe('Transfers – Sent Pagination', () => {
       const { useTransfersList } = await import('../hooks/useTransfersList');
 
       // Page 1 and Page 2 data
-      const page1Items = [1, 2, 3, 4, 5].map((i) => ({
-        id: i,
-        tokenId: i,
-        tokenName: `T${i}`,
-        amount: i,
-        to: '0xB',
-        status: 'Pending',
-      }));
+      const page1Items = [1, 2, 3, 4, 5].map((i) =>
+        buildPendingSent(i, { tokenId: i, tokenName: `T${i}`, amount: i, to: '0xB' })
+      );
 
-      const page2Items = [6, 7].map((i) => ({
-        id: i,
-        tokenId: i,
-        tokenName: `T${i}`,
-        amount: i,
-        to: '0xB',
-        status: 'Pending',
-      }));
+      const page2Items = [6, 7].map((i) =>
+        buildPendingSent(i, { tokenId: i, tokenName: `T${i}`, amount: i, to: '0xB' })
+      );
 
       const mockSetPage = vi.fn();
       // Start on Page 2 of 2
@@ -479,14 +420,14 @@ describe('Transfers – Sent Pagination', () => {
 
       // Provide a single-page worth of items with Next enabled by totalPages=2
       (useTransfersList as any).mockReturnValue({
-        items: Array.from({ length: 5 }, (_, i) => ({
-          id: i + 1,
-          tokenId: 100 + i,
-          tokenName: `Item ${i + 1}`,
-          amount: 10 + i,
-          to: '0xB',
-          status: 'Pending',
-        })),
+        items: Array.from({ length: 5 }, (_, i) =>
+          buildPendingSent(i + 1, {
+            tokenId: 100 + i,
+            tokenName: `Item ${i + 1}`,
+            amount: 10 + i,
+            to: '0xB',
+          })
+        ),
         total: 7,
         page: 1,
         totalPages: 2,

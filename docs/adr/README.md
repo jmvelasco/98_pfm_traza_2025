@@ -23,6 +23,12 @@ Architecture Decision Records document significant architectural decisions made 
 | [004](./004-pending-transfers-debug-analysis.md)         | Debug Analysis - Pending Transfers Not Showing    | ✅ Resolved      | 23 Oct 2025 |
 | [005](./005-frontend-event-sourcing-transfer-history.md) | Frontend Event Sourcing for Transfer History      | ✅ Implemented   | 25 Oct 2025 |
 
+### Test Suite Architecture (Oct 2025)
+
+| ADR                                            | Title                                                           | Status         | Date        |
+| ---------------------------------------------- | --------------------------------------------------------------- | -------------- | ----------- |
+| [006](./006-test-builders-full-consistency.md) | Test Fixture Builders — Full Consistency vs. Selective Adoption | ✅ Recommended | 25 Oct 2025 |
+
 ## ADR Status Legend
 
 - ✅ **Accepted/Implemented**: Decision made and implemented

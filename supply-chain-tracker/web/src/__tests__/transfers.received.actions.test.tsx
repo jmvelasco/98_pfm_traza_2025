@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import * as contract from '../lib/contract';
+import { buildPendingReceived } from './utils/builders';
 
 // Mocks
 vi.mock('../lib/contract', () => ({
@@ -16,35 +17,29 @@ vi.mock('../hooks/useWallet', () => ({
 describe('Transfers – Received Actions', () => {
   it('accepts a transfer and updates UI', async () => {
     const initialItems = [
-      {
-        id: 1,
+      buildPendingReceived(1, {
+        id: '1',
         tokenId: 10,
         tokenName: 'Raw Material A',
         amount: 50,
         from: '0xproducer',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
-      {
-        id: 2,
+      }),
+      buildPendingReceived(2, {
+        id: '2',
         tokenId: 11,
         tokenName: 'Raw Material B',
         amount: 30,
         from: '0xproducer2',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     const afterAcceptItems = [
-      {
-        id: 2,
+      buildPendingReceived(2, {
+        id: '2',
         tokenId: 11,
         tokenName: 'Raw Material B',
         amount: 30,
         from: '0xproducer2',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     (contract as any).getPendingByRecipient
       .mockResolvedValueOnce({ items: initialItems, total: 2 })
@@ -74,35 +69,29 @@ describe('Transfers – Received Actions', () => {
 
   it('rejects a transfer and updates UI', async () => {
     const initialItems = [
-      {
-        id: 3,
+      buildPendingReceived(3, {
+        id: '3',
         tokenId: 12,
         tokenName: 'Raw Material C',
         amount: 20,
         from: '0xproducer3',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
-      {
-        id: 4,
+      }),
+      buildPendingReceived(4, {
+        id: '4',
         tokenId: 13,
         tokenName: 'Raw Material D',
         amount: 40,
         from: '0xproducer4',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     const afterRejectItems = [
-      {
-        id: 4,
+      buildPendingReceived(4, {
+        id: '4',
         tokenId: 13,
         tokenName: 'Raw Material D',
         amount: 40,
         from: '0xproducer4',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     (contract as any).getPendingByRecipient
       .mockResolvedValueOnce({ items: initialItems, total: 2 })
@@ -128,17 +117,15 @@ describe('Transfers – Received Actions', () => {
     expect(screen.getByText(/raw material d/i)).toBeInTheDocument();
   });
 
-  it('handles on-chain errors gracefully (accept)', async () => {
+  it('shows error message on accept failure', async () => {
     const initialItems = [
-      {
-        id: 5,
+      buildPendingReceived(5, {
+        id: '5',
         tokenId: 20,
         tokenName: 'Raw Material E',
         amount: 10,
         from: '0xproducer5',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
     (contract as any).acceptTransfer.mockRejectedValue(new Error('boom'));
@@ -162,15 +149,13 @@ describe('Transfers – Received Actions', () => {
 
   it('disables buttons while processing', async () => {
     const initialItems = [
-      {
-        id: 6,
+      buildPendingReceived(6, {
+        id: '6',
         tokenId: 21,
         tokenName: 'Raw Material F',
         amount: 15,
         from: '0xproducer6',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
     // Keep promise pending to observe disabled state
@@ -202,25 +187,23 @@ describe('Transfers – Received Actions', () => {
 
   it('respects pagination after actions', async () => {
     // Page 1: 5 items of 6 total
-    const page1Items = [1, 2, 3, 4, 5].map((i) => ({
-      id: i,
-      tokenId: 100 + i,
-      tokenName: `Item ${i}`,
-      amount: 10,
-      from: `0xprod${i}`,
-      to: '0xfactory',
-      status: 'PENDING',
-    }));
+    const page1Items = [1, 2, 3, 4, 5].map((i) =>
+      buildPendingReceived(i, {
+        id: String(i),
+        tokenId: 100 + i,
+        tokenName: `Item ${i}`,
+        amount: 10,
+        from: `0xprod${i}`,
+      })
+    );
     const page2Items = [
-      {
-        id: 6,
+      buildPendingReceived(6, {
+        id: '6',
         tokenId: 106,
         tokenName: 'Item 6',
         amount: 10,
         from: '0xprod6',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
 
     (contract as any).getPendingByRecipient
@@ -260,15 +243,14 @@ describe('Transfers – Received Actions', () => {
     // Wallet mocked as 0xfactory globally; return an item addressed to someone else
     (contract as any).getPendingByRecipient.mockResolvedValue({
       items: [
-        {
-          id: 7,
+        buildPendingReceived(7, {
+          id: '7',
           tokenId: 130,
           tokenName: 'Alien Item',
           amount: 1,
           from: '0xprodX',
           to: '0xnotfactory',
-          status: 'PENDING',
-        },
+        }),
       ],
       total: 1,
     });

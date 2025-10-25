@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import * as contract from '../lib/contract';
+import { buildPendingReceived, buildPendingSent } from './utils/builders';
 
 // Mocks
 vi.mock('../lib/contract', () => ({
@@ -15,24 +16,18 @@ vi.mock('../hooks/useWallet', () => ({
 describe('Transfers – Received List', () => {
   it('lists pending transfers received (paginated)', async () => {
     const mockItems = [
-      {
-        id: 1,
+      buildPendingReceived(1, {
         tokenId: 10,
         tokenName: 'Raw Material A',
         amount: 50,
         from: '0xproducer',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
-      {
-        id: 2,
+      }),
+      buildPendingReceived(2, {
         tokenId: 11,
         tokenName: 'Raw Material B',
         amount: 30,
         from: '0xproducer2',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+      }),
     ];
     (contract as any).getPendingByRecipient.mockResolvedValue({
       items: mockItems,
@@ -52,25 +47,16 @@ describe('Transfers – Received List', () => {
 
   it('factory sees both received and sent lists without interference', async () => {
     // Incoming (recipient): 2 pages
-    const incPage1 = [1, 2, 3, 4, 5].map((i) => ({
-      id: i,
-      tokenId: 200 + i,
-      tokenName: `R${i}`,
-      amount: 10,
-      from: `0xprod${i}`,
-      to: '0xfactory',
-      status: 'PENDING',
-    }));
-    const incPage2 = [
-      {
-        id: 6,
-        tokenId: 206,
-        tokenName: 'R6',
+    const incPage1 = [1, 2, 3, 4, 5].map((i) =>
+      buildPendingReceived(i, {
+        tokenId: 200 + i,
+        tokenName: `R${i}`,
         amount: 10,
-        from: '0xprod6',
-        to: '0xfactory',
-        status: 'PENDING',
-      },
+        from: `0xprod${i}`,
+      })
+    );
+    const incPage2 = [
+      buildPendingReceived(6, { tokenId: 206, tokenName: 'R6', amount: 10, from: '0xprod6' }),
     ];
     (contract as any).getPendingByRecipient
       .mockResolvedValueOnce({ items: incPage1, total: 6 })
@@ -78,24 +64,8 @@ describe('Transfers – Received List', () => {
 
     // Sent (sender): single page
     const sentItems = [
-      {
-        id: 's1',
-        tokenId: 300,
-        tokenName: 'S1',
-        amount: 5,
-        to: '0xret',
-        from: '0xfactory',
-        status: 'PENDING',
-      },
-      {
-        id: 's2',
-        tokenId: 301,
-        tokenName: 'S2',
-        amount: 7,
-        to: '0xret2',
-        from: '0xfactory',
-        status: 'PENDING',
-      },
+      buildPendingSent(1, { id: 's1', tokenId: 300, tokenName: 'S1', amount: 5, to: '0xret' }),
+      buildPendingSent(2, { id: 's2', tokenId: 301, tokenName: 'S2', amount: 7, to: '0xret2' }),
     ];
     (contract as any).getPendingBySender.mockResolvedValue({ items: sentItems, total: 2 });
 

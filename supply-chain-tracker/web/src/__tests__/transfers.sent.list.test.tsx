@@ -125,30 +125,22 @@ describe('Transfers – Sent List (pending only)', () => {
   });
 
   it('renders a list of pending transfers with basic fields', async () => {
+    const { buildPendingSent } = await import('./utils/builders');
     // Seed the mocked hook state directly for initial render
     const { __mock: listMock }: any = await import('../hooks/useTransfersList');
     listMock.setState(
       [
-        {
-          id: 'tx1',
-          tokenId: 1,
+        buildPendingSent(1, {
           tokenName: 'Wheat',
           amount: 10,
-          from: '0xproducer',
           to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-          status: 'Pending',
-          createdAt: 1700000000,
-        },
-        {
-          id: 'tx2',
+        }),
+        buildPendingSent(2, {
           tokenId: 2,
           tokenName: null,
           amount: 5,
-          from: '0xproducer',
           to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-          status: 'Pending',
-          createdAt: 1700001000,
-        },
+        }),
       ],
       2
     );
@@ -171,22 +163,19 @@ describe('Transfers – Sent List (pending only)', () => {
   });
 
   it('updates in real time when a TransferRequested from this sender is emitted', async () => {
+    const { buildPendingSent } = await import('./utils/builders');
     const { getPendingBySender } = await import('../lib/contract');
     // Arrange: two sequential responses: empty -> one item
     (getPendingBySender as any)
       .mockResolvedValueOnce({ items: [], total: 0 })
       .mockResolvedValueOnce({
         items: [
-          {
-            id: 'tx3',
+          buildPendingSent(3, {
             tokenId: 7,
             tokenName: null,
             amount: 42,
-            from: '0xproducer',
             to: '0xcccccccccccccccccccccccccccccccccccccccc',
-            status: 'Pending',
-            createdAt: 1700002000,
-          },
+          }),
         ],
         total: 1,
       });
@@ -243,40 +232,19 @@ describe('Transfers – Sent List (pending only)', () => {
   });
 
   it('does not duplicate when the same TransferRequested fires multiple times', async () => {
+    const { buildPendingSent } = await import('./utils/builders');
     const { getPendingBySender } = await import('../lib/contract');
+    const item = buildPendingSent(5, {
+      tokenId: 11,
+      tokenName: 'Corn',
+      amount: 3,
+      to: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+    });
     // Arrange: empty -> one item -> one item (for second refresh)
     (getPendingBySender as any)
       .mockResolvedValueOnce({ items: [], total: 0 })
-      .mockResolvedValueOnce({
-        items: [
-          {
-            id: 'tx5',
-            tokenId: 11,
-            tokenName: 'Corn',
-            amount: 3,
-            from: '0xproducer',
-            to: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-            status: 'Pending',
-            createdAt: 1700003000,
-          },
-        ],
-        total: 1,
-      })
-      .mockResolvedValueOnce({
-        items: [
-          {
-            id: 'tx5',
-            tokenId: 11,
-            tokenName: 'Corn',
-            amount: 3,
-            from: '0xproducer',
-            to: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
-            status: 'Pending',
-            createdAt: 1700003000,
-          },
-        ],
-        total: 1,
-      });
+      .mockResolvedValueOnce({ items: [item], total: 1 })
+      .mockResolvedValueOnce({ items: [item], total: 1 });
 
     (window as any).ethereum = {};
 
