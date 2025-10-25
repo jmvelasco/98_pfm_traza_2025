@@ -17,6 +17,7 @@ export interface TransfersListResult {
   items: Array<contract.PendingTransfer & { status?: 'Pending' | 'Accepted' | 'Rejected' }>;
   total: number;
   page: number;
+    totalPages: number;
   setPage: (page: number) => void;
   loading: boolean;
   error: string | null;
@@ -37,6 +38,7 @@ export function useTransfersList({
   const [refreshFlag, setRefreshFlag] = useState(0);
 
   const offset = useMemo(() => (page - 1) * pageSize, [page, pageSize]);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize]);
 
   useEffect(() => {
     let mounted = true;
@@ -163,5 +165,5 @@ export function useTransfersList({
 
   const refresh = () => setRefreshFlag((f) => f + 1);
 
-  return { items, total, page, setPage, loading, error, refresh };
+  return { items, total, page, totalPages, setPage, loading, error, refresh };
 }

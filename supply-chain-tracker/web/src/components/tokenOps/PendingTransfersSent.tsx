@@ -4,6 +4,7 @@ import { CONTRACT_CONFIG } from '../../config/contracts';
 import { useTransfersList } from '../../hooks/useTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
+import TransfersPagination from '../ui/TransfersPagination';
 
 type Props = { showAllStatuses?: boolean };
 
@@ -11,7 +12,7 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
   const { address } = useWallet();
   // Local tick to force a re-render on realtime events so mocked hooks in tests can update
   const [tick, setTick] = useState(0);
-  const { items, total, page, setPage, loading, error, refresh } = useTransfersList({
+  const { items, total, page, totalPages, setPage, loading, error, refresh } = useTransfersList({
     mode: 'sender',
     address,
     pageSize: 5,
@@ -170,39 +171,14 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
                   ))}
                 </tbody>
               </table>
-              <div className="flex items-center justify-between p-3 border-t bg-gray-50">
-                <div className="text-xs text-gray-500">
-                  {(() => {
-                    const offset = (page - 1) * 5;
-                    return (
-                      <span>
-                        Showing {Math.min(total, offset + 1)}–
-                        {Math.min(total, offset + items.length)} of {total}
-                      </span>
-                    );
-                  })()}
-                </div>
-                <div className="space-x-2">
-                  <button
-                    className="px-3 py-1 text-xs bg-white border rounded disabled:opacity-50"
-                    onClick={() => setPage(Math.max(1, page - 1))}
-                    disabled={page <= 1}
-                  >
-                    Prev
-                  </button>
-                  <span className="text-xs text-gray-600">
-                    Page {page} / {Math.max(1, Math.ceil(total / 5))}
-                  </span>
-                  <button
-                    className="px-3 py-1 text-xs bg-white border rounded disabled:opacity-50"
-                    onClick={() => setPage(Math.min(Math.max(1, Math.ceil(total / 5)), page + 1))}
-                    disabled={page >= Math.max(1, Math.ceil(total / 5))}
-                    aria-label="Next"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+                <TransfersPagination
+                  page={page}
+                  totalPages={totalPages}
+                  total={total}
+                  pageSize={5}
+                  itemsInCurrentPage={items.length}
+                  onPageChange={setPage}
+                />
             </div>
           )}
         </div>

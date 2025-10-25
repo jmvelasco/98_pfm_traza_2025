@@ -1,5 +1,82 @@
 ## 🔧 Fix — Implementación completa de useTransfersList all-statuses (25 Oct 2025 - 13:20 CET)
 
+---
+
+## 🔧 Refactor — Sistema de paginación unificado con componente reutilizable (25 Oct 2025 - 15:50 CET)
+
+### Contexto
+
+**Problema reportado**: Usuario observó que controles de paginación (Prev/Next) y contador "Showing X-Y of Z" no funcionaban correctamente en Dashboard Outgoing Transfers cuando había más de 5 transfers.
+
+**Análisis forense** (ver `docs/features/PAGINATION_COMPONENT_DEBUG_ANALYSIS.md`):
+
+1. Código de paginación UI duplicado en `PendingTransfersSent` y `PendingTransfersReceived` (copy-paste)
+2. Hardcoded `pageSize=5` en cálculos de offset (literal `5` en lugar de variable)
+3. `totalPages` calculado inline 3 veces por componente en lugar de usarse del hook
+4. Tests unitarios con mocks pasaban porque componentes renderizaban correctamente con datos mockeados
+
+**Root cause identificado**: No era un bug funcional sino **deuda técnica** (duplicación + valores hardcoded) que dificultaba mantenimiento y debugging.
+
+### Cambios implementados
+
+**1. Componente reutilizable** (`web/src/components/ui/TransfersPagination.tsx`):
+
+- Props clean: `page`, `totalPages`, `total`, `pageSize`, `itemsInCurrentPage`, `onPageChange`
+- Cálculo de offset/start/end centralizado (no hardcoded)
+- UI consistente: botones disabled correctos, aria-labels, formato "Showing X–Y of Z"
+- **60 líneas** reemplazando ~35 líneas duplicadas en 2 componentes
+
+**2. Hook optimizado** (`useTransfersList.ts`):
+
+- Añadido `totalPages` al return type con `useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])`
+- Elimina cálculo duplicado de `totalPages` en componentes
+- API más completa: componentes reciben `totalPages` listo para usar
+
+**3. Integración en componentes**:
+
+- **`PendingTransfersSent.tsx`**: Reemplazadas líneas 173-206 (div hardcoded) con `<TransfersPagination />` (7 lines)
+- **`PendingTransfersReceived.tsx`**: Reemplazadas líneas 127-157 con `<TransfersPagination />` (7 lines)
+- Eliminados cálculos inline de `offset`, `totalPages`, handlers `onClick`
+- Props pasadas desde hook: `page`, `totalPages`, `total`, `items.length`, `setPage`
+
+**4. Tests actualizados**:
+
+- **`pending.transfers.sent.pagination.test.tsx`** (nuevo, 210 líneas):
+  - 3 tests: 7 items (2 páginas), 5 items (1 página), 12 items (3 páginas)
+  - Validación de clicks Prev/Next, contador "Showing X-Y of Z", disabled states
+  - Mocks de `useTransfersList` con `totalPages` incluido
+- **`useTransfersList.test.tsx`**: Añadido test de paginación con 7 items en event sourcing mode
+
+**5. Cleanup**:
+
+- Eliminado `PendingTransfers.tsx` (componente legacy, no usado)
+- Verificado: 0 imports huérfanos
+
+### Resultado tests
+
+- **Suite completa**: 104/104 passing ✅ (0 skipped, +4 tests nuevos)
+- **Build**: Production build exitoso en 1.78s ✅ (596KB bundle)
+- **No regresiones**: Tests existentes de `PendingTransfersReceived` y `PendingTransfersSent` pasan sin cambios
+
+### Quality gates
+
+- Tests: ✅ PASS (104/104)
+- Build: ✅ PASS (1.78s)
+- TypeScript: ✅ No errors
+- Eliminación duplicación: ✅ -70 líneas de código duplicado
+
+### Beneficios
+
+- 🎯 **Mantenibilidad**: Paginación en un solo lugar; cambios futuros se aplican una vez
+- 🔧 **Debugging**: Más fácil diagnosticar problemas de paginación (código centralizado)
+- 📊 **Consistencia**: Ambos componentes usan misma UI y lógica
+- ✅ **Testabilidad**: Componente `TransfersPagination` puede testearse aisladamente
+- 🚀 **Extensibilidad**: Otros listados (tokens, users) pueden reusar `TransfersPagination`
+
+### Próximos pasos (QA Manual)
+
+⏸️ **Pendiente**: Validación manual exhaustiva con Anvil (7 escenarios) para confirmar que paginación funciona correctamente en runtime real con 5, 7, 12+ transfers. Ver checklist completo en análisis document.
+
 ### Contexto
 
 **Post-mortem de refactor fallido**: El refactor inicial (13:00 CET) migró componentes y tests al hook unificado `useTransfersList`, pero **solo implementó el branch pending-only**. El parámetro `includeAllStatuses` era aceptado pero ignorado completamente.
