@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
-import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import * as contract from '../lib/contract';
 import { buildPendingReceived, buildPendingSent } from './utils/builders';
 
@@ -17,13 +17,31 @@ vi.mock('../hooks/useWallet', () => ({
 describe('Transfers – Received List', () => {
   it('lists transfers with all statuses (Pending, Accepted, Rejected)', async () => {
     const mockItems = [
-      buildPendingReceived(1, { tokenId: 10, tokenName: 'Raw Material A', amount: 50, from: '0xproducer', status: 'Pending' }),
-      buildPendingReceived(2, { tokenId: 11, tokenName: 'Raw Material B', amount: 30, from: '0xproducer2', status: 'Accepted' }),
-      buildPendingReceived(3, { tokenId: 12, tokenName: 'Raw Material C', amount: 20, from: '0xproducer3', status: 'Rejected' }),
+      buildPendingReceived(1, {
+        tokenId: 10,
+        tokenName: 'Raw Material A',
+        amount: 50,
+        from: '0xproducer',
+        status: 'Pending',
+      }),
+      buildPendingReceived(2, {
+        tokenId: 11,
+        tokenName: 'Raw Material B',
+        amount: 30,
+        from: '0xproducer2',
+        status: 'Accepted',
+      }),
+      buildPendingReceived(3, {
+        tokenId: 12,
+        tokenName: 'Raw Material C',
+        amount: 20,
+        from: '0xproducer3',
+        status: 'Rejected',
+      }),
     ];
     (contract as any).getPendingByRecipient.mockResolvedValue({ items: mockItems, total: 3 });
 
-  render(<IncomingTransfers />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     expect(await screen.findByText(/raw material a/i)).toBeInTheDocument();
     expect(screen.getByText(/raw material b/i)).toBeInTheDocument();
@@ -58,14 +76,13 @@ describe('Transfers – Received List', () => {
     ];
     (contract as any).getPendingBySender.mockResolvedValue({ items: sentItems, total: 2 });
 
-    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
-      .default;
+    const PendingTransfersReceived = IncomingTransfers;
     const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
       .default;
 
     render(
       <div>
-        <PendingTransfersReceived />
+        <PendingTransfersReceived showAllStatuses={false} />
         <PendingTransfersSent />
       </div>
     );

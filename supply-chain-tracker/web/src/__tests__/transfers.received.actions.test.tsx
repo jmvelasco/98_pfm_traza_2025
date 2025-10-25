@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import * as contract from '../lib/contract';
 import { buildPendingReceived } from './utils/builders';
@@ -16,6 +16,10 @@ vi.mock('../hooks/useWallet', () => ({
 }));
 
 describe('Transfers – Received Actions', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
   it('disables Accept/Reject buttons for non-Pending transfers', async () => {
     const items = [
       buildPendingReceived(1, {
@@ -37,8 +41,7 @@ describe('Transfers – Received Actions', () => {
     ];
     (contract as any).getPendingByRecipient.mockResolvedValue({ items, total: 2 });
 
-    const IncomingTransfers = (await import('../components/tokenOps/IncomingTransfers')).default;
-    render(<IncomingTransfers />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     // Wait for first item to load
     await screen.findByText(/raw material a/i);
@@ -85,7 +88,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    render(<IncomingTransfers />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     expect(await screen.findByText(/raw material a/i)).toBeInTheDocument();
 
@@ -134,7 +137,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    render(<IncomingTransfers />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     expect(await screen.findByText(/raw material c/i)).toBeInTheDocument();
     const rowC = screen.getByText(/raw material c/i).closest('tr')!;
@@ -161,9 +164,7 @@ describe('Transfers – Received Actions', () => {
     (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
     (contract as any).acceptTransfer.mockRejectedValue(new Error('boom'));
 
-    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
-      .default;
-    render(<PendingTransfersReceived />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     const rowE = await screen.findByText(/raw material e/i);
     const acceptBtn = rowE
@@ -194,9 +195,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise<void>((resolve) => (resolveFn = () => resolve()))
     );
 
-    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
-      .default;
-    render(<PendingTransfersReceived />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     const user = userEvent.setup();
     const rowF = await screen.findByText(/raw material f/i);
@@ -245,9 +244,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
-      .default;
-    render(<PendingTransfersReceived />);
+    render(<IncomingTransfers showAllStatuses={false} />);
 
     // We are at page 1
     expect(await screen.findByText(/item 1/i)).toBeInTheDocument();
@@ -285,7 +282,7 @@ describe('Transfers – Received Actions', () => {
 
     const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
       .default;
-    render(<PendingTransfersReceived />);
+    render(<PendingTransfersReceived showAllStatuses={false} />);
 
     // Row renders but no actions should be available
     expect(await screen.findByText(/alien item/i)).toBeInTheDocument();

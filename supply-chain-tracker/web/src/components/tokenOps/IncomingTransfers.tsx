@@ -6,13 +6,15 @@ import Alert from '../ui/Alert';
 import Badge from '../ui/Badge';
 import TransfersPagination from '../ui/TransfersPagination';
 
-export default function IncomingTransfers() {
+type Props = { showAllStatuses?: boolean };
+
+export default function IncomingTransfers({ showAllStatuses = true }: Props) {
   const { address } = useWallet();
   const { items, total, page, totalPages, setPage, loading, error, refresh } = useTransfersList({
     mode: 'recipient',
     address,
     pageSize: 5,
-    includeAllStatuses: true,
+    includeAllStatuses: showAllStatuses,
   });
   const [actionError, setActionError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | string | null>(null);
