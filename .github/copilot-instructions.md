@@ -96,8 +96,8 @@ Follow **one-test-at-a-time** RED→GREEN→COMMIT cycle (see `docs/guides/METOD
 ## Documentation Patterns
 
 - **Architecture Decisions**: `docs/adr/` with status badges (✅ Implemented, ⚠️ Not Selected)
-- **Progress Tracking**: `docs/progress/STATUS_*.md` (numbered chronologically), `ROADMAP.md` (checklists)
-- **Feature Analysis**: `docs/features/*_ANALYSIS.md` for complex features before implementation
+- **Progress Tracking**: deprecate `docs/progress/STATUS_*.md` (numbered chronologically), `ROADMAP.md` (checklists). Only use `docs/DELIVERY.md` for final delivery tracking. `docs/DELIVERY.md` document supersedes previous delivery tracking files. Old progress docs are kept for historical reference only. Update `docs/DELIVERY.md` as new milestones are reached or priorities shift. The milestones section at the end of `docs/DELIVERY.md` should be updated accordingly as we define a new milestone, with the incremental number of the milestone starting from 1 as title, together with a brief description of the main features or changes included in that milestone. We don't need to track every small change and/or implementation details, but a good level of description to understand what was delivered in that milestonea aligned with the overall project goals.
+- **Feature Analysis**: `docs/features/*_ANALYSIS.md` for complex features before implementation following `docs/guides/PROMPT_TEMPLATE.md` guide
 
 ## Key Files to Understand First
 
@@ -109,7 +109,5 @@ Follow **one-test-at-a-time** RED→GREEN→COMMIT cycle (see `docs/guides/METOD
 
 ## When Stuck
 
-- Check `docs/progress/ROADMAP.md` for feature status (✅/🟡/❌)
-- Review `docs/adr/004-pending-transfers-debug-analysis.md` for debugging patterns
-- Run `forge test -vvv` for detailed Solidity trace
-- Verify contract address with `cat supply-chain-tracker/sc/broadcast/Deploy.s.sol/31337/run-latest.json`
+- Ask me for help!
+- Check `docs/DELIVERY.md` for feature status

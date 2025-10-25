@@ -1,6 +1,10 @@
 # 📊 PROGRESS.md — Progreso de la Sesión TDD (13 octubre 2025)
 
-## 🎯 Objetivo de la Sesión
+## � Actualizaciones recientes
+
+- 25 Oct 2025 — Migración de builders finalizada para todas las suites de transfers (consistencia 100%). Detalles en la sección: "🧱 25 Oct 2025 — Builders Migration (Finalizado)" más abajo.
+
+## �🎯 Objetivo de la Sesión
 
 Implementar mediante TDD (Test-Driven Development) las funcionalidades pendientes del punto 4 de STATUS_06:
 
@@ -27,14 +31,26 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
 
 ## ✅ Logros Alcanzados
 
-### 1. 🧪 Configuración del Entorno de Testing
+- `web/src/__tests__/utils/setup.ts` — limpieza y utilidades comunes (opt-in)
+- `web/src/__tests__/utils/mocks.ts` — diferido (no adoptado por limitaciones de `vi.doMock`)
 
+### 🚚 Primeras migraciones
+
+- Suites migradas: `transfers.sent.list.test.tsx`, `transfers.sent.pagination.test.tsx`, `transfers.received.list.test.tsx`, `transfers.received.actions.test.tsx`
+- Ajuste clave: override de `id` a cadenas numéricas ('1', '2', …) en tests de acciones para evitar `Number(id) -> NaN`
+- 17 tests migrados (9 sent + 8 received)
+- 242 líneas netas eliminadas en tests
+
+- Suite completa y shuffle: 107/107 — PASS
+
+### 📚 Documentación y decisiones
+
+- `docs/features/TEST_UTILITIES_AND_BUILDERS_ANALYSIS.md` — análisis y patrones
+- `docs/adr/006-test-builders-full-consistency.md` — decisión de consistencia total
+- `docs/progress/BUILDERS_MIGRATION_PLAN.md` — plan de implementación
 - **Instaladas dependencias de testing**:
 
-  - `vitest` v3.2.4
-  - `@vitest/ui` v3.2.4
   - `@testing-library/react` v16.3.0
-  - `@testing-library/user-event` v14.6.1
   - `@testing-library/jest-dom` v6.9.1
   - `jsdom` v27.0.0
 
@@ -42,15 +58,9 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
 
   - Cambiado import de `vite` a `vitest/config`
   - Configurado entorno `jsdom`
-  - Añadido archivo de setup `vitest.setup.ts`
-  - Habilitados globals y CSS en tests
 
 - **Creado `vitest.setup.ts`**:
 
-  - Importa `@testing-library/jest-dom`
-  - Declara tipos globales para `window.ethereum`
-
-- **Scripts npm agregados en `package.json`**:
   - `test`: `vitest run`
   - `test:ui`: `vitest --ui`
 
@@ -58,33 +68,20 @@ Implementar mediante TDD (Test-Driven Development) las funcionalidades pendiente
 
 Creado `src/__tests__/web3provider.persistence.events.test.tsx` con 4 tests:
 
-#### **Tests de Persistencia**:
+- Verifica que inicialmente no hay dirección
 
-1. **"does not have address initially and persists after connect"**
-
-   - Verifica que inicialmente no hay dirección
-   - Al hacer click en "connect", se conecta y persiste en localStorage
-   - Esperaba: localStorage contenga la dirección conectada
-
-2. **"auto-connects from localStorage on load"**
-   - Preestablece dirección en localStorage
-   - Verifica auto-conexión al cargar el componente
-   - Esperaba: componente muestre la dirección persistida
+- Preestablece dirección en localStorage
+- Verifica auto-conexión al cargar el componente
+- Esperaba: componente muestre la dirección persistida
 
 #### **Tests de Eventos MetaMask**:
 
 3. **"updates address on accountsChanged"**
 
-   - Simula cambio de cuenta en MetaMask
-   - Verifica actualización automática del estado
    - Esperaba: nueva dirección reflejada en UI
 
-4. **"resets state on chainChanged"**
-   - Simula cambio de red en MetaMask
-   - Verifica reset completo del estado
    - Esperaba: estado limpio (sin dirección)
-
-**Resultado inicial**: ❌ 4/4 tests fallando (comportamiento esperado en TDD)
+     **Resultado inicial**: ❌ 4/4 tests fallando (comportamiento esperado en TDD)
 
 ### 3. 🟢 Fase GREEN - Implementación Mínima
 
@@ -92,14 +89,9 @@ Modificado `src/contexts/Web3Provider.tsx` para cumplir especificaciones:
 
 #### **Persistencia Implementada**:
 
-- **En función `connect()`**:
-
-  - Usa `eth_requestAccounts` en lugar de conexión silenciosa
-  - Guarda dirección en `localStorage.setItem('web3:address', selected)`
-  - Manejo de errores con try/catch
-
+- Usa `eth_requestAccounts` en lugar de conexión silenciosa
+- Guarda dirección en `localStorage.setItem('web3:address', selected)`
 - **En `useEffect()` de inicialización**:
-  - Comprueba `eth_accounts` para auto-conexión
   - Sincroniza con localStorage existente
   - Limpia localStorage si no hay cuentas conectadas
 
@@ -107,20 +99,11 @@ Modificado `src/contexts/Web3Provider.tsx` para cumplir especificaciones:
 
 - **`accountsChanged` handler**:
 
-  - Si hay cuentas: actualiza dirección y localStorage
-  - Si no hay cuentas: resetea estado y limpia localStorage
-
 - **`chainChanged` handler**:
-
-  - Resetea completamente el estado (address, signer, provider, contract)
   - Limpia localStorage
-
 - **Cleanup de listeners**:
   - Suscripción en `useEffect`
   - Limpieza en función de retorno
-  - Flag `removed` para evitar memory leaks
-
-### 4. ✅ Verificación Final
 
 **Resultado de tests**: 🟢 4/4 tests pasando
 
@@ -397,41 +380,6 @@ web/vitest.setup.ts                 # Setup global de tests
 ```
 
 ### 📈 **Progreso vs STATUS_06**:
-
----
-
-## 🧱 25 Oct 2025 — Builders Migration (Finalizado)
-
-### 🎯 Objetivo
-
-Completar la adopción de builders de fixtures en todas las suites relacionadas con transfers para lograr consistencia 100% y facilitar mantenimiento futuro.
-
-### ✅ Cambios realizados
-
-- Migrados los 3 candidatos restantes a `utils/builders`:
-  - `useTransfersList.test.tsx` — generación de arrays con builders; mapeo BigInt para eventos conservado
-  - `dashboard.outgoing.all-status.test.tsx` — dos fixtures inline → `buildPendingSent`
-  - `producer.dashboard.test.tsx` — un fixture inline → `buildPendingSent`
-- Sin cambios en lógica de producción; únicamente sustitución de fixtures en tests
-
-### 🔎 Validación
-
-- Suite completa: 21 archivos, 107 tests — PASS
-- Ejecución con shuffle: 21 archivos, 107 tests — PASS (independencia de orden)
-
-### 📝 Notas
-
-- Se mantiene el override de `id` numérico en tests que invocan acciones donde el código hace `Number(id)`
-- Se difiere la adopción de utilidades de mocks compartidos por las consideraciones de composición (`vi.doMock`) ya documentadas
-
-### 📌 Resultado
-
-Consistencia total: todas las pruebas de transfers usan builders compartidos. Cualquier evolución del esquema de transfer se centraliza en `builders.ts`, reduciendo esfuerzo y riesgo en futuras modificaciones.
-
-- ✅ Persistencia localStorage + eventos MetaMask (completado con TDD)
-- ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
-- ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)
-- ⚠️ Pendiente: estructura carpetas (`components/`, `pages/`) y páginas funcionales
 
 ---
 
@@ -2622,5 +2570,40 @@ Los 2 tests RED restantes (`pending.transfers.sent.clickability.test.tsx`) requi
 - Build: PASS
 - Lint/Typecheck: PASS
 - Tests: PASS (107/107) — normal y shuffle (seed 12345)
+
+---
+
+## Builders Migration (Finalizado)
+
+### 🎯 Objetivo
+
+Completar la adopción de builders de fixtures en todas las suites relacionadas con transfers para lograr consistencia 100% y facilitar mantenimiento futuro.
+
+### ✅ Cambios realizados
+
+- Migrados los 3 candidatos restantes a `utils/builders`:
+  - `useTransfersList.test.tsx` — generación de arrays con builders; mapeo BigInt para eventos conservado
+  - `dashboard.outgoing.all-status.test.tsx` — dos fixtures inline → `buildPendingSent`
+  - `producer.dashboard.test.tsx` — un fixture inline → `buildPendingSent`
+- Sin cambios en lógica de producción; únicamente sustitución de fixtures en tests
+
+### 🔎 Validación
+
+- Suite completa: 21 archivos, 107 tests — PASS
+- Ejecución con shuffle: 21 archivos, 107 tests — PASS (independencia de orden)
+
+### 📝 Notas
+
+- Se mantiene el override de `id` numérico en tests que invocan acciones donde el código hace `Number(id)`
+- Se difiere la adopción de utilidades de mocks compartidos por las consideraciones de composición (`vi.doMock`) ya documentadas
+
+### 📌 Resultado
+
+Consistencia total: todas las pruebas de transfers usan builders compartidos. Cualquier evolución del esquema de transfer se centraliza en `builders.ts`, reduciendo esfuerzo y riesgo en futuras modificaciones.
+
+- ✅ Persistencia localStorage + eventos MetaMask (completado con TDD)
+- ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
+- ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)
+- ⚠️ Pendiente: estructura carpetas (`components/`, `pages/`) y páginas funcionales
 
 ---
