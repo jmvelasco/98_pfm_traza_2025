@@ -2134,6 +2134,37 @@ _Build: ✅ Exitoso sin errores_
 
 ---
 
+## ✨ Feature — Outgoing Transfers real-time refresh on TransferRequested (24 Oct 2025)
+
+### Contexto
+
+- Objetivo UX: ver en tiempo real el envío “Transfer to Factory” en la lista "Outgoing Transfers" sin recargar.
+- Estrategia: suscribir el frontend al evento `TransferRequested` y refrescar la paginación vía el hook de datos.
+
+### Cambios clave
+
+- `web/src/components/tokenOps/PendingTransfersSent.tsx`
+  - Nueva suscripción a `TransferRequested` (ethers v6 + TypeChain factory).
+  - Cuando `from === address` → invoca `refresh()` del hook `usePendingTransfersList`.
+  - Limpieza de listeners en unmount; sin duplicados (la fuente de verdad es el backend/paginación).
+
+### Tests (RED → GREEN)
+
+- Actualizado `src/__tests__/pending.transfers.test.tsx` con 3 casos:
+  - Añade item tras evento del propio usuario.
+  - Ignora eventos de otros remitentes.
+  - No duplica si el mismo evento llega 2 veces (refresca, pero la lista se mantiene única).
+
+Resultado suite: 93/93 tests pasando.
+
+### Quality gates
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (93/93)
+
+---
+
 ## ➕ Fase 10 — Factory: Accept/Reject Pending Transfers + Dual Lists (24 octubre 2025)
 
 ### 🎯 Objetivo
@@ -2184,7 +2215,7 @@ _Sesión actualizada: 24 octubre 2025, 16:25 GMT_
 _Estado: ✅ FASE 10 COMPLETADA_  
 _Tests web: 88/88 pasando_
 
-## � Tests RED — Clickabilidad y acción de paginación en Outgoing (25 Oct 2025 - 16:20 CET)
+## Tests RED — Clickabilidad y acción de paginación en Outgoing (25 Oct 2025 - 16:20 CET)
 
 ### Contexto
 
@@ -2204,7 +2235,7 @@ Tras la QA manual, se observó que los botones de paginación (Prev/Next) en Out
 
 ---
 
-## �🔧 Fix — Implementación completa de useTransfersList all-statuses (25 Oct 2025 - 13:20 CET)
+## 🔧 Fix — Implementación completa de useTransfersList all-statuses (25 Oct 2025 - 13:20 CET)
 
 ---
 
@@ -2427,37 +2458,6 @@ Tras la QA manual, se observó que los botones de paginación (Prev/Next) en Out
 
 ---
 
-## ✨ Feature — Outgoing Transfers real-time refresh on TransferRequested (24 Oct 2025)
-
-### Contexto
-
-- Objetivo UX: ver en tiempo real el envío “Transfer to Factory” en la lista "Outgoing Transfers" sin recargar.
-- Estrategia: suscribir el frontend al evento `TransferRequested` y refrescar la paginación vía el hook de datos.
-
-### Cambios clave
-
-- `web/src/components/tokenOps/PendingTransfersSent.tsx`
-  - Nueva suscripción a `TransferRequested` (ethers v6 + TypeChain factory).
-  - Cuando `from === address` → invoca `refresh()` del hook `usePendingTransfersList`.
-  - Limpieza de listeners en unmount; sin duplicados (la fuente de verdad es el backend/paginación).
-
-### Tests (RED → GREEN)
-
-- Actualizado `src/__tests__/pending.transfers.test.tsx` con 3 casos:
-  - Añade item tras evento del propio usuario.
-  - Ignora eventos de otros remitentes.
-  - No duplica si el mismo evento llega 2 veces (refresca, pero la lista se mantiene única).
-
-Resultado suite: 93/93 tests pasando.
-
-### Quality gates
-
-- Build: PASS
-- Lint/Typecheck: PASS
-- Tests: PASS (93/93)
-
----
-
 ## 🛠 Fix — MyTokens por balance tras aceptar transferencias (25 octubre 2025)
 
 ### Contexto
@@ -2536,5 +2536,61 @@ Los botones Prev/Next carecían de `type="button"` explícito. En HTML, los elem
 ### Próximo paso
 
 Los 2 tests RED restantes (`pending.transfers.sent.clickability.test.tsx`) requieren un fix diferente: deben responder a clicks actualizando el state del hook mock para simular el cambio de página. Esto no es un bug de producción sino del enfoque de testing (mock estático vs dinámico).
+
+---
+
+## ✅ Reorganización de tests de Transfers + Anti-flake (Shuffle) — 25 Oct 2025
+
+### Contexto y objetivos
+
+- Reorganizar la suite de tests a una estructura orientada a dominio para `Transfers` (enviadas/recibidas, paginación y acciones) y eliminar archivos legacy duplicados/obsoletos.
+- Añadir ejecución aleatoria (shuffle) local y en CI para detectar dependencias de orden y fugas de mocks.
+
+### Cambios clave (reorganización)
+
+- Nuevas suites bajo `web/src/__tests__/`:
+  - `transfers.sent.list.test.tsx` (pendientes, all-status, read-only)
+  - `transfers.sent.pagination.test.tsx`
+  - `transfers.received.list.test.tsx`
+  - `transfers.received.actions.test.tsx`
+- Eliminados archivos legacy previos (pendientes duplicados, placeholders y variantes no usadas), dejando la suite en 0 tests saltados.
+- Documentado el plan y el estado de migración en `docs/TEST_SUITE_REORGANIZATION_PROPOSAL.md`.
+
+### Anti-flake: ejecución aleatoria (shuffle)
+
+- Script npm añadido en `web/package.json`:
+  - `test:shuffle`: ejecuta Vitest con `--sequence.shuffle`.
+- CI: nuevo flujo `.github/workflows/test-shuffle.yml` para correr la suite en orden aleatorio en cada push/PR a `main`/`dev`.
+- Guía creada en `docs/debug/SHUFFLE_TESTING.md` (cómo ejecutar, usar semillas, interpretar resultados).
+
+### Incidencias detectadas y solucionadas (seed 12345)
+
+- Con `npm run test:shuffle -- --sequence.seed=12345` fallaban tests en "Transfers – Sent List (pending only)":
+  - Síntoma: tras emitir `TransferRequested`, la UI seguía mostrando estado vacío.
+  - Causas raíz:
+    1. Carrera en el componente: se hacía `setTick()` inmediatamente después de `refresh()`, re-renderizando antes de que el mock actualizara su estado.
+    2. Mock de hook sin "fetch inicial": la primera respuesta mockeada no se consumía hasta el `refresh`, desalineando la secuencia "vacío → item" según orden de ejecución.
+- Fixes aplicados:
+  - `web/src/components/tokenOps/PendingTransfersSent.tsx`: los handlers de eventos ahora esperan a `refresh()` (via `Promise.resolve(refresh()).finally(...)`) antes de forzar re-render, evitando la carrera.
+  - `transfers.sent.list.test.tsx` (suite pending-only): mock controlado de `useTransfersList` con estado interno, "fetch inicial" una sola vez y `__mock.setState(...)` para sembrar datos en tests.
+  - Adicional: reset/aislamiento de mocks entre sub-suites para evitar fugas.
+- Verificación:
+  - PASS en shuffle con seed 12345 (21 ficheros, 107 tests).
+  - PASS en ejecución normal (21/21, 107/107, 0 skipped).
+
+### Archivos relevantes tocados
+
+- `web/src/components/tokenOps/PendingTransfersSent.tsx` — espera a `refresh()` en eventos `TransferRequested/Accepted/Rejected`.
+- `web/src/__tests__/transfers.sent.list.test.tsx` — mock de `useTransfersList` con estado y fetch inicial; aislamiento de mocks por suite.
+- `web/package.json` — script `test:shuffle`.
+- `.github/workflows/test-shuffle.yml` — shuffle en CI.
+- `docs/debug/SHUFFLE_TESTING.md` — guía de shuffle y registro de la incidencia seed 12345.
+- `docs/TEST_SUITE_REORGANIZATION_PROPOSAL.md` — estado final de la migración (legacy eliminados, 0 skipped).
+
+### Quality gates (post-fix)
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (107/107) — normal y shuffle (seed 12345)
 
 ---

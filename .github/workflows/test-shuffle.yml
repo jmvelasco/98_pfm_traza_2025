@@ -1,0 +1,33 @@
+name: Frontend Tests (Shuffled)
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  vitest-shuffled:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supply-chain-tracker/web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            supply-chain-tracker/web/package-lock.json
+
+      - name: Install dependencies (web)
+        run: npm ci
+
+      - name: Run Vitest (shuffled)
+        run: npm run test:shuffle -- --reporter=dot
+        env:
+          CI: true

@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:shuffle": "vitest run --sequence.shuffle",
     "test:ui": "vitest --ui",
     "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,css,md}\"",
     "regen:contracts": "node ../../scripts/generate-contract-config.js",

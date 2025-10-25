@@ -102,8 +102,12 @@ describe('TransferForm', () => {
 
   it('calls requestTransfer on valid input and shows success', async () => {
     (contract as any).getUserInfo.mockResolvedValue({ role: 'Factory', status: 'Approved' });
+    let resolveRequest!: () => void;
     (contract as any).requestTransfer.mockImplementation(
-      () => new Promise((resolve) => setTimeout(resolve, 0))
+      () =>
+        new Promise<void>((resolve) => {
+          resolveRequest = resolve;
+        })
     );
     render(<TransferForm tokenId={1} parentId={0} balance={100} />);
     const user = userEvent.setup();
@@ -114,6 +118,8 @@ describe('TransferForm', () => {
     await user.type(screen.getByLabelText(/amount/i), '10');
     await user.click(screen.getByRole('button', { name: /request transfer/i }));
     expect(await screen.findByText(/requesting transfer/i)).toBeInTheDocument();
+    // Now resolve the request and expect success
+    resolveRequest();
     await waitFor(() => expect(screen.getByText(/transfer requested/i)).toBeInTheDocument());
   });
 

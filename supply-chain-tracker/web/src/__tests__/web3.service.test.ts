@@ -28,6 +28,14 @@ Object.defineProperty(window, 'ethereum', {
 describe('Web3 Service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure a clean ethereum mock for every test and avoid order-dependence
+    mockEthereum.request = vi.fn();
+    mockEthereum.on = vi.fn();
+    mockEthereum.removeListener = vi.fn();
+    Object.defineProperty(window, 'ethereum', {
+      value: mockEthereum,
+      writable: true,
+    });
   });
 
   describe('connectWallet', () => {

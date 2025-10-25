@@ -11,7 +11,7 @@ vi.mock('../hooks/useWallet', () => ({
   useWallet: () => ({ address: '0xproducer' }),
 }));
 
-describe('PendingTransfersSent - Pagination', () => {
+describe('Transfers – Sent Pagination', () => {
   describe('with showAllStatuses (full pagination flow)', () => {
     it('pagination controls work correctly with showAllStatuses=true (7 items, 2 pages)', async () => {
       const { useTransfersList } = await import('../hooks/useTransfersList');
@@ -469,6 +469,51 @@ describe('PendingTransfersSent - Pagination', () => {
       // Verify UI updated back to page 1
       expect(screen.getByText(/Showing 1–5 of 7/i)).toBeInTheDocument();
       expect(screen.getByText(/Page 1 \/ 2/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('ux safeguards', () => {
+    it('Prev/Next clicks do not submit enclosing forms (no page reload)', async () => {
+      const onSubmit = vi.fn((e: any) => e.preventDefault());
+      const { useTransfersList } = await import('../hooks/useTransfersList');
+
+      // Provide a single-page worth of items with Next enabled by totalPages=2
+      (useTransfersList as any).mockReturnValue({
+        items: Array.from({ length: 5 }, (_, i) => ({
+          id: i + 1,
+          tokenId: 100 + i,
+          tokenName: `Item ${i + 1}`,
+          amount: 10 + i,
+          to: '0xB',
+          status: 'Pending',
+        })),
+        total: 7,
+        page: 1,
+        totalPages: 2,
+        setPage: vi.fn(),
+        loading: false,
+        error: null,
+        refresh: vi.fn(),
+      });
+
+      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+        .default;
+
+      render(
+        <form onSubmit={onSubmit}>
+          <PendingTransfersSent showAllStatuses={true} />
+        </form>
+      );
+
+      // On page 1 of 2, Next should be enabled
+      const nextBtn = screen.getByRole('button', { name: /next/i });
+      expect(nextBtn).toBeEnabled();
+
+      const user = userEvent.setup();
+      await user.click(nextBtn);
+
+      // Assert the enclosing form did not submit (click should not trigger page reload)
+      expect(onSubmit).not.toHaveBeenCalled();
     });
   });
 });

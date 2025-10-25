@@ -44,8 +44,9 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
             const from = a?.from ?? a?.[1];
             if (from && address && String(from).toLowerCase() === address.toLowerCase()) {
               // Trigger a refresh; pagination and dedupe are handled by the hook/backend
-              refresh();
-              setTick((t) => t + 1);
+              void Promise.resolve(refresh()).finally(() => {
+                setTick((t) => t + 1);
+              });
             }
           }
         };
@@ -53,12 +54,14 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
         if (showAllStatuses) {
           acceptedHandler = (..._args: any[]) => {
             // Any acceptance affecting any of the sender's transfers should trigger a refresh
-            refresh();
-            setTick((t) => t + 1);
+            void Promise.resolve(refresh()).finally(() => {
+              setTick((t) => t + 1);
+            });
           };
           rejectedHandler = (..._args: any[]) => {
-            refresh();
-            setTick((t) => t + 1);
+            void Promise.resolve(refresh()).finally(() => {
+              setTick((t) => t + 1);
+            });
           };
           acceptedFilter = contract.filters.TransferAccepted?.() ?? 'TransferAccepted';
           rejectedFilter = contract.filters.TransferRejected?.() ?? 'TransferRejected';
