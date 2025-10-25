@@ -17,7 +17,7 @@ export interface TransfersListResult {
   items: Array<contract.PendingTransfer & { status?: 'Pending' | 'Accepted' | 'Rejected' }>;
   total: number;
   page: number;
-    totalPages: number;
+  totalPages: number;
   setPage: (page: number) => void;
   loading: boolean;
   error: string | null;

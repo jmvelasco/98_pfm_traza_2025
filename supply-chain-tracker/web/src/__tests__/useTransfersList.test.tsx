@@ -116,38 +116,38 @@ describe('useTransfersList (unified hook)', () => {
     });
   });
 
-    it('all-statuses mode handles pagination correctly with 7 items', async () => {
-      // Create 7 mock events (should result in 2 pages with pageSize=5)
-      const mockEvents = Array.from({ length: 7 }, (_, i) => ({
-        args: {
-          transferId: BigInt(i + 1),
-          from: '0xsender',
-          to: `0xrecipient${i}`,
-        },
-      }));
+  it('all-statuses mode handles pagination correctly with 7 items', async () => {
+    // Create 7 mock events (should result in 2 pages with pageSize=5)
+    const mockEvents = Array.from({ length: 7 }, (_, i) => ({
+      args: {
+        transferId: BigInt(i + 1),
+        from: '0xsender',
+        to: `0xrecipient${i}`,
+      },
+    }));
 
-      mockQueryFilter.mockResolvedValueOnce(mockEvents);
+    mockQueryFilter.mockResolvedValueOnce(mockEvents);
 
-      // Mock getTransfer calls for all 7 transfers
-      for (let i = 0; i < 7; i++) {
-        mockGetTransfer.mockResolvedValueOnce({
-          tokenId: BigInt(100 + i),
-          amount: BigInt(10 + i),
-          from: '0xsender',
-          to: `0xrecipient${i}`,
-          status: BigInt(i % 3), // Mix of Pending/Accepted/Rejected
-          dateCreated: BigInt(1000 + i * 1000),
-        });
-        mockGetToken.mockResolvedValueOnce({ name: `Token ${i + 1}` });
-      }
-
-      render(<TestComp includeAllStatuses={true} />);
-
-      await waitFor(() => {
-        // With pageSize=5, first page should show 5 items
-        expect(screen.getByTestId('items-count')).toHaveTextContent('5');
-        // Total should be 7
-        expect(screen.getByTestId('total')).toHaveTextContent('7');
+    // Mock getTransfer calls for all 7 transfers
+    for (let i = 0; i < 7; i++) {
+      mockGetTransfer.mockResolvedValueOnce({
+        tokenId: BigInt(100 + i),
+        amount: BigInt(10 + i),
+        from: '0xsender',
+        to: `0xrecipient${i}`,
+        status: BigInt(i % 3), // Mix of Pending/Accepted/Rejected
+        dateCreated: BigInt(1000 + i * 1000),
       });
+      mockGetToken.mockResolvedValueOnce({ name: `Token ${i + 1}` });
+    }
+
+    render(<TestComp includeAllStatuses={true} />);
+
+    await waitFor(() => {
+      // With pageSize=5, first page should show 5 items
+      expect(screen.getByTestId('items-count')).toHaveTextContent('5');
+      // Total should be 7
+      expect(screen.getByTestId('total')).toHaveTextContent('7');
     });
+  });
 });

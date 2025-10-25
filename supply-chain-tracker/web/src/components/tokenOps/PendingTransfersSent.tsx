@@ -171,14 +171,14 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
                   ))}
                 </tbody>
               </table>
-                <TransfersPagination
-                  page={page}
-                  totalPages={totalPages}
-                  total={total}
-                  pageSize={5}
-                  itemsInCurrentPage={items.length}
-                  onPageChange={setPage}
-                />
+              <TransfersPagination
+                page={page}
+                totalPages={totalPages}
+                total={total}
+                pageSize={5}
+                itemsInCurrentPage={items.length}
+                onPageChange={setPage}
+              />
             </div>
           )}
         </div>

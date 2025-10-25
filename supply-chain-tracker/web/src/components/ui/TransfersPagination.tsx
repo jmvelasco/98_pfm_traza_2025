@@ -38,7 +38,8 @@ export default function TransfersPagination({
       </div>
       <div className="space-x-2">
         <button
-          className="px-3 py-1 text-xs bg-white border rounded disabled:opacity-50"
+          type="button"
+          className="px-3 py-1 text-blue-500 text-xs bg-white border rounded disabled:opacity-50 disabled:pointer-events-none hover:bg-gray-100"
           onClick={handlePrev}
           disabled={page <= 1}
           aria-label="Previous page"
@@ -49,7 +50,8 @@ export default function TransfersPagination({
           Page {page} / {totalPages}
         </span>
         <button
-          className="px-3 py-1 text-xs bg-white border rounded disabled:opacity-50"
+          type="button"
+          className="px-3 py-1 text-blue-500 text-xs bg-white border rounded disabled:opacity-50 disabled:pointer-events-none hover:bg-gray-100"
           onClick={handleNext}
           disabled={page >= totalPages}
           aria-label="Next page"
