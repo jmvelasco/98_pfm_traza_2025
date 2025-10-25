@@ -80,10 +80,10 @@ export default function Dashboard() {
           {role === UserRole.Factory ? (
             <>
               <PendingTransfersReceived />
-              <PendingTransfersSent />
+              <PendingTransfersSent showAllStatuses={true} />
             </>
           ) : (
-            <PendingTransfersSent />
+            <PendingTransfersSent showAllStatuses={true} />
           )}
         </section>
       )}

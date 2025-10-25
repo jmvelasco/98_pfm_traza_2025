@@ -195,7 +195,8 @@ describe('Dashboard Page', () => {
       // Factory dashboard now shows two sections: Incoming and Outgoing Transfers
       expect(screen.getByRole('heading', { name: /incoming transfers/i })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: /outgoing transfers/i })).toBeInTheDocument();
-      expect(screen.getAllByText(/no pending transfers/i)).toHaveLength(2);
+      expect(screen.getByText(/no pending transfers/i)).toBeInTheDocument();
+      expect(screen.getByText(/no outgoing transfers yet\./i)).toBeInTheDocument();
     });
   });
 });

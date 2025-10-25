@@ -41,20 +41,27 @@ describe('Producer Dashboard', () => {
         error: null,
       }),
     }));
-    vi.mock('../lib/contract', () => ({
-      getPendingBySender: vi.fn().mockResolvedValue({
+    // Outgoing list now uses all-statuses hook; mock it to return a pending item
+    vi.mock('../hooks/useTransfersListAll', () => ({
+      useTransfersListAll: () => ({
         items: [
           {
             id: 'tx1',
             tokenId: 1,
             tokenName: 'Wheat',
             amount: 10,
+            from: '0x123',
             to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             status: 'Pending',
             createdAt: 1700000000,
           },
         ],
         total: 1,
+        page: 1,
+        setPage: () => {},
+        loading: false,
+        error: null,
+        refresh: () => {},
       }),
     }));
 
