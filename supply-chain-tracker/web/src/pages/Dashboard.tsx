@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
+import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import MyTokens from '../components/tokenOps/MyTokens';
-import PendingTransfersReceived from '../components/tokenOps/PendingTransfersReceived';
 import PendingTransfersSent from '../components/tokenOps/PendingTransfersSent';
 import { RoleActions } from '../components/tokenOps/RoleActions';
 import Spinner from '../components/ui/Spiner';
@@ -79,7 +79,7 @@ export default function Dashboard() {
         <section className="space-y-6">
           {role === UserRole.Factory ? (
             <>
-              <PendingTransfersReceived />
+              <IncomingTransfers />
               <PendingTransfersSent showAllStatuses={true} />
             </>
           ) : (

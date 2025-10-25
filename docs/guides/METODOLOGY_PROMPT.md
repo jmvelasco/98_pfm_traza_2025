@@ -13,6 +13,7 @@ Use this prompt verbatim (fill in the placeholders) to drive an AI pair-programm
 - Never implement production code before committing a RED baseline for the targeted behavior.
 - Progress one test at a time using `.skip` to control scope.
 - After making one test GREEN, commit immediately with a concise message.
+- Once the test is GREEN, execute `npm run build` to ensure no project regression.
 - Prefer the smallest code change to pass the current test; defer refactors unless required by the current test.
 - If the UX forbids an invalid path (e.g., disabled submit), remove or adjust unreachable tests.
 - Prefer DOM-rendered messages over `alert` or non-testable side effects.

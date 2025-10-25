@@ -181,7 +181,7 @@ describe('Dashboard Page', () => {
     });
   });
 
-  it('shows pending transfers placeholder section', async () => {
+  it('shows transfers placeholder section', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Factory, status: UserStatus.Approved },

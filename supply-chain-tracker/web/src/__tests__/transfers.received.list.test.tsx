@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import * as contract from '../lib/contract';
@@ -14,35 +15,23 @@ vi.mock('../hooks/useWallet', () => ({
 }));
 
 describe('Transfers – Received List', () => {
-  it('lists pending transfers received (paginated)', async () => {
+  it('lists transfers with all statuses (Pending, Accepted, Rejected)', async () => {
     const mockItems = [
-      buildPendingReceived(1, {
-        tokenId: 10,
-        tokenName: 'Raw Material A',
-        amount: 50,
-        from: '0xproducer',
-      }),
-      buildPendingReceived(2, {
-        tokenId: 11,
-        tokenName: 'Raw Material B',
-        amount: 30,
-        from: '0xproducer2',
-      }),
+      buildPendingReceived(1, { tokenId: 10, tokenName: 'Raw Material A', amount: 50, from: '0xproducer', status: 'Pending' }),
+      buildPendingReceived(2, { tokenId: 11, tokenName: 'Raw Material B', amount: 30, from: '0xproducer2', status: 'Accepted' }),
+      buildPendingReceived(3, { tokenId: 12, tokenName: 'Raw Material C', amount: 20, from: '0xproducer3', status: 'Rejected' }),
     ];
-    (contract as any).getPendingByRecipient.mockResolvedValue({
-      items: mockItems,
-      total: 3,
-    });
+    (contract as any).getPendingByRecipient.mockResolvedValue({ items: mockItems, total: 3 });
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
-    render(<PendingTransfersReceived />);
+  render(<IncomingTransfers />);
 
     expect(await screen.findByText(/raw material a/i)).toBeInTheDocument();
     expect(screen.getByText(/raw material b/i)).toBeInTheDocument();
-    expect(screen.getByText(/showing 1–2 of 3/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
+    expect(screen.getByText(/raw material c/i)).toBeInTheDocument();
+
+    expect(screen.getByTestId('badge-status-Pending')).toBeInTheDocument();
+    expect(screen.getByTestId('badge-status-Accepted')).toBeInTheDocument();
+    expect(screen.getByTestId('badge-status-Rejected')).toBeInTheDocument();
   });
 
   it('factory sees both received and sent lists without interference', async () => {
@@ -69,9 +58,8 @@ describe('Transfers – Received List', () => {
     ];
     (contract as any).getPendingBySender.mockResolvedValue({ items: sentItems, total: 2 });
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
+    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
+      .default;
     const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
       .default;
 

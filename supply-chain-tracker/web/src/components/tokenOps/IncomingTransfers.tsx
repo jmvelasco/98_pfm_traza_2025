@@ -3,14 +3,16 @@ import { useTransfersList } from '../../hooks/useTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import * as contract from '../../lib/contract';
 import Alert from '../ui/Alert';
+import Badge from '../ui/Badge';
 import TransfersPagination from '../ui/TransfersPagination';
 
-export default function PendingTransfersReceived() {
+export default function IncomingTransfers() {
   const { address } = useWallet();
   const { items, total, page, totalPages, setPage, loading, error, refresh } = useTransfersList({
     mode: 'recipient',
     address,
     pageSize: 5,
+    includeAllStatuses: true,
   });
   const [actionError, setActionError] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<number | string | null>(null);
@@ -87,6 +89,7 @@ export default function PendingTransfersReceived() {
                   {items.map((t) => {
                     const canAct =
                       !!address && !!t.to && address.toLowerCase() === String(t.to).toLowerCase();
+                    const isPending = t.status === 'Pending';
                     return (
                       <tr key={t.id}>
                         <td className="px-4 py-2 text-gray-600">
@@ -94,7 +97,11 @@ export default function PendingTransfersReceived() {
                         </td>
                         <td className="px-4 py-2 text-gray-600">{t.amount}</td>
                         <td className="px-4 py-2 text-gray-600">{t.from}</td>
-                        <td className="px-4 py-2 text-gray-600">{t.status}</td>
+                        <td className="px-4 py-2 text-gray-600">
+                          <Badge status={t.status as 'Pending' | 'Accepted' | 'Rejected'}>
+                            {t.status}
+                          </Badge>
+                        </td>
                         <td className="px-4 py-2 text-gray-600">
                           {canAct ? (
                             <div className="flex gap-2">
@@ -102,7 +109,7 @@ export default function PendingTransfersReceived() {
                                 type="button"
                                 name="accept"
                                 className="px-2 py-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded disabled:opacity-50 cursor-pointer"
-                                disabled={processingId === t.id}
+                                disabled={processingId === t.id || !isPending}
                                 onClick={() => onAccept(t.id)}
                               >
                                 Accept
@@ -111,7 +118,7 @@ export default function PendingTransfersReceived() {
                                 type="button"
                                 name="reject"
                                 className="px-2 py-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded disabled:opacity-50 cursor-pointer"
-                                disabled={processingId === t.id}
+                                disabled={processingId === t.id || !isPending}
                                 onClick={() => onReject(t.id)}
                               >
                                 Reject

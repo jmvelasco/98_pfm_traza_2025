@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import * as contract from '../lib/contract';
 import { buildPendingReceived } from './utils/builders';
 
@@ -15,6 +16,42 @@ vi.mock('../hooks/useWallet', () => ({
 }));
 
 describe('Transfers – Received Actions', () => {
+  it('disables Accept/Reject buttons for non-Pending transfers', async () => {
+    const items = [
+      buildPendingReceived(1, {
+        id: '1',
+        tokenId: 10,
+        tokenName: 'Raw Material A',
+        amount: 50,
+        from: '0xproducer',
+        status: 'Accepted',
+      }),
+      buildPendingReceived(2, {
+        id: '2',
+        tokenId: 11,
+        tokenName: 'Raw Material B',
+        amount: 30,
+        from: '0xproducer2',
+        status: 'Rejected',
+      }),
+    ];
+    (contract as any).getPendingByRecipient.mockResolvedValue({ items, total: 2 });
+
+    const IncomingTransfers = (await import('../components/tokenOps/IncomingTransfers')).default;
+    render(<IncomingTransfers />);
+
+    // Wait for first item to load
+    await screen.findByText(/raw material a/i);
+
+    for (const item of items) {
+      const row = screen.getByText(new RegExp(String(item.tokenName), 'i')).closest('tr');
+      const acceptBtn = row?.querySelector('button[name="accept"]') as HTMLButtonElement;
+      const rejectBtn = row?.querySelector('button[name="reject"]') as HTMLButtonElement;
+      expect(acceptBtn).toBeDisabled();
+      expect(rejectBtn).toBeDisabled();
+    }
+  });
+
   it('accepts a transfer and updates UI', async () => {
     const initialItems = [
       buildPendingReceived(1, {
@@ -48,10 +85,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
-    render(<PendingTransfersReceived />);
+    render(<IncomingTransfers />);
 
     expect(await screen.findByText(/raw material a/i)).toBeInTheDocument();
 
@@ -100,10 +134,7 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
-    render(<PendingTransfersReceived />);
+    render(<IncomingTransfers />);
 
     expect(await screen.findByText(/raw material c/i)).toBeInTheDocument();
     const rowC = screen.getByText(/raw material c/i).closest('tr')!;
@@ -130,9 +161,8 @@ describe('Transfers – Received Actions', () => {
     (contract as any).getPendingByRecipient.mockResolvedValue({ items: initialItems, total: 1 });
     (contract as any).acceptTransfer.mockRejectedValue(new Error('boom'));
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
+    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
+      .default;
     render(<PendingTransfersReceived />);
 
     const rowE = await screen.findByText(/raw material e/i);
@@ -164,9 +194,8 @@ describe('Transfers – Received Actions', () => {
       () => new Promise<void>((resolve) => (resolveFn = () => resolve()))
     );
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
+    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
+      .default;
     render(<PendingTransfersReceived />);
 
     const user = userEvent.setup();
@@ -216,9 +245,8 @@ describe('Transfers – Received Actions', () => {
       () => new Promise((resolve) => setTimeout(resolve, 0))
     );
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
+    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
+      .default;
     render(<PendingTransfersReceived />);
 
     // We are at page 1
@@ -255,9 +283,8 @@ describe('Transfers – Received Actions', () => {
       total: 1,
     });
 
-    const PendingTransfersReceived = (
-      await import('../components/tokenOps/PendingTransfersReceived')
-    ).default;
+    const PendingTransfersReceived = (await import('../components/tokenOps/IncomingTransfers'))
+      .default;
     render(<PendingTransfersReceived />);
 
     // Row renders but no actions should be available
