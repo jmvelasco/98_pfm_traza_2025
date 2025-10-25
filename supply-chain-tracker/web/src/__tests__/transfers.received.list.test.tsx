@@ -77,8 +77,7 @@ describe('Transfers – Received List', () => {
     (contract as any).getPendingBySender.mockResolvedValue({ items: sentItems, total: 2 });
 
     const PendingTransfersReceived = IncomingTransfers;
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
 
     render(
       <div>

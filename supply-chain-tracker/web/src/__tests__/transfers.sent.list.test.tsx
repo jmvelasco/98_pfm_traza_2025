@@ -117,8 +117,7 @@ describe('Transfers – Sent List (pending only)', () => {
     }));
   });
   it('shows empty state when there are no pending transfers', async () => {
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
     render(<PendingTransfersSent />);
     expect(screen.getByRole('heading', { name: /Outgoing Transfers/i })).toBeInTheDocument();
     expect(await screen.findByText(/No pending transfers/i)).toBeInTheDocument();
@@ -145,8 +144,7 @@ describe('Transfers – Sent List (pending only)', () => {
       2
     );
 
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
     render(<PendingTransfersSent />);
 
     // Renders token name or fallback "Token #ID"
@@ -183,8 +181,7 @@ describe('Transfers – Sent List (pending only)', () => {
     // Needed to allow event listener setup
     (window as any).ethereum = {};
 
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
     render(<PendingTransfersSent />);
 
     // Initially empty
@@ -212,8 +209,7 @@ describe('Transfers – Sent List (pending only)', () => {
     (getPendingBySender as any).mockResolvedValue({ items: [], total: 0 });
     (window as any).ethereum = {};
 
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
     render(<PendingTransfersSent />);
 
     // Emit event from different address
@@ -248,8 +244,7 @@ describe('Transfers – Sent List (pending only)', () => {
 
     (window as any).ethereum = {};
 
-    const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
-      .default;
+    const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers')).default;
     render(<PendingTransfersSent />);
     expect(await screen.findByText(/No pending transfers/i)).toBeInTheDocument();
 
@@ -313,7 +308,7 @@ describe('Transfers – Sent List (all statuses)', () => {
       }),
     }));
 
-    const { default: Component } = await import('../components/tokenOps/PendingTransfersSent');
+    const { default: Component } = await import('../components/tokenOps/OutgoingTransfers');
     render(<Component showAllStatuses={true} />);
 
     // Shows table rows with Accepted and Rejected statuses
@@ -374,7 +369,7 @@ describe('Transfers – Sent List (all statuses)', () => {
       useTransfersList: () => results[Math.min(idx, results.length - 1)],
     }));
 
-    const { default: Component } = await import('../components/tokenOps/PendingTransfersSent');
+    const { default: Component } = await import('../components/tokenOps/OutgoingTransfers');
     render(<Component showAllStatuses={true} />);
 
     expect(await screen.findByText(/Barley/i)).toBeInTheDocument();
@@ -443,7 +438,7 @@ describe('Transfers – Sent List (all statuses)', () => {
       useTransfersList: () => results[Math.min(idx, results.length - 1)],
     }));
 
-    const { default: Component } = await import('../components/tokenOps/PendingTransfersSent');
+    const { default: Component } = await import('../components/tokenOps/OutgoingTransfers');
     render(<Component showAllStatuses={true} />);
 
     expect(await screen.findByText(/Token #3/i)).toBeInTheDocument();
@@ -497,7 +492,7 @@ describe('Transfers – Sent List (read-only rendering)', () => {
     }));
 
     const { default: PendingTransfersSent } = await import(
-      '../components/tokenOps/PendingTransfersSent'
+      '../components/tokenOps/OutgoingTransfers'
     );
     render(<PendingTransfersSent />);
     expect(await screen.findByRole('heading', { name: /outgoing transfers/i })).toBeInTheDocument();

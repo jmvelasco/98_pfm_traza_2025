@@ -9,7 +9,7 @@ import TransfersPagination from '../ui/TransfersPagination';
 
 type Props = { showAllStatuses?: boolean };
 
-export default function PendingTransfersSent({ showAllStatuses = false }: Props) {
+export default function OutgoingTransfers({ showAllStatuses = false }: Props) {
   const { address } = useWallet();
   // Local tick to force a re-render on realtime events so mocked hooks in tests can update
   const [tick, setTick] = useState(0);

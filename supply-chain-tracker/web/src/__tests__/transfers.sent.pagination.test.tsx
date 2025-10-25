@@ -93,7 +93,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: mockRefresh,
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
       const { rerender } = render(<PendingTransfersSent showAllStatuses={true} />);
 
@@ -231,7 +231,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: vi.fn(),
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
       render(<PendingTransfersSent showAllStatuses={true} />);
 
@@ -269,7 +269,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: vi.fn(),
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
       render(<PendingTransfersSent showAllStatuses={true} />);
 
@@ -310,7 +310,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: vi.fn(),
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
 
       const { rerender } = render(<PendingTransfersSent showAllStatuses={true} />);
@@ -374,7 +374,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: vi.fn(),
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
 
       const { rerender } = render(<PendingTransfersSent showAllStatuses={true} />);
@@ -437,7 +437,7 @@ describe('Transfers – Sent Pagination', () => {
         refresh: vi.fn(),
       });
 
-      const PendingTransfersSent = (await import('../components/tokenOps/PendingTransfersSent'))
+      const PendingTransfersSent = (await import('../components/tokenOps/OutgoingTransfers'))
         .default;
 
       render(
