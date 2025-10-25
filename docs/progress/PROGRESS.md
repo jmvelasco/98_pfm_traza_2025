@@ -398,6 +398,36 @@ web/vitest.setup.ts                 # Setup global de tests
 
 ### 📈 **Progreso vs STATUS_06**:
 
+---
+
+## 🧱 25 Oct 2025 — Builders Migration (Finalizado)
+
+### 🎯 Objetivo
+
+Completar la adopción de builders de fixtures en todas las suites relacionadas con transfers para lograr consistencia 100% y facilitar mantenimiento futuro.
+
+### ✅ Cambios realizados
+
+- Migrados los 3 candidatos restantes a `utils/builders`:
+  - `useTransfersList.test.tsx` — generación de arrays con builders; mapeo BigInt para eventos conservado
+  - `dashboard.outgoing.all-status.test.tsx` — dos fixtures inline → `buildPendingSent`
+  - `producer.dashboard.test.tsx` — un fixture inline → `buildPendingSent`
+- Sin cambios en lógica de producción; únicamente sustitución de fixtures en tests
+
+### 🔎 Validación
+
+- Suite completa: 21 archivos, 107 tests — PASS
+- Ejecución con shuffle: 21 archivos, 107 tests — PASS (independencia de orden)
+
+### 📝 Notas
+
+- Se mantiene el override de `id` numérico en tests que invocan acciones donde el código hace `Number(id)`
+- Se difiere la adopción de utilidades de mocks compartidos por las consideraciones de composición (`vi.doMock`) ya documentadas
+
+### 📌 Resultado
+
+Consistencia total: todas las pruebas de transfers usan builders compartidos. Cualquier evolución del esquema de transfer se centraliza en `builders.ts`, reduciendo esfuerzo y riesgo en futuras modificaciones.
+
 - ✅ Persistencia localStorage + eventos MetaMask (completado con TDD)
 - ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
 - ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)

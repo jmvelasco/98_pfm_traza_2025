@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 import Dashboard from '../pages/Dashboard';
+import { buildPendingSent } from './utils/builders';
 
 describe('Producer Dashboard', () => {
   test('shows dashboard with the required actions for Producer role', async () => {
@@ -45,16 +46,15 @@ describe('Producer Dashboard', () => {
     vi.mock('../hooks/useTransfersList', () => ({
       useTransfersList: () => ({
         items: [
-          {
+          buildPendingSent(1, {
             id: 'tx1',
             tokenId: 1,
             tokenName: 'Wheat',
             amount: 10,
             from: '0x123',
             to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-            status: 'Pending',
             createdAt: 1700000000,
-          },
+          }),
         ],
         total: 1,
         page: 1,

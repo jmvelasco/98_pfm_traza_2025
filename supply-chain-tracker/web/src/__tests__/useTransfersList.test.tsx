@@ -2,6 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useTransfersList } from '../hooks/useTransfersList';
+import { buildPendingSent } from './utils/builders';
 
 // RED: pending-only behavior for unified hook
 
@@ -60,16 +61,15 @@ describe('useTransfersList (unified hook)', () => {
     const { getPendingBySender } = await import('../lib/contract');
     (getPendingBySender as any).mockResolvedValueOnce({
       items: [
-        {
+        buildPendingSent(1, {
           id: 't1',
           tokenId: 1,
           tokenName: 'Wheat',
           amount: 2,
-          from: '0xsender',
           to: '0xA',
-          status: 'Pending',
           createdAt: 1,
-        },
+          from: '0xsender',
+        }),
       ],
       total: 1,
     });
@@ -117,28 +117,41 @@ describe('useTransfersList (unified hook)', () => {
   });
 
   it('all-statuses mode handles pagination correctly with 7 items', async () => {
-    // Create 7 mock events (should result in 2 pages with pageSize=5)
-    const mockEvents = Array.from({ length: 7 }, (_, i) => ({
-      args: {
-        transferId: BigInt(i + 1),
+    // Create 7 mock transfers via builders and derive events (should result in 2 pages with pageSize=5)
+    const statusMap = ['Pending', 'Accepted', 'Rejected'] as const;
+    const mockTransfers = Array.from({ length: 7 }, (_, i) =>
+      buildPendingSent(i + 1, {
+        tokenId: 100 + i,
+        amount: 10 + i,
         from: '0xsender',
         to: `0xrecipient${i}`,
+        status: statusMap[i % 3],
+        createdAt: 1000 + i * 1000,
+      })
+    );
+
+    const mockEvents = mockTransfers.map((t, i) => ({
+      args: {
+        transferId: BigInt(i + 1),
+        from: t.from,
+        to: t.to,
       },
     }));
 
     mockQueryFilter.mockResolvedValueOnce(mockEvents);
 
-    // Mock getTransfer calls for all 7 transfers
-    for (let i = 0; i < 7; i++) {
+    // Mock getTransfer calls for all 7 transfers using builder data
+    for (let i = 0; i < mockTransfers.length; i++) {
+      const t = mockTransfers[i];
       mockGetTransfer.mockResolvedValueOnce({
-        tokenId: BigInt(100 + i),
-        amount: BigInt(10 + i),
-        from: '0xsender',
-        to: `0xrecipient${i}`,
-        status: BigInt(i % 3), // Mix of Pending/Accepted/Rejected
-        dateCreated: BigInt(1000 + i * 1000),
+        tokenId: BigInt(t.tokenId),
+        amount: BigInt(t.amount),
+        from: t.from,
+        to: t.to,
+        status: BigInt(statusMap.indexOf(t.status as (typeof statusMap)[number])),
+        dateCreated: BigInt(t.createdAt),
       });
-      mockGetToken.mockResolvedValueOnce({ name: `Token ${i + 1}` });
+      mockGetToken.mockResolvedValueOnce({ name: t.tokenName ?? `Token ${i + 1}` });
     }
 
     render(<TestComp includeAllStatuses={true} />);

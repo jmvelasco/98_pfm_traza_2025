@@ -469,3 +469,39 @@ Decision rationale documented in "Implementation notes" section above. After ful
   - Priority 3: `producer.dashboard.test.tsx` (single fixture completeness)
 - After full migration: Document pattern in team guidelines
 - After 3-6 months: Re-evaluate mock utilities adoption based on test pattern evolution
+
+## Finalization (2025-10-25)
+
+All remaining candidates were migrated to builders for full consistency across the suite:
+
+- `useTransfersList.test.tsx` — array generation refactored to builders; BigInt mapping kept for event mocks
+- `dashboard.outgoing.all-status.test.tsx` — two inline fixtures replaced with `buildPendingSent` variants
+- `producer.dashboard.test.tsx` — single inline fixture replaced with `buildPendingSent`
+
+Validation results:
+
+- Full suite: 21 files, 107 tests — PASS
+- Shuffle run: 21 files, 107 tests — PASS (order-independent)
+- No ABI or contract-layer changes required; only test fixture substitutions
+
+Notes:
+
+- Kept the known override for numeric-like `id` in action-invoking tests where `Number(id)` is used
+- Deferred shared mock utilities per prior decision; builders alone delivered the intended consistency and maintenance benefits
+
+Outcome: 100% of transfer-related tests now use the shared builders. Future schema changes (e.g., adding fields to transfer items) can be handled centrally in `builders.ts` with zero churn across suites.
+
+## Conclusions
+
+- Builders standardized transfer fixtures across all suites (100% consistency achieved).
+- Full stability verified: 107/107 tests pass in both normal and shuffled runs (order-independent).
+- Shared mock utilities are deferred; current per-suite mocking remains simple and reliable.
+- Known quirk documented: override `id` to numeric-like strings in action tests that call `Number(id)`.
+
+## Next steps
+
+- Document a brief “Test fixtures: builders” guideline and link it from team docs (e.g., CONTRIBUTING/TESTING).
+- Provide a small snippet/template for new tests that imports and uses `buildPending*` by default.
+- Reassess shared mock utilities in 3–6 months with a holistic review of test structure and mocking needs.
+- Encourage builder usage for any new transfer-related tests (PR checklist or reviewer reminder).
+- If the transfer schema evolves, update `builders.ts` once and re-run the suite (document this as the standard process).

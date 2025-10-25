@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { buildPendingSent } from './utils/builders';
 
 // Mock wallet and user to show Producer dashboard (only Outgoing Transfers section)
 vi.mock('../hooks/useWallet', () => ({
@@ -19,7 +20,7 @@ vi.mock('../hooks/useUserInfo', () => ({
 vi.mock('../hooks/useTransfersList', () => ({
   useTransfersList: () => ({
     items: [
-      {
+      buildPendingSent(1, {
         id: 't1',
         tokenId: 1,
         tokenName: 'Wheat',
@@ -28,8 +29,8 @@ vi.mock('../hooks/useTransfersList', () => ({
         to: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         status: 'Accepted',
         createdAt: 1700000000,
-      },
-      {
+      }),
+      buildPendingSent(2, {
         id: 't2',
         tokenId: 2,
         tokenName: null,
@@ -38,7 +39,7 @@ vi.mock('../hooks/useTransfersList', () => ({
         to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         status: 'Rejected',
         createdAt: 1700000100,
-      },
+      }),
     ],
     total: 2,
     page: 1,
