@@ -15,9 +15,9 @@ vi.mock('../hooks/useUserInfo', () => ({
   }),
 }));
 
-// Mock the all-statuses hook to return mixed statuses
-vi.mock('../hooks/useTransfersListAll', () => ({
-  useTransfersListAll: () => ({
+// Mock the unified hook in all-status mode to return mixed statuses
+vi.mock('../hooks/useTransfersList', () => ({
+  useTransfersList: () => ({
     items: [
       {
         id: 't1',

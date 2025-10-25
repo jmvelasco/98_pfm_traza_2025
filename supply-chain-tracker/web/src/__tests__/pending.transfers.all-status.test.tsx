@@ -60,9 +60,9 @@ import { __mock as factoryMock } from '../types/factories/SupplyChain__factory';
 describe('PendingTransfersSent (all statuses)', () => {
   it('renders Accepted and Rejected transfers when showAllStatuses is enabled', async () => {
     vi.resetModules();
-    // Provide a one-off mock for the all-status hook
-    vi.doMock('../hooks/useTransfersListAll', () => ({
-      useTransfersListAll: () => ({
+    // Provide a one-off mock for the unified hook (all-status mode via component prop)
+    vi.doMock('../hooks/useTransfersList', () => ({
+      useTransfersList: () => ({
         items: [
           {
             id: 'txA',
@@ -152,8 +152,8 @@ describe('PendingTransfersSent (all statuses)', () => {
     ];
 
     let idx = 0;
-    vi.doMock('../hooks/useTransfersListAll', () => ({
-      useTransfersListAll: () => results[Math.min(idx, results.length - 1)],
+    vi.doMock('../hooks/useTransfersList', () => ({
+      useTransfersList: () => results[Math.min(idx, results.length - 1)],
     }));
 
     const { default: Component } = await import('../components/tokenOps/PendingTransfersSent');
@@ -221,8 +221,8 @@ describe('PendingTransfersSent (all statuses)', () => {
       },
     ];
     let idx = 0;
-    vi.doMock('../hooks/useTransfersListAll', () => ({
-      useTransfersListAll: () => results[Math.min(idx, results.length - 1)],
+    vi.doMock('../hooks/useTransfersList', () => ({
+      useTransfersList: () => results[Math.min(idx, results.length - 1)],
     }));
 
     const { default: Component } = await import('../components/tokenOps/PendingTransfersSent');

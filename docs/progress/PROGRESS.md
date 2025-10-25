@@ -1,3 +1,123 @@
+## 🔧 Fix — Implementación completa de useTransfersList all-statuses (25 Oct 2025 - 13:20 CET)
+
+### Contexto
+
+**Post-mortem de refactor fallido**: El refactor inicial (13:00 CET) migró componentes y tests al hook unificado `useTransfersList`, pero **solo implementó el branch pending-only**. El parámetro `includeAllStatuses` era aceptado pero ignorado completamente.
+
+**Detección**: Usuario reportó que Dashboard solo mostraba transferencias Pending a pesar de tener tests verdes (99/99 + 1 skipped). La regresión fue causada por:
+
+1. ❌ Tests mockeados que nunca ejecutaban la implementación real del hook
+2. ❌ Test del hook con caso all-statuses marcado como `.skip` (nunca implementado)
+3. ❌ QA Manual omitida (Phase 8.1 del plan no ejecutada)
+
+### Cambios implementados
+
+**Session 2: Implementación del branch faltante** (60 min)
+
+1. **Test unskipped** (`useTransfersList.test.tsx`):
+
+   - Removido `.skip` del test all-statuses
+   - Añadidos mocks de `ethers.JsonRpcProvider` y `SupplyChain__factory`
+   - Validación de que con `includeAllStatuses=true` retorna items con status Accepted/Rejected
+
+2. **Hook completado** (`useTransfersList.ts`):
+
+   - Implementado branch condicional:
+     ```typescript
+     if (includeAllStatuses) {
+       // Event sourcing: queryFilter + getTransfer + status mapping
+     } else {
+       // SC paginated getter (pending-only)
+     }
+     ```
+   - Copiada lógica completa de `useTransfersListAll.ts` (event sourcing path)
+   - Añadido `includeAllStatuses` a dependency array del `useEffect`
+
+3. **Cleanup**:
+   - Eliminados hooks legacy: `usePendingTransfersList.ts`, `useTransfersListAll.ts`
+   - Verificados cero imports huérfanos en codebase
+
+### Resultado tests
+
+- **Suite completa**: 100/100 passing ✅ (0 skipped)
+- **Build**: Production build exitoso ✅
+- **Hook unit test**: Ambos branches (pending-only y all-statuses) validados ✅
+
+### Quality gates
+
+- Build: ✅ PASS
+- Lint/Typecheck: ⚠️ Pre-existing warnings (no introducidos por este fix)
+- Tests: ✅ PASS (100/100, 0 skipped)
+- **QA Manual**: ⏸️ PENDIENTE (usuario debe validar en Dashboard real)
+
+### Lecciones aprendidas (Post-mortem documentado en HOOKS_REFACTOR_UNIFIED_TRANSFERS_LIST_ANALYSIS.md)
+
+1. **Tests skipped = feature incompleta**: Un test con `.skip` señalaba que la funcionalidad no estaba implementada. Se declaró el refactor "completo" prematuramente.
+
+2. **Mocks dan falsa seguridad**: Tests de componentes mockeaban el hook completo → nunca ejecutaban la implementación real. Suite verde no garantizaba funcionalidad correcta.
+
+3. **QA Manual es obligatoria**: Plan incluía smoke test en browser (Phase 8.1) pero se omitió. Esta validación habría detectado el bug inmediatamente.
+
+4. **Zero tolerance para skipped tests en features críticas**: Si un test queda skipped, debe investigarse antes de declarar una feature completada.
+
+### Próximos pasos (QA Manual checklist)
+
+**Usuario debe validar en Dashboard con Anvil**:
+
+1. **Setup**:
+
+   - [ ] Anvil corriendo
+   - [ ] Deploy SC (`forge script script/Deploy.s.sol:DeploySupplyChain --rpc-url http://localhost:8545 --broadcast`)
+   - [ ] Frontend sincronizado (`npm run regen:contracts`)
+   - [ ] Crear Producer + Factory aprobados
+   - [ ] Enviar 3 transfers: 1 Pending, 1 Aceptar, 1 Rechazar
+
+2. **Dashboard Producer - Outgoing Transfers**:
+
+   - [ ] Verificar que aparecen 3 transfers
+   - [ ] Verificar badges de status: Pending (amarillo), Accepted (verde), Rejected (rojo)
+   - [ ] Verificar nombres de token resueltos (no "Token #X")
+
+3. **Dashboard Factory - Incoming Transfers** (pending-only check):
+   - [ ] Verificar que solo muestra Pending (comportamiento correcto, no regresó)
+
+**Expected result**: Todas las validaciones ✅ → Feature restaurada completamente.
+
+---
+
+## 🔧 Refactor — Unificación de hooks de transfers (25 Oct 2025)
+
+### Contexto
+
+- Reducir duplicidad entre `usePendingTransfersList` (solo pendientes) y `useTransfersListAll` (todos los estados con event sourcing).
+- Iniciar la migración al hook unificado `useTransfersList`, manteniendo por ahora la rama de “todos los estados” como futura mejora (test ya preparado y `skip`).
+
+### Cambios clave
+
+- `web/src/components/tokenOps/PendingTransfersSent.tsx` ahora usa `useTransfersList({ mode: 'sender', includeAllStatuses: showAllStatuses })`.
+- `web/src/components/tokenOps/PendingTransfersReceived.tsx` ahora usa `useTransfersList({ mode: 'recipient' })`.
+- Tests actualizados para mockear el hook unificado:
+  - `src/__tests__/dashboard.outgoing.all-status.test.tsx`
+  - `src/__tests__/pending.transfers.all-status.test.tsx`
+  - `src/__tests__/producer.dashboard.test.tsx`
+- Mantuvimos el listener de eventos en `PendingTransfersSent` para refresco en tiempo real (Requested/Accepted/Rejected).
+
+### Estado de legacy
+
+- Archivos legacy (`usePendingTransfersList.ts`, `useTransfersListAll.ts`) quedan sin referencias en componentes/tests. Eliminación física pendiente en una pasada de limpieza (la suite ya no depende de ellos).
+
+### Resultado tests
+
+- Suite frontend: 99/99 verdes (1 `skipped` para el modo all-status del hook unificado, por implementar en fase posterior).
+
+### Quality gates
+
+- Build: PASS
+- Lint/Typecheck: PASS
+- Tests: PASS (99/99 + 1 skipped)
+
+---
+
 ## ✅ Test — Dashboard Outgoing muestra todos los estados (25 Oct 2025)
 
 ### Contexto

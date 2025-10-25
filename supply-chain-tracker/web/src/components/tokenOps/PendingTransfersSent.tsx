@@ -1,8 +1,7 @@
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
-import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
-import { useTransfersListAll } from '../../hooks/useTransfersListAll';
+import { useTransfersList } from '../../hooks/useTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
@@ -12,9 +11,12 @@ export default function PendingTransfersSent({ showAllStatuses = false }: Props)
   const { address } = useWallet();
   // Local tick to force a re-render on realtime events so mocked hooks in tests can update
   const [tick, setTick] = useState(0);
-  const { items, total, page, setPage, loading, error, refresh } = showAllStatuses
-    ? useTransfersListAll({ mode: 'sender', address, pageSize: 5 })
-    : usePendingTransfersList({ mode: 'sender', address, pageSize: 5 });
+  const { items, total, page, setPage, loading, error, refresh } = useTransfersList({
+    mode: 'sender',
+    address,
+    pageSize: 5,
+    includeAllStatuses: showAllStatuses,
+  });
 
   // Realtime: refresh list when a new TransferRequested is emitted from this address
   useEffect(() => {

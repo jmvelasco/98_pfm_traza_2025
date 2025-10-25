@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { usePendingTransfersList } from '../../hooks/usePendingTransfersList';
+import { useTransfersList } from '../../hooks/useTransfersList';
 import { useWallet } from '../../hooks/useWallet';
 import * as contract from '../../lib/contract';
 import Alert from '../ui/Alert';
 
 export default function PendingTransfersReceived() {
   const { address } = useWallet();
-  const { items, total, page, setPage, loading, error, refresh } = usePendingTransfersList({
+  const { items, total, page, setPage, loading, error, refresh } = useTransfersList({
     mode: 'recipient',
     address,
     pageSize: 5,

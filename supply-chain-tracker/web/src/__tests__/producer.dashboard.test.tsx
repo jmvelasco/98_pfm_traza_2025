@@ -41,9 +41,9 @@ describe('Producer Dashboard', () => {
         error: null,
       }),
     }));
-    // Outgoing list now uses all-statuses hook; mock it to return a pending item
-    vi.mock('../hooks/useTransfersListAll', () => ({
-      useTransfersListAll: () => ({
+    // Outgoing list uses unified hook (all-status enabled at Dashboard); mock to return a pending item
+    vi.mock('../hooks/useTransfersList', () => ({
+      useTransfersList: () => ({
         items: [
           {
             id: 'tx1',
