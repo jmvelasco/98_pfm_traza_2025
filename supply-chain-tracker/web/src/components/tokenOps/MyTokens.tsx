@@ -128,19 +128,22 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
           return;
         }
 
-        // Fetch token details and append
+        // Fetch token details with updated balance
         const tokenIdNum = Number(transfer.tokenId);
-        const idStr = String(tokenIdNum);
-        if (seenIdsRef.current.has(idStr)) {
-          return;
-        }
 
+        // Always fetch fresh details for TransferAccepted events
+        // (balance may have changed for existing tokens)
         const details = await getTokenDetails(tokenIdNum, userAddress);
         if (details) {
           seenIdsRef.current.add(String(details.id));
+
+          // Use Map-based merge pattern to update existing tokens
           setTokens((prev) => {
-            if (prev.some((t) => String(t.id) === String(details.id))) return prev;
-            return [...prev, details];
+            const byId = new Map<string, TokenDetails>();
+            for (const t of prev) byId.set(String(t.id), t);
+            // Overwrite with fresh details (includes updated balance)
+            byId.set(String(details.id), details);
+            return Array.from(byId.values());
           });
         }
       } catch (e) {

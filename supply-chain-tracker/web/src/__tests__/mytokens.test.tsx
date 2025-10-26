@@ -278,4 +278,66 @@ describe('MyTokens', () => {
       expect(items.length).toBe(1);
     });
   });
+
+  it('when accepting a transfer of an existing token, the balance is updated in real-time', async () => {
+    // ARRANGE
+    // 1. User already owns token ID 1 with balance 100
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([1]);
+
+    const initialTokenDetails = {
+      id: 1,
+      creator: '0xproducer',
+      name: 'Wheat',
+      totalSupply: 200,
+      features: '{"country":"Spain"}',
+      parentId: 0,
+      dateCreated: 1700000000,
+      balance: 100, // Initial balance
+    };
+
+    const updatedTokenDetails = {
+      ...initialTokenDetails,
+      balance: 150, // Updated balance after transfer (+50)
+    };
+
+    // First call: initial fetch returns token with balance 100
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValueOnce(initialTokenDetails);
+
+    // Render component and wait for initial load
+    render(<MyTokens userAddress="0x123" />);
+    await waitFor(() => expect(screen.getByText('Balance:')).toBeInTheDocument());
+
+    // Verify initial balance is displayed
+    expect(screen.getByText('100')).toBeInTheDocument();
+
+    // ACT
+    // 2. Mock getTransfer to return a transfer where user is recipient
+    const mockTransfer = {
+      transferId: 1,
+      tokenId: 1, // Same token user already owns
+      from: '0xproducer',
+      to: '0x123', // Current user is recipient
+      amount: 50,
+      status: 2, // Accepted
+    };
+    factoryMock.contract.getTransfer.mockResolvedValue(mockTransfer);
+
+    // 3. Second call: after transfer, getTokenDetails returns updated balance
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValueOnce(updatedTokenDetails);
+
+    // 4. Simulate TransferAccepted event
+    const listener = factoryMock.getListener('TransferAccepted');
+    await act(async () => {
+      await listener?.({ args: { transferId: 1 } });
+    });
+
+    // ASSERT
+    // 5. Verify balance is updated in UI without page refresh
+    await waitFor(() => {
+      expect(screen.getByText('150')).toBeInTheDocument();
+    });
+
+    // 6. Verify old balance is no longer displayed
+    expect(screen.queryByText('100')).not.toBeInTheDocument();
+  });
 });
