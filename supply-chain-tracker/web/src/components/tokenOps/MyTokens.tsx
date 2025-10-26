@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
 import { useContractEvent } from '../../hooks/useContractEvent';
 import { getTokenDetails, getUserTokensWithBalance, type TokenDetails } from '../../lib/contract';
+import { mergeTokenDetails } from '../../lib/tokens';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
 interface MyTokensProps {
@@ -42,14 +43,7 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
 
         // Filter out nulls and merge with any tokens already appended via events
         const nonNull = details.filter((t): t is TokenDetails => t !== null);
-        setTokens((prev) => {
-          const byId = new Map<string, TokenDetails>();
-          // keep any tokens already present (e.g., from realtime events)
-          for (const t of prev) byId.set(String(t.id), t);
-          // merge/overwrite with fetched details
-          for (const t of nonNull) byId.set(String(t.id), t);
-          return Array.from(byId.values());
-        });
+        setTokens((prev) => mergeTokenDetails(prev, nonNull));
         // Seed/extend seen IDs set
         seenIdsRef.current = new Set([
           ...Array.from(seenIdsRef.current),
@@ -137,14 +131,8 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
         if (details) {
           seenIdsRef.current.add(String(details.id));
 
-          // Use Map-based merge pattern to update existing tokens
-          setTokens((prev) => {
-            const byId = new Map<string, TokenDetails>();
-            for (const t of prev) byId.set(String(t.id), t);
-            // Overwrite with fresh details (includes updated balance)
-            byId.set(String(details.id), details);
-            return Array.from(byId.values());
-          });
+          // Use helper to merge/overwrite with fresh details (includes updated balance)
+          setTokens((prev) => mergeTokenDetails(prev, details));
         }
       } catch (e) {
         console.error('Error handling TransferAccepted event:', e);

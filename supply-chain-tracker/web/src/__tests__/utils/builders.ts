@@ -1,4 +1,4 @@
-// Test Utilities: Builders for transfers
+// Test Utilities: Builders for transfers and tokens
 // These are test-only factories to reduce boilerplate in suites.
 
 export type TransferLike = {
@@ -10,6 +10,17 @@ export type TransferLike = {
   to: string;
   status: 'Pending' | 'Accepted' | 'Rejected';
   createdAt: number;
+};
+
+export type TokenLike = {
+  id: number;
+  creator: string;
+  name: string;
+  totalSupply: number;
+  features: string;
+  parentId: number;
+  dateCreated: number;
+  balance: number;
 };
 
 function pad(n: number, len = 2) {
@@ -30,6 +41,22 @@ export function buildTransfer(overrides: Partial<TransferLike> = {}): TransferLi
     createdAt: overrides.createdAt ?? Math.floor(Date.now() / 1000),
   };
   return { ...base, ...overrides };
+}
+
+// Base token builder with sensible defaults
+export function buildToken(overrides: Partial<TokenLike> = {}): TokenLike {
+  const idx = overrides.id ?? 1;
+  return {
+    id: idx,
+    creator: overrides.creator ?? '0xproducer',
+    name: overrides.name ?? 'Wheat',
+    totalSupply: overrides.totalSupply ?? 100,
+    features: overrides.features ?? '{"country":"Spain"}',
+    parentId: overrides.parentId ?? 0,
+    dateCreated: overrides.dateCreated ?? 1700000000,
+    balance: overrides.balance ?? 100,
+    ...overrides,
+  };
 }
 
 // Deterministic Pending Sent transfer for index N
