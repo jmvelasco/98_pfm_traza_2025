@@ -6,12 +6,6 @@ import Dashboard from '../pages/Dashboard';
 // Mock hooks
 vi.mock('../hooks/useWallet');
 vi.mock('../hooks/useUserInfo');
-vi.mock('../components/tokenOps/PackageProducts', () => ({
-  default: () => <div data-testid="package-products">Package Products Component</div>,
-}));
-vi.mock('../components/tokenOps/TransferToConsumer', () => ({
-  default: () => <div data-testid="transfer-to-consumer">Transfer To Consumer Component</div>,
-}));
 
 import { useUserInfo } from '../hooks/useUserInfo';
 import type { UseWalletReturn } from '../hooks/useWallet';
@@ -32,12 +26,12 @@ function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletR
   };
 }
 
-describe('Retailer Dashboard Integration', () => {
+describe('Dashboard - Retailer role', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should render the Retailer dashboard with proper components', async () => {
+  it('renders Retailer dashboard with correct ActionCards and sections', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Retailer, status: UserStatus.Approved },
@@ -47,22 +41,22 @@ describe('Retailer Dashboard Integration', () => {
     });
 
     render(<Dashboard />);
-    
+
     // Check for Retailer dashboard heading
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /retailer dashboard/i })).toBeInTheDocument();
     });
 
-    // Check for PackageProducts component
-    expect(screen.getByTestId('package-products')).toBeInTheDocument();
-    
-    // Check for TransferToConsumer component
-    expect(screen.getByTestId('transfer-to-consumer')).toBeInTheDocument();
-    
+    // Check for ActionCards by title
+    expect(screen.getByText('Package Products')).toBeInTheDocument();
+    expect(screen.getByText('Create retail packages from received products')).toBeInTheDocument();
+    expect(screen.getByText('Transfer to Consumer')).toBeInTheDocument();
+    expect(screen.getByText('Sell products to end consumers')).toBeInTheDocument();
+
     // Check for MyTokens section
     expect(screen.getByText(/my tokens/i)).toBeInTheDocument();
-    
-    // Check for Transfers sections
+
+    // Check for Outgoing Transfers section
     expect(screen.getByRole('heading', { name: /incoming transfers/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /outgoing transfers/i })).toBeInTheDocument();
   });

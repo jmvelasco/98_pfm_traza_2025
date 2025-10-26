@@ -77,13 +77,15 @@ export default function Dashboard() {
       {/* Pending Transfers Section */}
       {role !== UserRole.Consumer && (
         <section className="space-y-6">
-          {role === UserRole.Factory ? (
+          {role === UserRole.Producer ? (
+            <>
+              <OutgoingTransfers showAllStatuses={true} />
+            </>
+          ) : (
             <>
               <IncomingTransfers />
               <OutgoingTransfers showAllStatuses={true} />
             </>
-          ) : (
-            <OutgoingTransfers showAllStatuses={true} />
           )}
         </section>
       )}
