@@ -16,57 +16,101 @@
 
 ## Current State
 
-- **Producer dashboard:** Complete and functional
-- **Test suite:** Robust, TDD applied, all transfer tests use builders
-- **Other roles/pages:** Admin, Factory, Retailer, Consumer dashboards and flows partially implemented or planned
-- **Documentation:** Progress and technical docs available for reference; this file is the new delivery tracker
+- **Producer dashboard:** ✅ Complete and functional (CreateRawMaterial, TransferToFactory)
+- **Factory dashboard:** ⚠️ Partial (IncomingTransfers complete, actions pending)
+- **Retailer dashboard:** 🔨 Planned (pattern established)
+- **Consumer dashboard:** 🔨 Planned (MyTokens complete, traceability pending)
+- **Admin panel:** ✅ Complete (/admin/users with approve/reject)
+- **Test suite:** ✅ Robust, 123/123 passing, TDD applied, builders adopted for all fixtures
+- **Architecture:** ✅ Dashboard-centric approach documented in ADR 008
+- **Real-time updates:** ✅ Event-driven (TokenCreated, TransferAccepted listeners)
 
 ---
 
 ## Next Steps to Finalize Delivery
 
-1. **Complete Token Management Flows**
+> **Architecture Note**: This project follows a dashboard-centric approach rather than traditional multi-page CRUD. See [ADR 008](adr/008-dashboard-centric-token-management-strategy.md) for rationale.
 
-   - Implement token creation and listing pages for all roles
-   - Ensure Factory/Retailer can create derived tokens
-   - Add UI for balances and token metadata
+1. **Complete Role-Based Actions** (Dashboard-Centric)
 
-2. **Finalize Transfer Flows**
+   - ✅ Producer actions complete (CreateRawMaterial, TransferToFactory)
+   - 🔨 Implement Factory actions:
+     - ProcessMaterials (create derived tokens with parentId > 0)
+     - TransferToRetailer (inline form similar to TransferToFactory)
+   - 🔨 Implement Retailer actions:
+     - PackageProducts (create retail units from received products)
+     - TransferToConsumer (final step in supply chain)
+   - 🔨 Add Consumer traceability view (modal or expandable in MyTokens)
 
-   - Build transfer forms and flows for all roles
-   - Integrate pending/accepted/rejected transfer logic and UI
-   - Make parent-child token lineage visible and navigable
+2. **Finalize Transfer Flows** (Inline Dashboard Components)
 
-3. **Admin & User Management**
+   - ✅ Transfer pattern established (TransferToFactory.tsx)
+   - 🔨 Clone pattern for Factory → Retailer transfers
+   - 🔨 Clone pattern for Retailer → Consumer transfers
+   - ✅ Pending/accepted/rejected logic complete (IncomingTransfers, OutgoingTransfers)
+   - 🔨 Add parent-child lineage visualization in token details
 
-   - Polish Admin Users panel: approve/reject users, show all statuses
-   - Add user registration and role request flows for new accounts
+3. **Admin & User Management** ✅ COMPLETE
+
+   - ✅ Admin Users panel: approve/reject users, show all statuses
+   - ✅ User registration and role request flows functional
+   - ✅ Tests passing (admin.users.test.tsx)
 
 4. **Traceability & History**
 
-   - Implement token traceability views: full parent-child lineage, transfer history, stock consumption
+   - ✅ MyTokens component shows basic metadata (balance, parentId, features)
+   - 🔨 Add TraceabilityModal component:
+     - Full parent-child lineage tree
+     - Transfer history for specific token
+     - Stock consumption details
+   - 🔨 Integrate modal trigger from MyTokens card click
 
 5. **UI/UX Improvements**
 
-   - Add reusable UI components, improve error handling and feedback
-   - Ensure all pages are accessible and responsive
+   - ✅ Badge component for transfer statuses
+   - ✅ ActionCard pattern for role-specific actions
+   - ✅ Real-time event updates (TokenCreated, TransferAccepted)
+   - 🔨 Add loading states for Factory/Retailer actions
+   - 🔨 Improve error handling and user feedback (toast notifications)
+   - ✅ Responsive design with Tailwind (mobile-tested)
 
 6. **Testing & Documentation**
 
-   - Expand test coverage for new pages and flows
-   - Update documentation to reflect final architecture and usage
+   - ✅ Current test suite: 123/123 tests passing
+   - 🔨 Add tests for Factory/Retailer action components
+   - 🔨 Add tests for TraceabilityModal
+   - ✅ ADR 008 documents dashboard-centric architecture decision
+   - 🔨 Update README with actual routes and architecture
 
 7. **Final Review & Polish**
-   - Run full suite and manual QA for all roles
-   - Address edge cases, polish UI, finalize deployment scripts
+   - Run full suite and manual QA for all roles (Producer → Factory → Retailer → Consumer flow)
+   - Address edge cases (empty states, error scenarios)
+   - Polish UI consistency across all role dashboards
+   - Finalize deployment scripts and environment setup
 
 ---
 
 ## Immediate Focus
 
-- Prioritize token management and transfer flows
-- Ensure Admin and registration flows are usable
-- Make traceability visible and intuitive for all users
+**Priority 1**: Complete Factory role actions (ProcessMaterials, TransferToRetailer)
+
+- Follow established pattern from TransferToFactory.tsx
+- Ensure derived token creation validates parentId and consumes parent stock
+- Add tests following TDD methodology (RED → GREEN → REFACTOR)
+
+**Priority 2**: Implement Retailer role actions (PackageProducts, TransferToConsumer)
+
+- Clone and adapt Factory action patterns
+- Validate complete supply chain flow (Producer → Factory → Retailer → Consumer)
+- Manual QA: end-to-end traceability verification
+
+**Priority 3**: Add Consumer traceability view
+
+- Implement TraceabilityModal component (or expandable card)
+- Show full parent-child lineage and transfer history
+- Enable "Check Traceability" action in Consumer dashboard
+
+**Note**: All features implemented as dashboard components, not separate pages. See [ADR 008](adr/008-dashboard-centric-token-management-strategy.md) for architecture rationale.
 
 ---
 
