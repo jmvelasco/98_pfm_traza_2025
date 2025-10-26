@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { TransferForm } from '../components/tokenOps/TransferToRetailer';
 import * as contract from '../lib/contract';
 
@@ -25,8 +25,9 @@ vi.mock('ethers', () => ({
 }));
 
 // Mock SupplyChain__factory to capture TransferRequested listener
+// Variable global para el handler
+let savedHandler: ((...args: any[]) => Promise<void> | void) | null = null;
 vi.mock('../types/factories/SupplyChain__factory', () => {
-  let savedHandler: ((...args: any[]) => Promise<void> | void) | null = null;
   const contract = {
     filters: { TransferRequested: () => 'TransferRequested' },
     on: (_filter: any, handler: any) => {
@@ -124,7 +125,11 @@ describe('TransferForm (Factory)', () => {
     await user.type(screen.getByLabelText(/amount/i), '50');
     await user.click(screen.getByRole('button', { name: /request transfer/i }));
     await waitFor(() => {
-      expect(contract.requestTransfer).toHaveBeenCalledWith(1, '0x1111111111111111111111111111111111111111', 50);
+      expect(contract.requestTransfer).toHaveBeenCalledWith(
+        1,
+        '0x1111111111111111111111111111111111111111',
+        50
+      );
     });
   });
 
@@ -145,7 +150,16 @@ describe('TransferForm (Factory)', () => {
   it('clears form after successful TransferRequested event', async () => {
     (contract as any).getUserInfo.mockResolvedValue({ role: 'Retailer', status: 'Approved' });
     (contract as any).requestTransfer.mockResolvedValue(undefined);
+    // Mock window.ethereum so useEffect sets up the event listener
+    Object.defineProperty(window, 'ethereum', {
+      value: {},
+      writable: true,
+    });
     render(<TransferForm tokenId={1} parentId={1} balance={100} />);
+    // Flush all effects to ensure useEffect runs
+    await act(async () => {
+      await Promise.resolve();
+    });
     const user = userEvent.setup();
     await user.type(
       screen.getByLabelText(/destination/i),
@@ -153,23 +167,37 @@ describe('TransferForm (Factory)', () => {
     );
     await user.type(screen.getByLabelText(/amount/i), '50');
     await user.click(screen.getByRole('button', { name: /request transfer/i }));
-    
-    // Simulate TransferRequested event
-    const handler = factoryMock.getListener();
-    expect(handler).toBeTruthy();
+
+    // Robust wait for handler registration (poll up to 2s)
+    let handler: ((event: any) => Promise<void> | void) | null = null;
+    const maxWaitMs = 2000;
+    const pollInterval = 20;
+    let waited = 0;
+    while (waited < maxWaitMs) {
+      handler = factoryMock.getListener();
+      if (handler) break;
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((r) => setTimeout(r, pollInterval));
+      waited += pollInterval;
+    }
+    expect(handler, 'TransferRequested event handler should be registered').toBeTruthy();
+
+    // Simulate the TransferRequested event
     await act(async () => {
-      await handler({ args: { from: '0xfactory' } });
+      await handler!({ args: { from: '0xfactory' } });
     });
-    
+
     await waitFor(() => {
       expect(screen.getByLabelText(/destination/i)).toHaveValue('');
-      expect(screen.getByLabelText(/amount/i)).toHaveValue('');
+      expect(screen.getByLabelText(/amount/i)).toHaveDisplayValue('');
     });
   });
 
   it('disables controls during submission', async () => {
     (contract as any).getUserInfo.mockResolvedValue({ role: 'Retailer', status: 'Approved' });
-    (contract as any).requestTransfer.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+    (contract as any).requestTransfer.mockImplementation(
+      () => new Promise((resolve) => setTimeout(resolve, 100))
+    );
     render(<TransferForm tokenId={1} parentId={1} balance={100} />);
     const user = userEvent.setup();
     await user.type(
@@ -178,7 +206,7 @@ describe('TransferForm (Factory)', () => {
     );
     await user.type(screen.getByLabelText(/amount/i), '50');
     await user.click(screen.getByRole('button', { name: /request transfer/i }));
-    
+
     expect(screen.getByLabelText(/destination/i)).toBeDisabled();
     expect(screen.getByLabelText(/amount/i)).toBeDisabled();
     expect(screen.getByRole('button', { name: /requesting…/i })).toBeDisabled();
