@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as contractModule from '../lib/contract';
 import Dashboard from '../pages/Dashboard';
+import { buildToken } from './utils/builders';
 
 // Mock hooks
 vi.mock('../hooks/useWallet', () => ({
@@ -32,16 +33,12 @@ import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
 import { UserRole, UserStatus } from '../lib/enums';
 
-const mockTokenDetails = {
+const mockTokenDetails = buildToken({
   id: 1,
   creator: '0x123',
   name: 'Wheat',
-  totalSupply: 100,
   features: '{"country":"Spain","type":"raw"}',
-  parentId: 0,
-  dateCreated: 1700000000,
-  balance: 100,
-};
+});
 
 describe('Dashboard - MyTokens Integration (TDD RED)', () => {
   beforeEach(() => {

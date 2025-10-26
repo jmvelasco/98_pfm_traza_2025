@@ -2,6 +2,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MyTokens from '../components/tokenOps/MyTokens';
 import * as contractModule from '../lib/contract';
+import { buildToken } from './utils/builders';
 
 // Mock contract module
 vi.mock('../lib/contract', () => ({
@@ -65,27 +66,21 @@ vi.mock('../types/factories/SupplyChain__factory', () => {
 // @ts-expect-error test-only mock export provided via vi.mock above
 import { __mock as factoryMock } from '../types/factories/SupplyChain__factory';
 
-const mockTokenDetails = {
+const mockTokenDetails = buildToken({
   id: 1,
   creator: '0x123',
   name: 'Wheat',
-  totalSupply: 100,
-  features: '{"country":"Spain"}',
-  parentId: 0,
-  dateCreated: 1700000000,
-  balance: 100,
-};
+});
 
-const mockTokenDetailsReceived = {
+const mockTokenDetailsReceived = buildToken({
   id: 42,
   creator: '0xproducer',
   name: 'Corn',
   totalSupply: 50,
   features: '{"country":"USA"}',
-  parentId: 0,
   dateCreated: 1700000100,
   balance: 10,
-};
+});
 
 describe('MyTokens', () => {
   beforeEach(() => {

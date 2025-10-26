@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, test, vi } from 'vitest';
 import { RoleActions } from '../components/tokenOps/RoleActions';
 import { UserRole } from '../lib/enums';
+import { buildToken } from './utils/builders';
 
 // Mock the contract module
 vi.mock('../lib/contract', () => ({
@@ -140,40 +141,33 @@ describe('Producer RoleActions', () => {
       // getTokenDetails returns: #1 raw with balance 100, #2 derived with balance 50, #3 raw with balance 0
       vi.mocked(contractModule.getTokenDetails as any).mockImplementation(async (id: number) => {
         if (id === 1) {
-          return {
+          return buildToken({
             id: 1,
             creator: producer,
             name: 'Raw One',
-            totalSupply: 100,
-            features: '{}',
             parentId: 0,
-            dateCreated: Date.now(),
             balance: 100,
-          };
+          });
         }
         if (id === 2) {
-          return {
+          return buildToken({
             id: 2,
             creator: producer,
             name: 'Derived Two',
             totalSupply: 50,
-            features: '{}',
             parentId: 1,
-            dateCreated: Date.now(),
             balance: 50,
-          };
+          });
         }
         if (id === 3) {
-          return {
+          return buildToken({
             id: 3,
             creator: producer,
             name: 'Raw Three',
             totalSupply: 0,
-            features: '{}',
             parentId: 0,
-            dateCreated: Date.now(),
             balance: 0,
-          };
+          });
         }
         return null;
       });
@@ -224,16 +218,15 @@ describe('Producer RoleActions', () => {
 
       // Mock token loading: one raw token with balance
       vi.mocked(contractModule.getUserTokensWithBalance as any).mockResolvedValue([1]);
-      vi.mocked(contractModule.getTokenDetails as any).mockResolvedValue({
-        id: 1,
-        creator: producer,
-        name: 'Wheat',
-        totalSupply: 100,
-        features: '{}',
-        parentId: 0,
-        dateCreated: Date.now(),
-        balance: 100,
-      });
+      vi.mocked(contractModule.getTokenDetails as any).mockResolvedValue(
+        buildToken({
+          id: 1,
+          creator: producer,
+          name: 'Wheat',
+          parentId: 0,
+          balance: 100,
+        })
+      );
 
       // Mock recipient validation: approved Factory
       vi.mocked(contractModule.getUserInfo as any).mockResolvedValue({
