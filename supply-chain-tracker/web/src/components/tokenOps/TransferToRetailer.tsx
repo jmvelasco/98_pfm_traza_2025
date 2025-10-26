@@ -106,7 +106,7 @@ type TransferFormProps = {
 export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) {
   const { address } = useWallet();
   const [destination, setDestination] = useState('');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState<string>('');
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPending, setShowPending] = useState(false);
@@ -157,7 +157,7 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
     setMessage(null);
     // Ensure a pending status is visible for at least one paint without delaying the request call
     setShowPending(true);
-    setTimeout(() => setShowPending(false), 10);
+    // setTimeout(() => setShowPending(false), 10);
     try {
       await requestTransfer(tokenId, destination, amountNum);
       setMessage('Transfer requested');
@@ -273,11 +273,11 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
           inputMode="numeric"
           min="1"
           max={balance}
-          value={amount}
+          value={amount ?? ''}
           placeholder={`Max ${balance}`}
           disabled={loading}
           onChange={(e) => {
-            setAmount(e.target.value);
+            setAmount(e.target.value ?? '');
             if (message) setMessage(null);
           }}
           className="w-full text-gray-600 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
