@@ -1,6 +1,7 @@
 import { UserRole } from '../../lib/enums';
 import ActionCard from '../ui/ActionCard';
 import CreateRawMaterial from './CreateRawMaterial';
+import ProcessMaterials from './ProcessMaterials';
 import TransferToFactoryCard from './TransferToFactory';
 
 // Role-specific quick actions
@@ -16,12 +17,7 @@ export function RoleActions({ role }: { role: UserRole }) {
     case UserRole.Factory:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCard
-            title="Process Materials"
-            description="Transform raw materials into products"
-            icon="⚙️"
-            disabled
-          />
+          <ProcessMaterials />
           <ActionCard
             title="Transfer to Retailer"
             description="Send processed products to retailers"

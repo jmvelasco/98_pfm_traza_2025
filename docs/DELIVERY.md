@@ -17,11 +17,11 @@
 ## Current State
 
 - **Producer dashboard:** ✅ Complete and functional (CreateRawMaterial, TransferToFactory)
-- **Factory dashboard:** ⚠️ Partial (IncomingTransfers complete, actions pending)
+- **Factory dashboard:** ⚠️ Partial (IncomingTransfers ✅, ProcessMaterials ✅, TransferToRetailer 🔨 pending)
 - **Retailer dashboard:** 🔨 Planned (pattern established)
 - **Consumer dashboard:** 🔨 Planned (MyTokens complete, traceability pending)
 - **Admin panel:** ✅ Complete (/admin/users with approve/reject)
-- **Test suite:** ✅ Robust, 123/123 passing, TDD applied, builders adopted for all fixtures
+- **Test suite:** ✅ Robust, 131/131 passing, TDD applied, builders adopted for all fixtures
 - **Architecture:** ✅ Dashboard-centric approach documented in ADR 008
 - **Real-time updates:** ✅ Event-driven (TokenCreated, TransferAccepted listeners)
 
@@ -34,9 +34,9 @@
 1. **Complete Role-Based Actions** (Dashboard-Centric)
 
    - ✅ Producer actions complete (CreateRawMaterial, TransferToFactory)
-   - 🔨 Implement Factory actions:
-     - ProcessMaterials (create derived tokens with parentId > 0)
-     - TransferToRetailer (inline form similar to TransferToFactory)
+   - ✅ Factory actions:
+     - ✅ ProcessMaterials (create derived tokens with parentId > 0)
+     - 🔨 TransferToRetailer (inline form similar to TransferToFactory)
    - 🔨 Implement Retailer actions:
      - PackageProducts (create retail units from received products)
      - TransferToConsumer (final step in supply chain)
@@ -222,5 +222,84 @@ Implemented real-time token list updates in the MyTokens component when incoming
 - **Analysis**: `docs/features/REAL_TIME_TOKEN_LIST_UPDATE_ANALYSIS.md`
 - **Architecture Decision**: `docs/adr/007-real-time-token-list-update-strategy.md`
 - **TDD Methodology**: Followed strict RED → GREEN → REFACTOR cycle per `docs/guides/METODOLOGY_PROMPT.md`
+
+---
+
+## Milestone 3: Implementation of Process Material feature (✅ Completed)
+
+Date: 26 October 2025
+
+### Overview
+
+Implemented the Factory dashboard action "Process Materials" to create derived tokens by consuming stock from raw material tokens owned by the Factory, aligning with the contract's createToken(parentId>0) rules and ADR 008 (dashboard-centric UI).
+
+### Key Deliverables
+
+1. ✅ ProcessMaterials component (dashboard action for Factory):
+   - Loads eligible parent tokens (parentId = 0, balance > 0 for connected Factory)
+   - Form fields: Parent material (select), Product name (text), Amount to process (number, 1..balance), Notes (optional)
+   - Calls createToken({ name, totalSupply: amount, features, parentId }) with features JSON `{ type: 'processed', fromTokenId, notes }`
+2. ✅ Integration in RoleActions for Factory (replaced disabled placeholder card)
+3. ✅ Tests (TDD - 8 new passing tests):
+   - Empty state when no eligible tokens
+   - Eligible tokens list with preselection
+   - Disabled submit for invalid fields
+   - Boundary max value handling
+   - Submits correct createToken payload
+   - Surfaces on-chain errors
+   - Clears messages on input edit
+   - Disables controls during submission
+4. ✅ Documentation:
+   - Created docs/features/PROCESS_MATERIALS_ACTION_ANALYSIS.md with full feature analysis
+   - Updated README with Factory Process Materials explanation
+   - Updated DELIVERY.md milestone to Completed
+
+### Technical Implementation
+
+- Reused existing helpers from web/src/lib/contract.ts: getUserTokensWithBalance, getTokenDetails, createToken
+- No contract changes required; TokenCreated event enables MyTokens real-time update
+- Followed split provider strategy (reads via JsonRpcProvider; writes via BrowserProvider)
+- Component structure mirrors CreateRawMaterial and TransferToFactory patterns
+
+### Test Results
+
+- ✅ 8/8 new tests passing
+- ✅ Full suite: 131/131 tests passing (up from 123)
+- ✅ No existing tests broken
+- ✅ Lint/Typecheck passing
+
+### Impact
+
+- ✅ Unlocked Factory role's core processing capability
+- ✅ Established pattern for future derived token creation (Retailer's PackageProducts)
+- ✅ Maintains consistent dashboard experience without adding routes
+- ✅ Completed Immediate Focus Priority 1 milestone
+
+---
+
+2. Integration in RoleActions for Factory (replaces disabled placeholder cards)
+3. Tests (TDD):
+   - Empty state, validation boundaries, success flow, on-chain error surfacing, disabled controls during submission
+4. Documentation updates:
+   - Update docs/features/PROCESS_MATERIALS_ACTION_ANALYSIS.md with implementation details
+   - Keep this DELIVERY.md milestone updated; mark as Completed upon finishing
+
+### Technical Notes
+
+- Reuse existing helpers from web/src/lib/contract.ts: getUserTokensWithBalance, getTokenDetails, createToken
+- No new contract changes required; rely on TokenCreated for MyTokens real-time update
+- Follow the split provider strategy (reads via JsonRpcProvider; writes via BrowserProvider)
+
+### Test & Build
+
+- Add focused tests (RED → GREEN → REFACTOR) for the new component
+- Ensure full suite remains green (current baseline: 123/123 tests passing)
+- Lint/Typecheck must pass
+
+### Impact
+
+- Unlocks Factory role’s core capability (processing) and sets the pattern for Retailer’s PackageProducts
+- Maintains consistent dashboard experience without adding routes
+- One step closer to final delivery per Immediate Focus Priority 1
 
 ---
