@@ -3,6 +3,7 @@ import ActionCard from '../ui/ActionCard';
 import CreateRawMaterial from './CreateRawMaterial';
 import ProcessMaterials from './ProcessMaterials';
 import TransferToFactoryCard from './TransferToFactory';
+import TransferToRetailerCard from './TransferToRetailer';
 
 // Role-specific quick actions
 export function RoleActions({ role }: { role: UserRole }) {
@@ -18,12 +19,7 @@ export function RoleActions({ role }: { role: UserRole }) {
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ProcessMaterials />
-          <ActionCard
-            title="Transfer to Retailer"
-            description="Send processed products to retailers"
-            icon="🏪"
-            disabled
-          />
+          <TransferToRetailerCard />
         </div>
       );
     case UserRole.Retailer:

@@ -56,7 +56,7 @@ describe('Factory RoleActions - Process Materials', () => {
       render(<RoleActions role={UserRole.Factory} />);
       const card = screen.getByRole('button', { name: /process materials/i });
       await userEvent.click(card);
-      const submitBtn = await screen.findByRole('button', { name: /process/i });
+      const submitBtn = await screen.findByRole('button', { name: /^process$/i });
       expect(submitBtn).toBeDisabled();
     });
 
@@ -86,7 +86,7 @@ describe('Factory RoleActions - Process Materials', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       await userEvent.type(nameInput, 'Flour');
       await userEvent.type(amountInput, '50');
-      const submitBtn = screen.getByRole('button', { name: /process/i });
+      const submitBtn = screen.getByRole('button', { name: /^process$/i });
       await userEvent.click(submitBtn);
       expect(createToken).toHaveBeenCalledWith(
         expect.objectContaining({ parentId: 1, totalSupply: 50, name: 'Flour' })
@@ -106,7 +106,7 @@ describe('Factory RoleActions - Process Materials', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       await userEvent.type(nameInput, 'Flour');
       await userEvent.type(amountInput, '50');
-      const submitBtn = screen.getByRole('button', { name: /process/i });
+      const submitBtn = screen.getByRole('button', { name: /^process$/i });
       await userEvent.click(submitBtn);
       expect(await screen.findByText(/on-chain error/i)).toBeInTheDocument();
     });
@@ -124,7 +124,7 @@ describe('Factory RoleActions - Process Materials', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       await userEvent.type(nameInput, 'Flour');
       await userEvent.type(amountInput, '50');
-      const submitBtn = screen.getByRole('button', { name: /process/i });
+      const submitBtn = screen.getByRole('button', { name: /^process$/i });
       await userEvent.click(submitBtn);
       expect(await screen.findByText(/on-chain error/i)).toBeInTheDocument();
       await userEvent.clear(amountInput);
@@ -146,7 +146,7 @@ describe('Factory RoleActions - Process Materials', () => {
       const amountInput = screen.getByLabelText(/amount/i);
       await userEvent.type(nameInput, 'Flour');
       await userEvent.type(amountInput, '50');
-      const submitBtn = screen.getByRole('button', { name: /process/i });
+      const submitBtn = screen.getByRole('button', { name: /^process$/i });
       await userEvent.click(submitBtn);
       expect(submitBtn).toBeDisabled();
     });
