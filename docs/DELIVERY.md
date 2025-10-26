@@ -120,3 +120,63 @@ Enhanced the Factory dashboard's Incoming Transfers section to display all trans
 - Actionable items (Pending) clearly distinguished from historical records (Accepted/Rejected)
 
 ---
+
+## Milestone 2: Real-time Token List Update on Transfer Acceptance (Completed)
+
+**Date:** 26 October 2025
+
+### Overview
+
+Implemented real-time token list updates in the MyTokens component when incoming transfers are accepted. Users now see newly received tokens appear immediately without requiring a page refresh, providing a responsive and modern UX.
+
+### Key Deliverables
+
+1. **Generic Event Hook**: Created `useContractEvent` hook (`hooks/useContractEvent.ts`) for listening to SupplyChain contract events:
+
+   - Generic implementation accepting `eventName`, `handler`, and `deps` parameters
+   - Handles provider/contract setup, event registration, and cleanup automatically
+   - Memoizes handlers with `useCallback` to prevent unnecessary re-registrations
+   - Includes comprehensive error handling and fallback cleanup strategies
+   - Reusable pattern for future event listeners (TransferRejected, UserStatusChanged, etc.)
+
+2. **MyTokens Component Enhancement**: Refactored `components/tokenOps/MyTokens.tsx` to:
+
+   - Listen to both `TokenCreated` and `TransferAccepted` events via `useContractEvent` hook
+   - Extract `handleTokenCreated`: Checks creator matches user, deduplicates, fetches token details
+   - Extract `handleTransferAccepted`: Fetches transfer details, validates recipient, fetches token details, updates state
+   - Eliminate ~100 lines of duplicated boilerplate by using the hook abstraction
+   - Maintain existing deduplication logic via `seenIdsRef` to prevent duplicate displays
+
+3. **Test Coverage**: Extended following strict TDD methodology (RED → GREEN → REFACTOR):
+   - **Phase 1 (RED)**: Added 3 failing tests to `mytokens.test.tsx` for TransferAccepted scenarios
+   - **Phase 2 (GREEN)**: Implemented TransferAccepted listener, all 8 MyTokens tests passing
+   - **Phase 3 (REFACTOR)**: Created `useContractEvent.test.ts` with 4 tests for the hook, refactored component
+   - Final test count: **115 tests passing** (108 existing + 3 MyTokens + 4 hook tests)
+
+### Technical Implementation
+
+- **Pattern Used**: Event-driven architecture with custom React hooks
+- **Event Handling**:
+  - `TokenCreated` events: Display tokens created by current user
+  - `TransferAccepted` events: Display tokens received by current user after transfer acceptance
+- **Deduplication Strategy**: Uses `Set` reference to track displayed token IDs and prevent duplicates
+- **Hook Architecture**: Generic `useContractEvent` provides clean abstraction eliminating duplication
+- **Test Strategy**: TDD cycle with comprehensive coverage for both component and hook
+- **Build Status**: Successful with no TypeScript errors (596KB bundle)
+
+### Impact
+
+- **UX Improvement**: Users see new tokens immediately after incoming transfers are accepted (zero-latency feedback)
+- **Code Quality**: ~100 lines of duplicated boilerplate eliminated via hook extraction
+- **Maintainability**: Generic hook pattern establishes reusable infrastructure for future events
+- **Test Coverage**: Comprehensive tests ensure reliability (115 total tests passing)
+- **Architectural Pattern**: Event listener abstraction can be applied to other components (OutgoingTransfers, IncomingTransfers, etc.)
+- **No Breaking Changes**: Existing TokenCreated functionality preserved; TransferAccepted is additive
+
+### Related Documentation
+
+- **Analysis**: `docs/features/REAL_TIME_TOKEN_LIST_UPDATE_ANALYSIS.md`
+- **Architecture Decision**: `docs/adr/007-real-time-token-list-update-strategy.md`
+- **TDD Methodology**: Followed strict RED → GREEN → REFACTOR cycle per `docs/guides/METODOLOGY_PROMPT.md`
+
+---

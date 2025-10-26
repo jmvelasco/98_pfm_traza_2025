@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
+import { useContractEvent } from '../../hooks/useContractEvent';
 import { getTokenDetails, getUserTokensWithBalance, type TokenDetails } from '../../lib/contract';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
@@ -68,85 +69,92 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
     };
   }, [userAddress]);
 
-  // Listen to TokenCreated events
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.ethereum || !userAddress) {
-      return;
-    }
-
-    let provider: ethers.BrowserProvider;
-    let contract: any;
-    let handler: ((...args: any[]) => Promise<void>) | null = null;
-    let eventFilter: any = null;
-
-    async function setupEventListener() {
-      try {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
-
-        // Listen for TokenCreated events
-
-        handler = async (...args: any[]) => {
-          // ethers v6: event object with .args
-          let tokenId, creator;
-          if (args.length === 1 && args[0]?.args) {
-            const a = args[0].args;
-            tokenId = a?.tokenId ?? a?.id ?? a?.[0];
-            creator = a?.creator ?? a?.owner ?? a?.[1];
-          } else {
-            // Defensive: ignore if not v6 event object
-            return;
-          }
-          if (creator && creator.toLowerCase() === userAddress.toLowerCase()) {
-            const idStr = tokenId?.toString ? tokenId.toString() : String(tokenId);
-            if (seenIdsRef.current.has(idStr)) {
-              return;
-            }
-            const details = await getTokenDetails(Number(tokenId), userAddress);
-            if (details) {
-              seenIdsRef.current.add(String(details.id));
-              setTokens((prev) => {
-                // Double-check in state in case of race
-                if (prev.some((t) => String(t.id) === String(details.id))) return prev;
-                return [...prev, details];
-              });
-            }
-          }
-        };
-        // Prepare and register filter
-        eventFilter = contract.filters.TokenCreated();
-        contract.on(eventFilter, handler);
-      } catch (e) {
-        console.error('Error setting up event listener:', e);
+  // Handler for TokenCreated events
+  const handleTokenCreated = useCallback(
+    async (event: any) => {
+      // ethers v6: event object with .args
+      let tokenId, creator;
+      if (event?.args) {
+        const a = event.args;
+        tokenId = a?.tokenId ?? a?.id ?? a?.[0];
+        creator = a?.creator ?? a?.owner ?? a?.[1];
+      } else {
+        return;
       }
-    }
 
-    setupEventListener();
+      if (creator && creator.toLowerCase() === userAddress.toLowerCase()) {
+        const idStr = tokenId?.toString ? tokenId.toString() : String(tokenId);
+        if (seenIdsRef.current.has(idStr)) {
+          return;
+        }
 
-    // Cleanup listener on unmount
-    return () => {
-      if (contract && handler) {
-        if (typeof contract.off === 'function') {
-          try {
-            contract.off(eventFilter ?? 'TokenCreated', handler);
-          } catch {
-            // fallback
-            contract.removeAllListeners &&
-              contract.removeAllListeners(eventFilter ?? 'TokenCreated');
+        try {
+          const details = await getTokenDetails(Number(tokenId), userAddress);
+          if (details) {
+            seenIdsRef.current.add(String(details.id));
+            setTokens((prev) => {
+              if (prev.some((t) => String(t.id) === String(details.id))) return prev;
+              return [...prev, details];
+            });
           }
-        } else if (typeof contract.removeListener === 'function') {
-          try {
-            contract.removeListener(eventFilter ?? 'TokenCreated', handler);
-          } catch {
-            contract.removeAllListeners &&
-              contract.removeAllListeners(eventFilter ?? 'TokenCreated');
-          }
-        } else if (typeof contract.removeAllListeners === 'function') {
-          contract.removeAllListeners(eventFilter ?? 'TokenCreated');
+        } catch (e) {
+          console.error('Error handling TokenCreated event:', e);
         }
       }
-    };
-  }, [userAddress]);
+    },
+    [userAddress]
+  );
+
+  // Handler for TransferAccepted events
+  const handleTransferAccepted = useCallback(
+    async (event: any) => {
+      // ethers v6: event object with .args
+      let transferId;
+      if (event?.args) {
+        const a = event.args;
+        transferId = a?.transferId ?? a?.[0];
+      } else {
+        return;
+      }
+
+      try {
+        // Need to get contract instance to call getTransfer
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+        const transfer = await contract.getTransfer(transferId);
+
+        // Check if current user is recipient
+        if (!transfer.to || transfer.to.toLowerCase() !== userAddress.toLowerCase()) {
+          return;
+        }
+
+        // Fetch token details and append
+        const tokenIdNum = Number(transfer.tokenId);
+        const idStr = String(tokenIdNum);
+        if (seenIdsRef.current.has(idStr)) {
+          return;
+        }
+
+        const details = await getTokenDetails(tokenIdNum, userAddress);
+        if (details) {
+          seenIdsRef.current.add(String(details.id));
+          setTokens((prev) => {
+            if (prev.some((t) => String(t.id) === String(details.id))) return prev;
+            return [...prev, details];
+          });
+        }
+      } catch (e) {
+        console.error('Error handling TransferAccepted event:', e);
+      }
+    },
+    [userAddress]
+  );
+
+  // Listen to TokenCreated events using the hook
+  useContractEvent('TokenCreated', handleTokenCreated, [handleTokenCreated]);
+
+  // Listen to TransferAccepted events using the hook
+  useContractEvent('TransferAccepted', handleTransferAccepted, [handleTransferAccepted]);
 
   if (loading) {
     return (

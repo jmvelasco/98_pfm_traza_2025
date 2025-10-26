@@ -29,25 +29,34 @@ vi.mock('ethers', () => ({
 
 // Mock SupplyChain__factory to capture event listener registration
 vi.mock('../types/factories/SupplyChain__factory', () => {
-  let savedHandler: ((...args: any[]) => Promise<void> | void) | null = null;
+  const listeners: Record<string, ((...args: any[]) => Promise<void> | void) | null> = {
+    TokenCreated: null,
+    TransferAccepted: null,
+  };
   const contract = {
-    filters: { TokenCreated: () => 'TokenCreated' },
-    on: (_filter: any, handler: any) => {
-      savedHandler = handler;
+    filters: {
+      TokenCreated: () => 'TokenCreated',
+      TransferAccepted: () => 'TransferAccepted',
     },
-    off: (_filter: any, handler: any) => {
-      if (savedHandler === handler) savedHandler = null;
+    on: (filter: any, handler: any) => {
+      listeners[filter] = handler;
+    },
+    off: (filter: any, handler: any) => {
+      if (listeners[filter] === handler) listeners[filter] = null;
     },
     removeAllListeners: () => {
-      savedHandler = null;
+      listeners.TokenCreated = null;
+      listeners.TransferAccepted = null;
     },
+    getTransfer: vi.fn(),
   };
   return {
     SupplyChain__factory: {
       connect: vi.fn(() => contract),
     },
     __mock: {
-      getListener: () => savedHandler,
+      getListener: (eventName?: string) =>
+        eventName ? listeners[eventName] : listeners.TokenCreated,
       contract,
     },
   };
@@ -67,7 +76,18 @@ const mockTokenDetails = {
   balance: 100,
 };
 
-describe('MyTokens (TDD RED)', () => {
+const mockTokenDetailsReceived = {
+  id: 42,
+  creator: '0xproducer',
+  name: 'Corn',
+  totalSupply: 50,
+  features: '{"country":"USA"}',
+  parentId: 0,
+  dateCreated: 1700000100,
+  balance: 10,
+};
+
+describe('MyTokens', () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks();
@@ -157,6 +177,104 @@ describe('MyTokens (TDD RED)', () => {
     // Assert: token appears only once
     await waitFor(() => {
       const items = screen.getAllByText(/Wheat/i);
+      expect(items.length).toBe(1);
+    });
+  });
+
+  // TransferAccepted event tests
+  it('updates UI when TransferAccepted event fires for recipient', async () => {
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetailsReceived);
+    factoryMock.contract.getTransfer.mockResolvedValue({
+      id: 1,
+      transferId: 1,
+      tokenId: 42,
+      from: '0xproducer',
+      to: '0xfactory',
+      amount: 10,
+      status: 'Accepted',
+    });
+
+    render(<MyTokens userAddress="0xfactory" />);
+
+    // Wait for initial empty state
+    await waitFor(() => {
+      expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
+    });
+
+    // Act: emit TransferAccepted event
+    const listener = factoryMock.getListener('TransferAccepted');
+    expect(listener).toBeTruthy();
+    await act(async () => {
+      await listener!({ args: { transferId: 1 } });
+    });
+
+    // Assert: token appears
+    await waitFor(() => {
+      expect(screen.getByText(/Corn/i)).toBeInTheDocument();
+    });
+  });
+
+  it('ignores TransferAccepted events where recipient is not current user', async () => {
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    factoryMock.contract.getTransfer.mockResolvedValue({
+      id: 1,
+      tokenId: 42,
+      from: '0xproducer',
+      to: '0xretailer', // Different user
+      amount: 10,
+      status: 'Accepted',
+    });
+
+    render(<MyTokens userAddress="0xfactory" />);
+
+    // Act: emit TransferAccepted for transfer to different user
+    const listener = factoryMock.getListener('TransferAccepted');
+    expect(listener).toBeTruthy();
+    await act(async () => {
+      await listener!({ args: { transferId: 1 } });
+    });
+
+    // Assert: still empty state
+    await waitFor(() => {
+      expect(screen.getByText(/No tokens yet/i)).toBeInTheDocument();
+    });
+  });
+
+  it('prevents duplicate tokens when TransferAccepted fires multiple times', async () => {
+    // Arrange
+    (window as any).ethereum = {};
+    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetailsReceived);
+    factoryMock.contract.getTransfer.mockResolvedValue({
+      id: 1,
+      tokenId: 42,
+      from: '0xproducer',
+      to: '0xfactory',
+      amount: 10,
+      status: 'Accepted',
+    });
+
+    render(<MyTokens userAddress="0xfactory" />);
+
+    const listener = factoryMock.getListener('TransferAccepted');
+    expect(listener).toBeTruthy();
+
+    // Act: fire event twice
+    await act(async () => {
+      await listener!({ args: { transferId: 1 } });
+    });
+    await act(async () => {
+      await listener!({ args: { transferId: 1 } });
+    });
+
+    // Assert: token appears only once
+    await waitFor(() => {
+      const items = screen.getAllByText(/Corn/i);
       expect(items.length).toBe(1);
     });
   });
