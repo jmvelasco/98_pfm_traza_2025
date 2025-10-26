@@ -2,7 +2,7 @@
 // Do not edit manually unless you know what you're doing
 
 export const CONTRACT_CONFIG = {
-  address: "0x8464135c8f25da09e49bc8782676a84730c318bc",
+  address: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
   abi: [
   {
     "type": "constructor",

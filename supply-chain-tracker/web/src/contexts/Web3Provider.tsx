@@ -69,10 +69,10 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
         const next = accounts[0];
         setAddress(next);
         try {
-          // Ensure signer/contract reflect the newly selected account
-          const existing = provider ?? new ethers.BrowserProvider(window.ethereum);
-          if (!provider) setProvider(existing);
-          const nextSigner = await existing.getSigner();
+          // Always create fresh provider - don't rely on stale closure
+          const freshProvider = new ethers.BrowserProvider(window.ethereum);
+          setProvider(freshProvider);
+          const nextSigner = await freshProvider.getSigner();
           setSigner(nextSigner);
           const contractInstance = new ethers.Contract(
             CONTRACT_CONFIG.address,
@@ -80,22 +80,18 @@ export const Web3Provider = ({ children }: { children: ReactNode }) => {
             nextSigner
           ) as unknown as SupplyChain;
           setContract(contractInstance);
+          localStorage.setItem('web3:address', next);
         } catch (e) {
           // If something goes wrong re-initializing signer/contract, fall back to clearing them
           console.warn('Failed to refresh signer/contract on accountsChanged:', e);
         }
-        try {
-          localStorage.setItem('web3:address', next);
-        } catch {}
       } else {
         // No accounts: reset state
         setAddress(null);
         setSigner(null);
         setContract(null);
         setProvider(null);
-        try {
-          localStorage.removeItem('web3:address');
-        } catch {}
+        localStorage.removeItem('web3:address');
       }
     };
 
