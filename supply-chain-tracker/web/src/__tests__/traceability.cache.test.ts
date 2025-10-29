@@ -16,29 +16,29 @@ describe('SimpleTraceabilityCache', () => {
     it('should store and retrieve data correctly', () => {
       const testData = { id: 1, name: 'Test Token' };
       cache.set('test-key', testData);
-      
+
       expect(cache.get('test-key')).toEqual(testData);
     });
 
     it('should return null for expired entries after TTL', () => {
       const testData = { id: 1, name: 'Test Token' };
       cache.set('test-key', testData);
-      
+
       // Mock time passing beyond TTL (2 minutes)
       vi.useFakeTimers();
       vi.advanceTimersByTime(2 * 60 * 1000 + 1); // 2 minutes + 1ms
-      
+
       expect(cache.get('test-key')).toBeNull();
-      
+
       vi.useRealTimers();
     });
 
     it('should clear all entries when clear() is called', () => {
       cache.set('key1', { data: 'value1' });
       cache.set('key2', { data: 'value2' });
-      
+
       cache.clear();
-      
+
       expect(cache.get('key1')).toBeNull();
       expect(cache.get('key2')).toBeNull();
     });
