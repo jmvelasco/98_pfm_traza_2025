@@ -198,8 +198,9 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       const traceButton = screen.getAllByText('🔍 Trace Product Journey')[1];
       await user.click(traceButton);
 
-      // Should pass correct token ID
-      expect(screen.getByText('Token ID: 456')).toBeInTheDocument();
+      // Should pass correct token ID (text is split across elements)
+      expect(screen.getByText('Token ID:')).toBeInTheDocument();
+      expect(screen.getByText('456')).toBeInTheDocument();
     });
   });
 
@@ -351,9 +352,7 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       });
 
       // Should show trace button instead of text hint (per analysis update)
-      expect(
-        screen.getByText('🔍 Trace Product Journey')
-      ).toBeInTheDocument();
+      expect(screen.getByText('🔍 Trace Product Journey')).toBeInTheDocument();
     });
   });
 });
