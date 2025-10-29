@@ -32,22 +32,9 @@ export function RoleActions({ role }: { role: UserRole }) {
         </div>
       );
     case UserRole.Consumer:
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCard
-            title="View My Products"
-            description="See all products you own"
-            icon="📋"
-            disabled
-          />
-          <ActionCard
-            title="Check Traceability"
-            description="View complete product history"
-            icon="🔍"
-            disabled
-          />
-        </div>
-      );
+      // ADR 008: Consumer dashboard is 100% MyTokens-centric with TraceabilityModal integration
+      // No ActionCards for Consumer role - all functionality through MyTokens component
+      return null;
     case UserRole.Admin:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

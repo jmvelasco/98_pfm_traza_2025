@@ -110,9 +110,20 @@ describe('TraceabilityModal Component', () => {
 
       const mockTimeline = [
         {
-          eventType: 'creation' as const,
+          type: 'creation' as const,
           timestamp: 1698000000,
-          description: 'Token created',
+          tokenInfo: {
+            tokenId: 123,
+            parentId: 0,
+            name: 'Test Token',
+            creator: '0x123',
+            creatorRole: 'Producer',
+            createdAt: 1698000000,
+            level: 0,
+            currentBalance: 100,
+            totalSupply: 100,
+            features: '',
+          },
         },
       ];
 

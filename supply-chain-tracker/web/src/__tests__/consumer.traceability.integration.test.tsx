@@ -15,11 +15,13 @@ interface TraceabilityModalProps {
 
 // Mock the TraceabilityModal component
 vi.mock('../components/traceability/TraceabilityModal', () => ({
-  TraceabilityModal: ({ isOpen, onClose, tokenId }: TraceabilityModalProps) => 
+  TraceabilityModal: ({ isOpen, onClose, tokenId }: TraceabilityModalProps) =>
     isOpen ? (
       <div data-testid="traceability-modal">
         <div>Token ID: {tokenId}</div>
-        <button onClick={onClose} data-testid="close-modal">Close Modal</button>
+        <button onClick={onClose} data-testid="close-modal">
+          Close Modal
+        </button>
       </div>
     ) : null,
 }));
@@ -41,7 +43,9 @@ vi.mock('../hooks/useContractEvent', () => ({
 
 // Mock tokens helper
 vi.mock('../lib/tokens', () => ({
-  mergeTokenDetails: vi.fn((prev, details) => Array.isArray(details) ? [...prev, ...details] : [...prev, details]),
+  mergeTokenDetails: vi.fn((prev, details) =>
+    Array.isArray(details) ? [...prev, ...details] : [...prev, details]
+  ),
 }));
 
 // Mock ethers and contract factory
@@ -60,7 +64,7 @@ vi.mock('../types/factories/SupplyChain__factory', () => ({
 describe('Consumer Dashboard - TraceabilityModal Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default wallet mock
     vi.mocked(useWalletHook.useWallet).mockReturnValue({
       address: '0x123abc',
@@ -116,9 +120,10 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      // Token cards should be clickable for traceability
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      expect(tokenCard).toHaveClass('cursor-pointer');
+      // Token cards should have dedicated trace button for Consumer
+      await waitFor(() => {
+        expect(screen.getByText('🔍 Trace Product Journey')).toBeInTheDocument();
+      });
     });
 
     it('should open TraceabilityModal when Consumer clicks on a token card', async () => {
@@ -132,9 +137,9 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      // Click on token card
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      await user.click(tokenCard!);
+      // Click on trace button
+      const traceButton = screen.getByText('🔍 Trace Product Journey');
+      await user.click(traceButton);
 
       // Should open traceability modal
       expect(screen.getByTestId('traceability-modal')).toBeInTheDocument();
@@ -147,13 +152,13 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
 
       render(<Dashboard />);
 
-      // Open modal by clicking token
+      // Open modal by clicking trace button
       await waitFor(() => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      await user.click(tokenCard!);
+      const traceButton = screen.getByText('🔍 Trace Product Journey');
+      await user.click(traceButton);
 
       // Modal should be open
       expect(screen.getByTestId('traceability-modal')).toBeInTheDocument();
@@ -190,8 +195,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       });
 
       // Click on token card
-      const tokenCard = screen.getByText('Premium Olive Oil').closest('div');
-      await user.click(tokenCard!);
+      const traceButton = screen.getAllByText('🔍 Trace Product Journey')[1];
+      await user.click(traceButton);
 
       // Should pass correct token ID
       expect(screen.getByText('Token ID: 456')).toBeInTheDocument();
@@ -222,8 +227,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      expect(tokenCard).not.toHaveStyle('cursor: pointer');
+      // Producer should not see trace buttons
+      expect(screen.queryByText('🔍 Trace Product Journey')).not.toBeInTheDocument();
     });
 
     it('should show Consumer-only section layout', async () => {
@@ -236,10 +241,10 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
 
       // Should show My Products section
       expect(screen.getByText('My Products')).toBeInTheDocument();
-      
+
       // Should NOT show RoleActions (Quick Actions section)
       expect(screen.queryByText('Quick Actions')).not.toBeInTheDocument();
-      
+
       // Should show IncomingTransfers but not OutgoingTransfers
       expect(screen.getByText('Incoming Transfers')).toBeInTheDocument();
       expect(screen.queryByText('Outgoing Transfers')).not.toBeInTheDocument();
@@ -284,8 +289,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       });
 
       // Click first token
-      const firstTokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      await user.click(firstTokenCard!);
+      const firstTraceButton = screen.getAllByText('🔍 Trace Product Journey')[0];
+      await user.click(firstTraceButton);
 
       // Should show modal for first token
       expect(screen.getByText('Token ID: 123')).toBeInTheDocument();
@@ -294,8 +299,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       await user.click(screen.getByTestId('close-modal'));
 
       // Click second token
-      const secondTokenCard = screen.getByText('Premium Olive Oil').closest('div');
-      await user.click(secondTokenCard!);
+      const secondTraceButton = screen.getAllByText('🔍 Trace Product Journey')[1];
+      await user.click(secondTraceButton);
 
       // Should show modal for second token
       expect(screen.getByText('Token ID: 456')).toBeInTheDocument();
@@ -315,8 +320,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       });
 
       // Clicking should still open modal (error handling is internal to modal)
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      await user.click(tokenCard!);
+      const traceButton = screen.getByText('🔍 Trace Product Journey');
+      await user.click(traceButton);
 
       expect(screen.getByTestId('traceability-modal')).toBeInTheDocument();
     });
@@ -331,11 +336,10 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      const tokenCard = screen.getByText('Organic Tomatoes').closest('div');
-      
-      // Should have hover effects for Consumer role
-      expect(tokenCard).toHaveClass('hover:shadow-md');
-      expect(tokenCard).toHaveClass('transition-shadow');
+      // Should have trace button with hover effects for Consumer role
+      const traceButton = screen.getByText('🔍 Trace Product Journey');
+      expect(traceButton).toHaveClass('hover:bg-blue-700');
+      expect(traceButton).toHaveClass('transition-colors');
     });
 
     it('should display traceability hint for Consumer token cards', async () => {
@@ -347,7 +351,9 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       });
 
       // Should show hint about clicking for traceability
-      expect(screen.getByText(/click on any product to view its complete traceability/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/click on any product to view its complete traceability/i)
+      ).toBeInTheDocument();
     });
   });
 });

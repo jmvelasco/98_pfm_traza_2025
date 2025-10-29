@@ -12,7 +12,7 @@ import { UserRole } from '../lib/enums';
 export default function Dashboard() {
   const { address, isConnected } = useWallet();
   const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
-  
+
   // State for TraceabilityModal (Consumer-only)
   const [isTraceabilityModalOpen, setIsTraceabilityModalOpen] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
@@ -118,9 +118,15 @@ export default function Dashboard() {
           </section>
           <section>
             <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
-            <p className="text-sm text-gray-600 mb-3">Click on any product to view its complete traceability history.</p>
+            <p className="text-sm text-gray-600 mb-3">
+              Click on any product to view its complete traceability history.
+            </p>
             {address ? (
-              <MyTokens userAddress={address} onTokenClick={handleOpenTraceability} isClickable={true} />
+              <MyTokens
+                userAddress={address}
+                onTokenClick={handleOpenTraceability}
+                isClickable={true}
+              />
             ) : (
               <div className="bg-white rounded-lg shadow p-6 text-center">
                 <p className="text-gray-500">Connect your wallet to see your products.</p>

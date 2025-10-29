@@ -29,12 +29,9 @@ export interface TransferHistoryEntry {
 }
 
 export interface TimelineEntry {
-  eventType: 'creation' | 'transfer' | 'transformation';
+  type: 'creation' | 'transfer' | 'transformation';
   timestamp: number;
-  description: string;
-  actorAddress?: string;
-  actorRole?: string;
-  tokenInfo?: TokenLineage;
+  tokenInfo: TokenLineage;
   transferInfo?: TransferHistoryEntry;
   parentToken?: TokenLineage; // For transformations
   stockConsumption?: {

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { TokenLineage, TimelineEntry } from '../../types/traceability';
+import { LineageNode } from './LineageNode';
 
 interface TimelineViewProps {
   lineage: TokenLineage[];
@@ -14,28 +15,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ lineage, timeline })
   return (
     <div data-testid="timeline-view" className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Token Timeline</h3>
-        <div className="space-y-3">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Product Journey Timeline</h3>
+        <div className="space-y-4">
           {timelineData.map((entry, index) => (
-            <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-medium text-gray-900">{entry.eventType}</p>
-                  <p className="text-sm text-gray-600">{entry.description}</p>
-                  {entry.actorRole && <p className="text-xs text-gray-500">by {entry.actorRole}</p>}
-                </div>
-                <span className="text-xs text-gray-500">
-                  {new Date(entry.timestamp * 1000).toLocaleString()}
-                </span>
-              </div>
-            </div>
+            <LineageNode key={index} entry={entry} />
           ))}
         </div>
       </div>
 
       {lineageData.length > 0 && (
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Token Lineage</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Supply Chain Lineage</h3>
           <div className="space-y-2">
             {lineageData.map((token) => (
               <div

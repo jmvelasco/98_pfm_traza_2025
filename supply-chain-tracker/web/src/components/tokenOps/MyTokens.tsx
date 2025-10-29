@@ -12,7 +12,11 @@ interface MyTokensProps {
   isClickable?: boolean;
 }
 
-export default function MyTokens({ userAddress, onTokenClick, isClickable = false }: MyTokensProps) {
+export default function MyTokens({
+  userAddress,
+  onTokenClick,
+  isClickable = false,
+}: MyTokensProps) {
   const [tokens, setTokens] = useState<TokenDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,34 +187,14 @@ export default function MyTokens({ userAddress, onTokenClick, isClickable = fals
           // ignore parse errors
         }
 
-        const handleTokenClick = () => {
+        const handleTraceClick = () => {
           if (isClickable && onTokenClick) {
             onTokenClick(token.id);
           }
         };
 
         return (
-          <div
-            key={token.id}
-            className={`border rounded-lg p-4 bg-white shadow-sm ${
-              isClickable
-                ? 'cursor-pointer hover:shadow-md transition-shadow hover:bg-gray-50'
-                : ''
-            }`}
-            onClick={handleTokenClick}
-            role={isClickable ? 'button' : undefined}
-            tabIndex={isClickable ? 0 : undefined}
-            onKeyDown={
-              isClickable
-                ? (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleTokenClick();
-                    }
-                  }
-                : undefined
-            }
-          >
+          <div key={token.id} className="border rounded-lg p-4 bg-white shadow-sm">
             <h3 className="text-lg text-orange-600 font-semibold mb-2">{token.name}</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <p>
@@ -242,6 +226,19 @@ export default function MyTokens({ userAddress, onTokenClick, isClickable = fals
                 </p>
               )}
             </div>
+
+            {/* Only show trace button for Consumer role per analysis */}
+            {isClickable && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <button
+                  onClick={handleTraceClick}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  disabled={!onTokenClick}
+                >
+                  🔍 Trace Product Journey
+                </button>
+              </div>
+            )}
           </div>
         );
       })}

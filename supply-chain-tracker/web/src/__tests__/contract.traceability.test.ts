@@ -178,12 +178,12 @@ describe('Contract Traceability Helpers', () => {
       }
 
       // Should contain both creation and transfer events
-      const eventTypes = result.map((entry: unknown) => (entry as { eventType: string }).eventType);
+      const eventTypes = result.map((entry) => entry.type);
       expect(eventTypes).toContain('creation');
 
       // Each timeline entry should have required fields
       if (result.length > 0) {
-        expect(result[0]).toHaveProperty('eventType');
+        expect(result[0]).toHaveProperty('type');
         expect(result[0]).toHaveProperty('timestamp');
         expect(result[0]).toHaveProperty('description');
       }
@@ -195,7 +195,7 @@ describe('Contract Traceability Helpers', () => {
       const result = await buildTokenTimeline(newTokenId);
 
       expect(result).toHaveLength(1);
-      expect(result[0].eventType).toBe('creation');
+      expect(result[0].type).toBe('creation');
     });
 
     it('should include role information for actors', async () => {
@@ -203,13 +203,11 @@ describe('Contract Traceability Helpers', () => {
 
       const result = await buildTokenTimeline(tokenId);
 
-      // Find a transfer event and check if creator role is included
-      const transferEvent = result.find(
-        (entry: unknown) => (entry as { eventType: string }).eventType === 'transfer'
-      );
-      if (transferEvent && (transferEvent as { actorRole?: string }).actorRole) {
+      // Find a transfer event and check if role information is included
+      const transferEvent = result.find((entry) => entry.type === 'transfer');
+      if (transferEvent && transferEvent.transferInfo) {
         expect(['Producer', 'Factory', 'Retailer', 'Consumer']).toContain(
-          (transferEvent as { actorRole: string }).actorRole
+          transferEvent.transferInfo.fromRole
         );
       }
     });

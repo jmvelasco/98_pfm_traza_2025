@@ -905,26 +905,74 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
   }
 
   try {
-    // Get transfer history for timeline
+    // Get token details and transfers - need to provide a user address for getTokenDetails
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+    const tokenData = await contract.getToken(tokenId);
+
+    const tokenDetails = {
+      id: Number(tokenData[0]),
+      creator: tokenData[1],
+      name: tokenData[2],
+      totalSupply: Number(tokenData[3]),
+      features: tokenData[4] || '',
+      parentId: Number(tokenData[5]),
+      dateCreated: Number(tokenData[6]),
+      balance: Number(tokenData[3]), // Use totalSupply as fallback for balance
+    };
+
     const transfers = await getTokenTransferHistory(tokenId);
+    const lineage = await getTokenLineage(tokenId);
 
     const timeline: TimelineEntry[] = [];
 
     // Add creation event (always first)
+    const creatorInfo = await getUserRoleInfo(tokenDetails.creator);
+    const tokenInfo: TokenLineage = {
+      tokenId: tokenDetails.id,
+      parentId: tokenDetails.parentId || 0,
+      name: tokenDetails.name,
+      creator: tokenDetails.creator,
+      creatorRole: creatorInfo.role,
+      createdAt: tokenDetails.dateCreated || Date.now() / 1000,
+      level: tokenDetails.parentId ? 1 : 0,
+      currentBalance: tokenDetails.balance,
+      totalSupply: tokenDetails.totalSupply,
+      features: tokenDetails.features || '',
+    };
+
     timeline.push({
-      eventType: 'creation',
-      timestamp: 1698000000,
-      description: `Token ${tokenId} created`,
-      actorRole: 'Producer',
+      type: 'creation',
+      timestamp: tokenDetails.dateCreated || Date.now() / 1000,
+      tokenInfo,
     });
 
-    // Add transfer events if any
+    // Add transformation event if token has a parent
+    if (tokenDetails.parentId && tokenDetails.parentId > 0) {
+      const parentToken = lineage.find((t) => t.tokenId === tokenDetails.parentId);
+      if (parentToken) {
+        timeline.push({
+          type: 'transformation',
+          timestamp: tokenDetails.dateCreated || Date.now() / 1000,
+          tokenInfo,
+          parentToken,
+          stockConsumption: {
+            consumedAmount: tokenDetails.totalSupply, // Mock data
+            producedAmount: tokenDetails.totalSupply,
+            consumedTokenId: tokenDetails.parentId,
+            producedTokenId: tokenDetails.id,
+          },
+        });
+      }
+    }
+
+    // Add transfer events
     for (const transfer of transfers) {
       timeline.push({
-        eventType: 'transfer',
+        type: 'transfer',
         timestamp: transfer.timestamp,
-        description: `Transferred ${transfer.amount} units from ${transfer.fromRole} to ${transfer.toRole}`,
-        actorRole: transfer.fromRole,
+        tokenInfo,
+        transferInfo: transfer,
       });
     }
 
@@ -936,9 +984,6 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
     return timeline;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMsg.includes('Token does not exist')) {
-      throw new Error('Token does not exist');
-    }
-    throw error;
+    throw new Error(`Error building token timeline: ${errorMsg}`);
   }
 }
