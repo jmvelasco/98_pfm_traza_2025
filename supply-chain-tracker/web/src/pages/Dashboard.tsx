@@ -118,9 +118,6 @@ export default function Dashboard() {
           </section>
           <section>
             <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
-            <p className="text-sm text-gray-600 mb-3">
-              Click on any product to view its complete traceability history.
-            </p>
             {address ? (
               <MyTokens
                 userAddress={address}

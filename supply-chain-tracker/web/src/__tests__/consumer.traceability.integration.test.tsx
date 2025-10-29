@@ -350,9 +350,9 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Organic Tomatoes')).toBeInTheDocument();
       });
 
-      // Should show hint about clicking for traceability
+      // Should show trace button instead of text hint (per analysis update)
       expect(
-        screen.getByText(/click on any product to view its complete traceability/i)
+        screen.getByText('🔍 Trace Product Journey')
       ).toBeInTheDocument();
     });
   });
