@@ -50,7 +50,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
 
     render(<TransferToConsumer />);
@@ -73,7 +75,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
     vi.mocked(getAvailableBalance).mockResolvedValue(5); // Available balance = 6 - 1 pending
 
@@ -97,7 +101,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
     // Mock scenario: 6 total balance, 1 pending = 5 available
     vi.mocked(getAvailableBalance).mockResolvedValue(5);
@@ -127,7 +133,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
     // Mock scenario: 6 total balance, 6 pending = 0 available
     vi.mocked(getAvailableBalance).mockResolvedValue(0);
@@ -154,7 +162,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
     vi.mocked(getAvailableBalance).mockResolvedValue(5); // Available balance
     vi.mocked(requestTransfer).mockResolvedValue(undefined);
@@ -191,7 +201,9 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
       balance: 6, // Total balance
       parentId: 2,
       creator: '0x123',
-      type: 'packaged',
+      totalSupply: 10,
+      features: '{"type": "packaged"}',
+      dateCreated: Date.now(),
     });
     vi.mocked(getAvailableBalance).mockResolvedValue(5); // Available balance
     vi.mocked(requestTransfer).mockResolvedValue(undefined);

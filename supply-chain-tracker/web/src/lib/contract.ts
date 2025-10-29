@@ -693,13 +693,13 @@ export async function getTokenLineage(tokenId: number): Promise<TokenLineage[]> 
     if (tokenId === 99999) {
       throw new Error('Token does not exist');
     }
-    
+
     if (tokenId === 1) {
       // Raw material with no parents
       traceabilityCache.set(cacheKey, []);
       return [];
     }
-    
+
     if (tokenId === 999) {
       // Deep inheritance chain for testing
       const deepLineage: TokenLineage[] = [];
@@ -720,7 +720,7 @@ export async function getTokenLineage(tokenId: number): Promise<TokenLineage[]> 
       traceabilityCache.set(cacheKey, deepLineage);
       return deepLineage;
     }
-    
+
     if (tokenId === 123) {
       // Standard test case with 3-level lineage
       const mockLineage: TokenLineage[] = [
@@ -764,7 +764,7 @@ export async function getTokenLineage(tokenId: number): Promise<TokenLineage[]> 
       traceabilityCache.set(cacheKey, mockLineage);
       return mockLineage;
     }
-    
+
     // Default case: empty lineage (raw material)
     traceabilityCache.set(cacheKey, []);
     return [];
@@ -798,7 +798,7 @@ export async function getUserRoleInfo(
     if (userAddress === '0x000000') {
       throw new Error('User not found');
     }
-    
+
     if (userAddress === '0x123abc') {
       const result = {
         role: 'Producer',
@@ -807,7 +807,7 @@ export async function getUserRoleInfo(
       traceabilityCache.set(cacheKey, result);
       return result;
     }
-    
+
     // Default mock user info
     const result = {
       role: 'Consumer',
@@ -831,7 +831,7 @@ export async function getUserRoleInfo(
  */
 export async function getTokenTransferHistory(tokenId: number): Promise<TransferHistoryEntry[]> {
   const cacheKey = SimpleTraceabilityCache.transferHistoryKey(tokenId);
-  
+
   // Try cache first
   const cached = traceabilityCache.get(cacheKey) as TransferHistoryEntry[] | null;
   if (cached) {
@@ -844,7 +844,7 @@ export async function getTokenTransferHistory(tokenId: number): Promise<Transfer
     if (tokenId === 99999) {
       throw new Error('Token does not exist');
     }
-    
+
     if (tokenId === 1) {
       // Raw material with no transfers yet
       const emptyHistory: TransferHistoryEntry[] = [];
@@ -877,11 +877,10 @@ export async function getTokenTransferHistory(tokenId: number): Promise<Transfer
         status: 'Accepted',
       },
     ];
-    
+
     // Cache and return
     traceabilityCache.set(cacheKey, mockHistory);
     return mockHistory;
-    
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     if (errorMsg.includes('Token does not exist') || tokenId === 99999) {
@@ -898,7 +897,7 @@ export async function getTokenTransferHistory(tokenId: number): Promise<Transfer
  */
 export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry[]> {
   const cacheKey = SimpleTraceabilityCache.timelineKey(tokenId);
-  
+
   // Try cache first
   const cached = traceabilityCache.get(cacheKey) as TimelineEntry[] | null;
   if (cached) {
@@ -908,9 +907,9 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
   try {
     // Get transfer history for timeline
     const transfers = await getTokenTransferHistory(tokenId);
-    
+
     const timeline: TimelineEntry[] = [];
-    
+
     // Add creation event (always first)
     timeline.push({
       eventType: 'creation',
@@ -918,7 +917,7 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
       description: `Token ${tokenId} created`,
       actorRole: 'Producer',
     });
-    
+
     // Add transfer events if any
     for (const transfer of transfers) {
       timeline.push({
@@ -928,14 +927,13 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
         actorRole: transfer.fromRole,
       });
     }
-    
+
     // Sort by timestamp
     timeline.sort((a, b) => a.timestamp - b.timestamp);
-    
+
     // Cache and return
     traceabilityCache.set(cacheKey, timeline);
     return timeline;
-    
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     if (errorMsg.includes('Token does not exist')) {

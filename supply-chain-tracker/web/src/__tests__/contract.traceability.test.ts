@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { getTokenLineage, getUserRoleInfo, getTokenTransferHistory, buildTokenTimeline } from '../lib/contract';
-import type { TokenLineage, TransferHistoryEntry, TimelineEntry } from '../types/traceability';
+import {
+  getTokenLineage,
+  getUserRoleInfo,
+  getTokenTransferHistory,
+  buildTokenTimeline,
+} from '../lib/contract';
+import type { TokenLineage } from '../types/traceability';
 
 // Mock the existing contract module - ensuring we test the actual implementations
 // by NOT mocking them but testing them directly
@@ -119,10 +124,12 @@ describe('Contract Traceability Helpers', () => {
 
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
-      
+
       // Should be ordered by date (oldest first)
       if (result.length > 1) {
-        expect((result[0] as unknown as {timestamp: number}).timestamp).toBeLessThanOrEqual((result[1] as unknown as {timestamp: number}).timestamp);
+        expect((result[0] as unknown as { timestamp: number }).timestamp).toBeLessThanOrEqual(
+          (result[1] as unknown as { timestamp: number }).timestamp
+        );
       }
 
       // Each entry should have required fields
@@ -148,7 +155,9 @@ describe('Contract Traceability Helpers', () => {
     it('should handle non-existent tokens', async () => {
       const nonExistentTokenId = 99999;
 
-      await expect(getTokenTransferHistory(nonExistentTokenId)).rejects.toThrow('Token does not exist');
+      await expect(getTokenTransferHistory(nonExistentTokenId)).rejects.toThrow(
+        'Token does not exist'
+      );
     });
   });
 
@@ -163,13 +172,15 @@ describe('Contract Traceability Helpers', () => {
 
       // Should be ordered chronologically
       if (result.length > 1) {
-        expect((result[0] as unknown as {timestamp: number}).timestamp).toBeLessThanOrEqual((result[1] as unknown as {timestamp: number}).timestamp);
+        expect((result[0] as unknown as { timestamp: number }).timestamp).toBeLessThanOrEqual(
+          (result[1] as unknown as { timestamp: number }).timestamp
+        );
       }
 
       // Should contain both creation and transfer events
-      const eventTypes = result.map((entry: unknown) => (entry as {eventType: string}).eventType);
+      const eventTypes = result.map((entry: unknown) => (entry as { eventType: string }).eventType);
       expect(eventTypes).toContain('creation');
-      
+
       // Each timeline entry should have required fields
       if (result.length > 0) {
         expect(result[0]).toHaveProperty('eventType');
@@ -193,9 +204,13 @@ describe('Contract Traceability Helpers', () => {
       const result = await buildTokenTimeline(tokenId);
 
       // Find a transfer event and check if creator role is included
-      const transferEvent = result.find((entry: unknown) => (entry as {eventType: string}).eventType === 'transfer');
-      if (transferEvent && (transferEvent as {actorRole?: string}).actorRole) {
-        expect(['Producer', 'Factory', 'Retailer', 'Consumer']).toContain((transferEvent as {actorRole: string}).actorRole);
+      const transferEvent = result.find(
+        (entry: unknown) => (entry as { eventType: string }).eventType === 'transfer'
+      );
+      if (transferEvent && (transferEvent as { actorRole?: string }).actorRole) {
+        expect(['Producer', 'Factory', 'Retailer', 'Consumer']).toContain(
+          (transferEvent as { actorRole: string }).actorRole
+        );
       }
     });
   });
