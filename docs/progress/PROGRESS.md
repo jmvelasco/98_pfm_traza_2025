@@ -1,8 +1,18 @@
-# 📊 PROGRESS.md — Progreso de la Sesión TDD (13 octubre 2025)
+# 📊 PROGRESS.md — Progreso del Proyecto Supply Chain Tracker (13-29 octubre 2025)
 
-## � Actualizaciones recientes
+## 🚀 **ESTADO ACTUAL — 29 octubre 2025**
 
-- 25 Oct 2025 — Migración de builders finalizada para todas las suites de transfers (consistencia 100%). Detalles en la sección: "🧱 25 Oct 2025 — Builders Migration (Finalizado)" más abajo.
+- **170/170 tests pasando** ✅ — Suite completa sin regresiones
+- **Supply Chain completo funcional**: Producer → Factory → Retailer → Consumer ✅
+- **Available Balance System**: Lógica de balance disponible vs. pendiente implementada ✅
+- **Consumer Dashboard**: UX restructurado, TraceabilityModal pending 🔨
+
+## 📅 Actualizaciones recientes
+
+- **29 Oct 2025** — **Consumer dashboard restructuring** ✅ + **Available Balance System** ✅ completados
+- **28 Oct 2025** — **Retailer dashboard completo** ✅ (PackageProducts + TransferToConsumer)
+- **26-27 Oct 2025** — **Factory dashboard completo** ✅ (ProcessMaterials + TransferToRetailer)
+- **25 Oct 2025** — Migración de builders finalizada para todas las suites de transfers (consistencia 100%)
 
 ## �🎯 Objetivo de la Sesión
 
@@ -2605,5 +2615,128 @@ Consistencia total: todas las pruebas de transfers usan builders compartidos. Cu
 - ✅ Servicio Web3 con ethers v6 + EIP-1193 (completado con TDD + refactor)
 - ✅ Hook useWallet ergonómico (completado con TDD + refactor completo)
 - ⚠️ Pendiente: estructura carpetas (`components/`, `pages/`) y páginas funcionales
+
+---
+
+## 🚀 ACTUALIZACIÓN DE ESTADO — 29 octubre 2025
+
+### 📊 Estado Actual del Proyecto
+
+**IMPORTANTE**: Este progreso se actualiza para reflejar el estado real documentado en `docs/DELIVERY.md` (fecha: 29 octubre 2025).
+
+#### ✅ **Completado Post-25 Oct**:
+
+1. **Factory Dashboard** — ✅ **COMPLETADO** (26-27 Oct 2025)
+
+   - ✅ ProcessMaterials: crear tokens derivados con `parentId > 0`
+   - ✅ TransferToRetailer: transferir productos procesados a Retailer
+   - ✅ IncomingTransfers: aceptar/rechazar materias primas de Producer
+   - ✅ Tests completos: 8 tests ProcessMaterials + 10 tests TransferToRetailer
+
+2. **Retailer Dashboard** — ✅ **COMPLETADO** (28-29 Oct 2025)
+
+   - ✅ PackageProducts: crear paquetes retail desde productos recibidos
+   - ✅ TransferToConsumer: transferir productos finales a Consumer
+   - ✅ IncomingTransfers: aceptar/rechazar productos de Factory
+   - ✅ Available Balance Integration: lógica de balance disponible vs. pendiente
+   - ✅ Tests completos: 12/12 TransferToConsumer tests + integración
+
+3. **Available Balance System** — ✅ **COMPLETADO** (29 Oct 2025)
+
+   - ✅ `getPendingOutgoingTransfersByToken()`: calcula transferencias pendientes
+   - ✅ `getAvailableBalance()`: balance disponible = total - pendiente
+   - ✅ `getUserTokensWithAvailableBalance()`: pre-filtrado de tokens elegibles
+   - ✅ Bug fix crítico: case-insensitive address handling
+   - ✅ Tests dedicados: 6 unit + 6 integration tests
+
+4. **Consumer Dashboard Restructuring** — ✅ **COMPLETADO** (29 Oct 2025)
+   - ✅ Dashboard.tsx: Consumer layout sin ActionCards, prioriza IncomingTransfers
+   - ✅ "My Products" section claramente etiquetada
+   - ✅ UX mejorada: elimina confusión, enfoque en productos recibidos
+   - ✅ Tests actualizados: verifica estructura específica de Consumer
+
+#### 📊 **Métricas Actuales**:
+
+- **Test Suite**: 170/170 tests pasando (vs. 123 en Oct 25) → +47 tests
+- **Roles Completos**: Producer ✅, Factory ✅, Retailer ✅
+- **Supply Chain Flow**: Producer → Factory → Retailer → Consumer ✅ funcional
+- **Real-time Updates**: TokenCreated, TransferAccepted listeners ✅
+- **Architecture**: Dashboard-centric (ADR 008) ✅ validado en todos los roles
+
+#### 🔨 **Consumer Dashboard — Estado Actual**:
+
+- ✅ MyTokens: visualización de productos del consumer
+- ✅ IncomingTransfers: aceptar/rechazar transferencias de Retailer
+- ✅ Layout restructurado: sin ActionCards redundantes, UX limpia
+- 🔨 **PENDIENTE**: TraceabilityModal (visualización de linaje parent-child completo)
+
+#### 🎯 **Próximos Pasos Inmediatos**:
+
+1. **TraceabilityModal Implementation** (TDD):
+
+   - Modal component para visualizar historia completa del producto
+   - Parent-child token lineage tree
+   - Transfer history y stock consumption details
+   - Trigger desde MyTokens component
+
+2. **Final Delivery Preparation**:
+   - End-to-end testing completo del flujo Producer → Consumer
+   - Documentación final y deployment scripts
+   - Polish UI/UX consistency
+
+### 📈 **Progreso vs. Objetivos Originales**:
+
+- **Antes** (Oct 25): Sistema básico de transfers, problemas de balance disponible
+- **Después** (Oct 29): ✅ Supply chain completo funcional, available balance resuelto, 170 tests
+
+### 🏆 **Hitos Alcanzados**:
+
+1. **Milestone 3**: Factory ProcessMaterials + TransferToRetailer (26 Oct)
+2. **Milestone 4**: Retailer PackageProducts + TransferToConsumer (28 Oct)
+3. **Milestone 5**: Available Balance System completo (29 Oct)
+4. **Milestone 6**: Consumer Dashboard UX restructuring (29 Oct)
+
+**Estado del Proyecto**: 🎯 **~95% completado** — Solo TraceabilityModal pending para delivery final
+
+---
+
+## ➕ Fase 17 — TraceabilityModal Implementation & Final Delivery (29 octubre 2025)
+
+### 🎯 Objetivo
+
+Implementar el **TraceabilityModal** como componente final para completar la funcionalidad Consumer, finalizando el supply chain completo Producer → Factory → Retailer → Consumer con trazabilidad end-to-end.
+
+### 📋 Plan de Implementación (TDD)
+
+**STATUS_17.md** documenta el plan completo de implementación siguiendo metodología TDD:
+
+1. **Fase 1: Analysis & Design (RED)** — Tests y diseño de API del modal
+2. **Fase 2: Contract Helpers (GREEN)** — `getTokenLineage()`, `getTokenTransferHistory()` helpers
+3. **Fase 3: Modal UI Component (GREEN)** — TraceabilityModal component + MyTokens integration
+4. **Fase 4: Consumer ActionCard Integration (GREEN)** — Enable "Check Traceability" ActionCard
+5. **Fase 5: Refactor & Polish (REFACTOR)** — UI/UX improvements, performance, accessibility
+
+### 🎯 Success Criteria
+
+- ✅ **Functional**: Consumer puede ver trazabilidad completa desde raw materials
+- ✅ **Technical**: 25+ nuevos tests, 195+ total tests passing
+- ✅ **UX**: Modal responsive, loading states, error handling
+- ✅ **Integration**: MyTokens + ActionCard + Consumer dashboard completo
+
+### 📊 Duración Estimada
+
+- **Total**: ~3.5 horas de implementación TDD
+- **Tests Target**: +25 nuevos tests (195+ total)
+- **Archivos**: 8-10 archivos modificados/creados
+- **Milestone**: Consumer dashboard 100% completo
+
+Ver detalles completos en `docs/progress/STATUS_17.md`
+
+---
+
+_Sesión actualizada: 29 octubre 2025, 21:35 GMT_  
+_Metodología: Test-Driven Development (TDD) consistente_  
+_Resultado: ✅ Supply Chain completo funcional, 170/170 tests pasando_  
+_Próximo: 🔍 TraceabilityModal implementation (STATUS_17)_
 
 ---

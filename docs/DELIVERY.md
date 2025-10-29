@@ -96,19 +96,22 @@
 
 ## Immediate Focus
 
-**Priority 1**: Complete Consumer dashboard actions ✅ **CURRENT FOCUS**
+**Priority 1**: TraceabilityModal Implementation (STATUS_17) 🔨 **CURRENT FOCUS**
 
 - ✅ MyTokens component working (Consumer can view owned products)
-- 🔨 Implement TraceabilityModal component (show complete parent-child lineage)
-- 🔨 Enable "Check Traceability" ActionCard in Consumer RoleActions
-- 🔨 Add "View My Products" ActionCard functionality (enhance MyTokens display)
+- ✅ Consumer dashboard UX restructured (no redundant ActionCards)
+- 🔨 **TraceabilityModal component** (complete product lineage visualization)
+- 🔨 **Contract traceability helpers** (getTokenLineage, getTokenTransferHistory)
+- 🔨 **Consumer ActionCard integration** (enable "Check Traceability" action)
+- 🔨 **End-to-end integration** (MyTokens + ActionCard triggers)
 
-**Priority 2**: Final polish and delivery preparation
+**Priority 2**: Final delivery preparation
 
-- Manual QA: Complete end-to-end supply chain flow (Producer → Factory → Retailer → Consumer)
-- Test traceability from raw materials to final products
-- Address any remaining UI/UX improvements
-- Final documentation updates
+- **Target**: 195+ tests passing (170 existing + 25 new traceability tests)
+- **Manual QA**: Complete supply chain flow Producer → Factory → Retailer → Consumer
+- **Traceability validation**: Raw materials → processed → packaged → consumer audit trail
+- **Documentation finalization**: README updates, deployment guides
+- **Performance optimization**: Bundle analysis, Lighthouse audit
 
 **Note**: All features implemented as dashboard components, not separate pages. See [ADR 008](adr/008-dashboard-centric-token-management-strategy.md) for architecture rationale.
 
@@ -432,5 +435,76 @@ With Factory and Retailer roles complete, the focus shifts to Consumer dashboard
 - Implement TraceabilityModal for complete product lineage visualization
 - Enable Consumer ActionCards (View My Products, Check Traceability)
 - Final end-to-end testing and delivery preparation
+
+---
+
+## Milestone 6: TraceabilityModal & Consumer Dashboard Complete (🔨 In Progress)
+
+**Date:** 29 October 2025 → **Target Completion**
+
+### Overview
+
+Implementation of the final Consumer dashboard component - TraceabilityModal - to provide complete product traceability from raw materials through the entire supply chain. This milestone will complete the Consumer role functionality and finalize the end-to-end supply chain workflow.
+
+### Planned Deliverables
+
+1. 🔨 **TraceabilityModal Component**: Complete product lineage visualization
+
+   - Parent-child token lineage tree display
+   - Transfer history chronological timeline
+   - Stock consumption details at each supply chain step
+   - Responsive modal design with loading states and error handling
+
+2. 🔨 **Contract Traceability Helpers**: New functions in `lib/contract.ts`
+
+   - `getTokenLineage(tokenId)`: Recursive parent-child relationship mapping
+   - `getTokenTransferHistory(tokenId)`: Complete transfer history for token
+   - `getTokenConsumptionDetails(tokenId)`: Stock consumption information
+
+3. 🔨 **Consumer ActionCard Integration**: Enable traceability actions
+
+   - Activate "Check Traceability" ActionCard in Consumer RoleActions
+   - Remove disabled state and integrate with modal functionality
+   - Multiple entry points: ActionCard + MyTokens card clicks
+
+4. 🔨 **End-to-End Integration**: Complete Consumer dashboard functionality
+   - MyTokens component integration with modal triggers
+   - Consumer-specific UI/UX with clear traceability access
+   - Complete supply chain visibility for end consumers
+
+### Technical Implementation Plan
+
+- **Methodology**: Strict TDD approach (RED → GREEN → REFACTOR)
+- **Test Strategy**: 25+ new tests across component, helpers, and integration
+- **Performance**: Optimized for complex lineage trees and large transfer histories
+- **Accessibility**: WCAG-compliant modal with keyboard navigation
+- **Design**: Consistent with existing dashboard-centric architecture (ADR 008)
+
+### Success Criteria
+
+- ✅ **170+ tests maintained**: No regressions in existing test suite
+- ✅ **25+ new tests added**: Comprehensive coverage for traceability features
+- ✅ **Complete lineage visualization**: Raw materials → processed → packaged → consumer
+- ✅ **Transfer history tracking**: Full audit trail with timestamps and participants
+- ✅ **Consumer UX complete**: All Consumer ActionCards functional
+- ✅ **Mobile responsive**: Traceability modal works on all device sizes
+
+### Expected Test Results
+
+- ✅ **195+ total tests passing** (170 existing + 25 new traceability tests)
+- ✅ **All Consumer functionality complete** (MyTokens ✅, IncomingTransfers ✅, Traceability ✅)
+- ✅ **End-to-end supply chain verified** (Producer → Factory → Retailer → Consumer ✅)
+- ✅ **No breaking changes** in existing Factory/Retailer/Producer functionality
+
+### Impact
+
+- ✅ **Project 100% Complete**: All planned supply chain roles and functionality implemented
+- ✅ **Full Traceability**: Complete audit trail from raw materials to final consumer products
+- ✅ **Architecture Validated**: Dashboard-centric approach proven effective across all roles
+- ✅ **Ready for Delivery**: Final polishing and deployment preparation
+
+### Implementation Reference
+
+Complete implementation plan documented in `docs/progress/STATUS_17.md` with detailed TDD phases, API specifications, and quality gates.
 
 ---
