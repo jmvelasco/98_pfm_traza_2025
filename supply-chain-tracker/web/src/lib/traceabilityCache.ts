@@ -80,4 +80,22 @@ export class SimpleTraceabilityCache {
   static lineageKey(tokenId: number): string {
     return `lineage_${tokenId}`;
   }
+
+  /**
+   * Generates cache key for transfer history
+   * @param tokenId Token ID
+   * @returns Cache key string
+   */
+  static transferHistoryKey(tokenId: number): string {
+    return `transfers_${tokenId}`;
+  }
+
+  /**
+   * Generates cache key for token timeline
+   * @param tokenId Token ID
+   * @returns Cache key string
+   */
+  static timelineKey(tokenId: number): string {
+    return `timeline_${tokenId}`;
+  }
 }

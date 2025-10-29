@@ -59,5 +59,15 @@ describe('SimpleTraceabilityCache', () => {
       expect(SimpleTraceabilityCache.lineageKey(789)).toBe('lineage_789');
       expect(SimpleTraceabilityCache.lineageKey(101112)).toBe('lineage_101112');
     });
+
+    it('should generate correct transfer history cache keys', () => {
+      expect(SimpleTraceabilityCache.transferHistoryKey(123)).toBe('transfers_123');
+      expect(SimpleTraceabilityCache.transferHistoryKey(456)).toBe('transfers_456');
+    });
+
+    it('should generate correct timeline cache keys', () => {
+      expect(SimpleTraceabilityCache.timelineKey(789)).toBe('timeline_789');
+      expect(SimpleTraceabilityCache.timelineKey(101)).toBe('timeline_101');
+    });
   });
 });
