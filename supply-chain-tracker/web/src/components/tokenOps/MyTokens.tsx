@@ -8,9 +8,11 @@ import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory
 
 interface MyTokensProps {
   userAddress: string;
+  onTokenClick?: (tokenId: number) => void;
+  isClickable?: boolean;
 }
 
-export default function MyTokens({ userAddress }: MyTokensProps) {
+export default function MyTokens({ userAddress, onTokenClick, isClickable = false }: MyTokensProps) {
   const [tokens, setTokens] = useState<TokenDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -174,15 +176,41 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
   return (
     <div className="space-y-4">
       {tokens.map((token) => {
-        let parsedFeatures: any = {};
+        let parsedFeatures: Record<string, unknown> = {};
         try {
           parsedFeatures = JSON.parse(token.features);
         } catch {
           // ignore parse errors
         }
 
+        const handleTokenClick = () => {
+          if (isClickable && onTokenClick) {
+            onTokenClick(token.id);
+          }
+        };
+
         return (
-          <div key={token.id} className="border rounded-lg p-4 bg-white shadow-sm">
+          <div
+            key={token.id}
+            className={`border rounded-lg p-4 bg-white shadow-sm ${
+              isClickable
+                ? 'cursor-pointer hover:shadow-md transition-shadow hover:bg-gray-50'
+                : ''
+            }`}
+            onClick={handleTokenClick}
+            role={isClickable ? 'button' : undefined}
+            tabIndex={isClickable ? 0 : undefined}
+            onKeyDown={
+              isClickable
+                ? (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleTokenClick();
+                    }
+                  }
+                : undefined
+            }
+          >
             <h3 className="text-lg text-orange-600 font-semibold mb-2">{token.name}</h3>
             <div className="text-sm text-gray-600 space-y-1">
               <p>
@@ -198,17 +226,17 @@ export default function MyTokens({ userAddress }: MyTokensProps) {
                 <span className="font-medium">Parent ID:</span>{' '}
                 {token.parentId === 0 ? 'Raw Material' : token.parentId}
               </p>
-              {parsedFeatures.content && (
+              {typeof parsedFeatures.content === 'string' && (
                 <p>
                   <span className="font-medium">Content:</span> {parsedFeatures.content}
                 </p>
               )}
-              {parsedFeatures.country && (
+              {typeof parsedFeatures.country === 'string' && (
                 <p>
                   <span className="font-medium">Country:</span> {parsedFeatures.country}
                 </p>
               )}
-              {parsedFeatures.type && (
+              {typeof parsedFeatures.type === 'string' && (
                 <p>
                   <span className="font-medium">Type:</span> {parsedFeatures.type}
                 </p>

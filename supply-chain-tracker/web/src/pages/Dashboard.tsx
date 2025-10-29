@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import MyTokens from '../components/tokenOps/MyTokens';
 import OutgoingTransfers from '../components/tokenOps/OutgoingTransfers';
 import { RoleActions } from '../components/tokenOps/RoleActions';
+import { TraceabilityModal } from '../components/traceability/TraceabilityModal';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
@@ -11,6 +12,24 @@ import { UserRole } from '../lib/enums';
 export default function Dashboard() {
   const { address, isConnected } = useWallet();
   const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
+  
+  // State for TraceabilityModal (Consumer-only)
+  const [isTraceabilityModalOpen, setIsTraceabilityModalOpen] = useState(false);
+  const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
+
+  // Handler for opening traceability modal (Consumer-only)
+  const handleOpenTraceability = (tokenId: number) => {
+    if (role === UserRole.Consumer) {
+      setSelectedTokenId(tokenId);
+      setIsTraceabilityModalOpen(true);
+    }
+  };
+
+  // Handler for closing traceability modal
+  const handleCloseTraceability = () => {
+    setIsTraceabilityModalOpen(false);
+    setSelectedTokenId(null);
+  };
 
   // Redirect to home if not connected
   useEffect(() => {
@@ -99,14 +118,24 @@ export default function Dashboard() {
           </section>
           <section>
             <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
+            <p className="text-sm text-gray-600 mb-3">Click on any product to view its complete traceability history.</p>
             {address ? (
-              <MyTokens userAddress={address} />
+              <MyTokens userAddress={address} onTokenClick={handleOpenTraceability} isClickable={true} />
             ) : (
               <div className="bg-white rounded-lg shadow p-6 text-center">
                 <p className="text-gray-500">Connect your wallet to see your products.</p>
               </div>
             )}
           </section>
+
+          {/* TraceabilityModal for Consumer */}
+          {selectedTokenId && (
+            <TraceabilityModal
+              isOpen={isTraceabilityModalOpen}
+              onClose={handleCloseTraceability}
+              tokenId={selectedTokenId}
+            />
+          )}
         </>
       )}
     </div>
