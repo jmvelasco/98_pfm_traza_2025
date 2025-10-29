@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { getTokenLineage, buildTokenTimeline } from '../../lib/contract';
+import { getTokenLineage, buildTokenTimeline, getTokenDetails, type TokenDetails } from '../../lib/contract';
 import type { TokenLineage, TimelineEntry } from '../../types/traceability';
 import { TimelineView } from './TimelineView';
 
@@ -29,6 +29,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [data, setData] = useState<TraceabilityData | null>(null);
   const [error, setError] = useState<ErrorState | null>(null);
+  const [tokenDetails, setTokenDetails] = useState<TokenDetails | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const loadTraceabilityData = useCallback(async () => {
@@ -38,12 +39,19 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
     setError(null);
 
     try {
-      const [lineage, timeline] = await Promise.all([
+      // Get current user address for token details
+      const userAddress = window.ethereum 
+        ? (await new (await import('ethers')).ethers.BrowserProvider(window.ethereum).getSigner()).address
+        : '0x0000000000000000000000000000000000000000';
+
+      const [lineage, timeline, details] = await Promise.all([
         getTokenLineage(tokenId),
         buildTokenTimeline(tokenId),
+        getTokenDetails(tokenId, userAddress),
       ]);
 
       setData({ lineage, timeline });
+      setTokenDetails(details);
       setLoadingState('success');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -126,7 +134,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 id="traceability-title" className="text-lg font-semibold text-gray-900">
-            Token Traceability - #{tokenId}
+            {tokenDetails?.name ? `${tokenDetails.name} - #${tokenId}` : `Token Traceability - #${tokenId}`}
           </h2>
           <button
             ref={closeButtonRef}

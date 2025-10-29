@@ -10,6 +10,7 @@ vi.mock('../lib/contract', () => ({
   getUserRoleInfo: vi.fn(),
   getTokenTransferHistory: vi.fn(),
   buildTokenTimeline: vi.fn(),
+  getTokenDetails: vi.fn(),
 }));
 
 describe('TraceabilityModal Component', () => {
@@ -260,6 +261,45 @@ describe('TraceabilityModal Component', () => {
       expect(triggerElement).toBeEnabled();
 
       document.body.removeChild(triggerElement);
+    });
+
+    it('should display token name in header when available', async () => {
+      const mockTokenDetails = {
+        id: 123,
+        name: 'pack de leche de soja',
+        creator: '0x123',
+        totalSupply: 100,
+        features: '{}',
+        parentId: 0,
+        dateCreated: Date.now(),
+        balance: 50
+      };
+
+      vi.mocked(contractHelpers.getTokenDetails).mockResolvedValue(mockTokenDetails);
+      vi.mocked(contractHelpers.getTokenLineage).mockResolvedValue([]);
+      vi.mocked(contractHelpers.buildTokenTimeline).mockResolvedValue([]);
+
+      const onClose = vi.fn();
+      render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+
+      // Wait for token details to load
+      await waitFor(() => {
+        expect(screen.getByText('pack de leche de soja - #123')).toBeInTheDocument();
+      });
+
+      expect(contractHelpers.getTokenDetails).toHaveBeenCalledWith(123, expect.any(String));
+    });
+
+    it('should fallback to token ID when name is not available', async () => {
+      vi.mocked(contractHelpers.getTokenDetails).mockResolvedValue(null);
+      vi.mocked(contractHelpers.getTokenLineage).mockResolvedValue([]);
+      vi.mocked(contractHelpers.buildTokenTimeline).mockResolvedValue([]);
+
+      const onClose = vi.fn();
+      render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+
+      // Should show default header when token details can't be loaded
+      expect(screen.getByText('Token Traceability - #123')).toBeInTheDocument();
     });
   });
 });
