@@ -141,8 +141,8 @@ describe('Dashboard Page', () => {
     render(<Dashboard />);
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /consumer dashboard/i })).toBeInTheDocument();
-      expect(screen.getByText(/view my products/i)).toBeInTheDocument();
-      expect(screen.getByText(/check traceability/i)).toBeInTheDocument();
+      expect(screen.getByText(/incoming transfers/i)).toBeInTheDocument();
+      expect(screen.getByText(/my products/i)).toBeInTheDocument();
       // Consumer should NOT see transfer option
       expect(screen.queryByText(/transfer to/i)).not.toBeInTheDocument();
     });

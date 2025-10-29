@@ -57,37 +57,57 @@ export default function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-blue-200">{role} Dashboard</h1>
 
-      {/* Quick Actions */}
-      <section>
-        <RoleActions role={role} />
-      </section>
-
-      {/* My Tokens Section */}
-      <section>
-        <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
-        {address ? (
-          <MyTokens userAddress={address} />
-        ) : (
-          <div className="bg-white rounded-lg shadow p-6 text-center">
-            <p className="text-gray-500">Connect your wallet to see your tokens.</p>
-          </div>
-        )}
-      </section>
-
-      {/* Pending Transfers Section */}
       {role !== UserRole.Consumer && (
-        <section className="space-y-6">
-          {role === UserRole.Producer ? (
-            <>
-              <OutgoingTransfers showAllStatuses={true} />
-            </>
-          ) : (
-            <>
-              <IncomingTransfers />
-              <OutgoingTransfers showAllStatuses={true} />
-            </>
-          )}
-        </section>
+        <>
+          {/* Quick Actions */}
+          <section>
+            <RoleActions role={role} />
+          </section>
+
+          {/* My Tokens Section */}
+          <section>
+            <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
+            {address ? (
+              <MyTokens userAddress={address} />
+            ) : (
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <p className="text-gray-500">Connect your wallet to see your tokens.</p>
+              </div>
+            )}
+          </section>
+
+          {/* Pending Transfers Section */}
+          <section className="space-y-6">
+            {role === UserRole.Producer ? (
+              <>
+                <OutgoingTransfers showAllStatuses={true} />
+              </>
+            ) : (
+              <>
+                <IncomingTransfers />
+                <OutgoingTransfers showAllStatuses={true} />
+              </>
+            )}
+          </section>
+        </>
+      )}
+
+      {role === UserRole.Consumer && (
+        <>
+          <section>
+            <IncomingTransfers />
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
+            {address ? (
+              <MyTokens userAddress={address} />
+            ) : (
+              <div className="bg-white rounded-lg shadow p-6 text-center">
+                <p className="text-gray-500">Connect your wallet to see your products.</p>
+              </div>
+            )}
+          </section>
+        </>
       )}
     </div>
   );
