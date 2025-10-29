@@ -282,9 +282,9 @@ describe('TraceabilityModal Component', () => {
       const onClose = vi.fn();
       render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
 
-      // Wait for token details to load
+      // Wait for token details to load - name should be in uppercase
       await waitFor(() => {
-        expect(screen.getByText('pack de leche de soja - #123')).toBeInTheDocument();
+        expect(screen.getByText('PACK DE LECHE DE SOJA - #123')).toBeInTheDocument();
       });
 
       expect(contractHelpers.getTokenDetails).toHaveBeenCalledWith(123, expect.any(String));

@@ -134,7 +134,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           <h2 id="traceability-title" className="text-lg font-semibold text-gray-900">
-            {tokenDetails?.name ? `${tokenDetails.name} - #${tokenId}` : `Token Traceability - #${tokenId}`}
+            {tokenDetails?.name ? `${tokenDetails.name.toUpperCase()} - #${tokenId}` : `Token Traceability - #${tokenId}`}
           </h2>
           <button
             ref={closeButtonRef}
