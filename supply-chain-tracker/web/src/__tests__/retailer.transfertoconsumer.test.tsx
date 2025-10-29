@@ -16,8 +16,9 @@ import { useWallet } from '../hooks/useWallet';
 import { useContractEvent } from '../hooks/useContractEvent';
 import {
   getTokenDetails,
-  getUserTokensWithBalance,
-  transferToken,
+  getUserTokensWithAvailableBalance,
+  getAvailableBalance,
+  requestTransfer,
 } from '../lib/contract';
 
 describe('TransferToConsumer Component', () => {
@@ -33,16 +34,12 @@ describe('TransferToConsumer Component', () => {
       switchNetwork: vi.fn(),
       getCurrentNetwork: vi.fn(),
     });
-    vi.mocked(useContractEvent).mockImplementation(({ listener }) => {
-      // Store the listener for manual triggering in tests
-      (global as any).transferRequestedListener = listener;
-      return { removeListener: vi.fn() };
-    });
+    vi.mocked(useContractEvent).mockImplementation(() => ({ removeListener: vi.fn() }));
   });
 
-  it.skip('should display loading state while fetching tokens', async () => {
-    // Mock getUserTokensWithBalance to return a promise that doesn't resolve immediately
-    vi.mocked(getUserTokensWithBalance).mockReturnValue(new Promise(() => {}));
+  it('should display loading state while fetching tokens', async () => {
+    // Mock getUserTokensWithAvailableBalance to return a promise that doesn't resolve immediately
+    vi.mocked(getUserTokensWithAvailableBalance).mockReturnValue(new Promise(() => {}));
 
     render(<TransferToConsumer />);
 
@@ -50,12 +47,12 @@ describe('TransferToConsumer Component', () => {
     await userEvent.setup().click(screen.getByText('Transfer to Consumer'));
 
     // Should show loading state
-    expect(screen.getByText(/loading tokens/i)).toBeInTheDocument();
+    expect(screen.getByText(/loading tokens…/i)).toBeInTheDocument();
   });
 
-  it.skip('should display message when no eligible tokens are available', async () => {
-    // Mock getUserTokensWithBalance to return empty array
-    vi.mocked(getUserTokensWithBalance).mockResolvedValue([]);
+  it('should display message when no eligible tokens are available', async () => {
+    // Mock getUserTokensWithAvailableBalance to return empty array
+    vi.mocked(getUserTokensWithAvailableBalance).mockResolvedValue([]);
 
     render(<TransferToConsumer />);
 
@@ -68,10 +65,10 @@ describe('TransferToConsumer Component', () => {
     });
   });
 
-  it.skip('should display token selection when tokens are available', async () => {
-    // Mock getUserTokensWithBalance to return token IDs
-    vi.mocked(getUserTokensWithBalance).mockResolvedValue([1, 2]);
-    
+  it('should display token selection when tokens are available', async () => {
+    // Mock getUserTokensWithAvailableBalance to return token IDs
+    vi.mocked(getUserTokensWithAvailableBalance).mockResolvedValue([1, 2]);
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockImplementation((id) => {
       if (id === 1) {
@@ -82,6 +79,8 @@ describe('TransferToConsumer Component', () => {
           parentId: 5, // parentId > 0 for packaged products
           features: '{}',
           totalSupply: 10,
+          creator: '0x123',
+          dateCreated: Date.now(),
         });
       }
       if (id === 2) {
@@ -92,9 +91,18 @@ describe('TransferToConsumer Component', () => {
           parentId: 6, // parentId > 0 for packaged products
           features: '{}',
           totalSupply: 5,
+          creator: '0x123',
+          dateCreated: Date.now(),
         });
       }
       return Promise.resolve(null);
+    });
+
+    // Mock getAvailableBalance to return available balance for each token
+    vi.mocked(getAvailableBalance).mockImplementation((tokenId) => {
+      if (tokenId === 1) return Promise.resolve(10);
+      if (tokenId === 2) return Promise.resolve(5);
+      return Promise.resolve(0);
     });
 
     render(<TransferToConsumer />);
@@ -110,10 +118,10 @@ describe('TransferToConsumer Component', () => {
     });
   });
 
-  it.skip('should display form validation errors', async () => {
-    // Mock getUserTokensWithBalance to return token IDs
-    vi.mocked(getUserTokensWithBalance).mockResolvedValue([1]);
-    
+  it('should display form validation errors', async () => {
+    // Mock getUserTokensWithAvailableBalance to return token IDs
+    vi.mocked(getUserTokensWithAvailableBalance).mockResolvedValue([1]);
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockResolvedValue({
       id: 1,
@@ -122,7 +130,12 @@ describe('TransferToConsumer Component', () => {
       parentId: 5, // parentId > 0 for packaged products
       features: '{}',
       totalSupply: 10,
+      creator: '0x123',
+      dateCreated: Date.now(),
     });
+
+    // Mock getAvailableBalance to return available balance
+    vi.mocked(getAvailableBalance).mockResolvedValue(10);
 
     const user = userEvent.setup();
     render(<TransferToConsumer />);
@@ -146,7 +159,10 @@ describe('TransferToConsumer Component', () => {
     // Clear and try with valid address but invalid amount
     await user.clear(screen.getByLabelText(/consumer address/i));
     await user.clear(screen.getByLabelText(/amount/i));
-    await user.type(screen.getByLabelText(/consumer address/i), '0x1234567890123456789012345678901234567890');
+    await user.type(
+      screen.getByLabelText(/consumer address/i),
+      '0x1234567890123456789012345678901234567890'
+    );
     await user.type(screen.getByLabelText(/amount/i), '20'); // More than balance
     await user.click(screen.getByRole('button', { name: /transfer/i }));
 
@@ -154,10 +170,10 @@ describe('TransferToConsumer Component', () => {
     expect(screen.getByText(/invalid amount/i)).toBeInTheDocument();
   });
 
-  it.skip('should successfully request a transfer', async () => {
-    // Mock getUserTokensWithBalance to return token IDs
-    vi.mocked(getUserTokensWithBalance).mockResolvedValue([1]);
-    
+  it('should successfully request a transfer', async () => {
+    // Mock getUserTokensWithAvailableBalance to return token IDs
+    vi.mocked(getUserTokensWithAvailableBalance).mockResolvedValue([1]);
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockResolvedValue({
       id: 1,
@@ -166,10 +182,17 @@ describe('TransferToConsumer Component', () => {
       parentId: 5, // parentId > 0 for packaged products
       features: '{}',
       totalSupply: 10,
+      creator: '0x123',
+      dateCreated: Date.now(),
     });
 
-    // Mock transferToken to resolve successfully
-    vi.mocked(transferToken).mockResolvedValue(undefined);
+    // Mock getAvailableBalance to return available balance
+    vi.mocked(getAvailableBalance).mockResolvedValue(10);
+
+    // Mock requestTransfer with delay to test loading state
+    vi.mocked(requestTransfer).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100))
+    );
 
     const user = userEvent.setup();
     render(<TransferToConsumer />);
@@ -193,20 +216,12 @@ describe('TransferToConsumer Component', () => {
     // Should show requesting state
     expect(screen.getByText(/requesting transfer/i)).toBeInTheDocument();
 
-    // Should call transferToken with correct parameters
+    // Should call requestTransfer with correct parameters
     await waitFor(() => {
-      expect(transferToken).toHaveBeenCalledWith({
-        tokenId: 1,
-        to: consumerAddress,
-        amount: 5,
-        requiredRole: 'Consumer',
-      });
+      expect(requestTransfer).toHaveBeenCalledWith(1, consumerAddress, 5);
     });
 
-    // Simulate transfer event
-    if ((global as any).transferRequestedListener) {
-      (global as any).transferRequestedListener('0x123', consumerAddress, '1');
-    }
+    // Simulate transfer event will be handled by the component's success logic
 
     // Should show success message
     await waitFor(() => {

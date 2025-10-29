@@ -1,7 +1,9 @@
 import { UserRole } from '../../lib/enums';
 import ActionCard from '../ui/ActionCard';
 import CreateRawMaterial from './CreateRawMaterial';
+import PackageProducts from './PackageProducts';
 import ProcessMaterials from './ProcessMaterials';
+import TransferToConsumer from './TransferToConsumer';
 import TransferToFactoryCard from './TransferToFactory';
 import TransferToRetailerCard from './TransferToRetailer';
 
@@ -25,18 +27,8 @@ export function RoleActions({ role }: { role: UserRole }) {
     case UserRole.Retailer:
       return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionCard
-            title="Package Products"
-            description="Create retail packages from received products"
-            icon="📦"
-            disabled
-          />
-          <ActionCard
-            title="Transfer to Consumer"
-            description="Sell products to end consumers"
-            icon="🛒"
-            disabled
-          />
+          <PackageProducts />
+          <TransferToConsumer />
         </div>
       );
     case UserRole.Consumer:

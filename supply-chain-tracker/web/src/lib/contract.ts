@@ -533,6 +533,123 @@ export async function getPendingTransfersBySender(
 }
 
 /**
+ * Get pending outgoing transfers for a specific token and sender
+ * @param tokenId - The token ID to check
+ * @param senderAddress - The sender's address
+ * @returns Array of pending transfer amounts
+ */
+export async function getPendingOutgoingTransfersByToken(
+  tokenId: number,
+  senderAddress: string
+): Promise<PendingTransfer[]> {
+  try {
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // Get total number of transfers to iterate through
+    const nextTransferId = Number(await (contract as any).nextTransferId());
+    const pendingTransfers: PendingTransfer[] = [];
+
+    // Iterate through all transfers and filter by criteria
+    for (let id = 1; id < nextTransferId; id++) {
+      try {
+        const transfer = await (contract as any).getTransfer(id);
+
+        // Filter for pending outgoing transfers of specific token
+        if (
+          Number(transfer.tokenId) === tokenId &&
+          transfer.from.toLowerCase() === senderAddress.toLowerCase() &&
+          Number(transfer.status) === 0 // 0 = Pending
+        ) {
+          // Get token name for display
+          let tokenName = null;
+          try {
+            const token = await contract.getToken(Number(transfer.tokenId));
+            tokenName = token.name;
+          } catch {
+            // If token fetch fails, continue without name
+            tokenName = `Token #${transfer.tokenId}`;
+          }
+
+          pendingTransfers.push({
+            id: Number(transfer.id),
+            tokenId: Number(transfer.tokenId),
+            tokenName,
+            from: transfer.from,
+            to: transfer.to,
+            amount: Number(transfer.amount),
+            status: 'Pending',
+            createdAt: Number(transfer.dateCreated),
+          });
+        }
+      } catch (error) {
+        // Transfer might not exist or be inaccessible, skip
+        continue;
+      }
+    }
+
+    return pendingTransfers;
+  } catch (error) {
+    console.error('Error getting pending outgoing transfers:', error);
+    return [];
+  }
+}
+
+/**
+ * Calculate available balance for a token (total balance - pending outgoing amounts)
+ * @param tokenId - The token ID
+ * @param userAddress - The user's address
+ * @returns Available balance for transfer
+ */
+export async function getAvailableBalance(tokenId: number, userAddress: string): Promise<number> {
+  try {
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // 1. Get total balance from contract
+    const totalBalance = Number(await contract.getTokenBalance(tokenId, userAddress));
+
+    // 2. Get pending outgoing transfers for this token
+    const pendingTransfers = await getPendingOutgoingTransfersByToken(tokenId, userAddress);
+
+    // 3. Sum pending amounts
+    const pendingAmount = pendingTransfers.reduce((sum, transfer) => sum + transfer.amount, 0);
+
+    // 4. Calculate available balance with Math.max protection
+    return Math.max(0, totalBalance - pendingAmount);
+  } catch (error) {
+    console.error('Error calculating available balance:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get tokens owned by user that have available balance > 0
+ * @param userAddress - The user's address
+ * @returns Array of token IDs with available balance
+ */
+export async function getUserTokensWithAvailableBalance(userAddress: string): Promise<number[]> {
+  try {
+    // First get all tokens with any balance > 0
+    const allTokenIds = await getUserTokensWithBalance(userAddress);
+    const availableTokenIds: number[] = [];
+
+    // Check available balance for each token
+    for (const tokenId of allTokenIds) {
+      const availableBalance = await getAvailableBalance(tokenId, userAddress);
+      if (availableBalance > 0) {
+        availableTokenIds.push(tokenId);
+      }
+    }
+
+    return availableTokenIds;
+  } catch (error) {
+    console.error('Error getting user tokens with available balance:', error);
+    return [];
+  }
+}
+
+/**
  * Map contract transfer status enum to string
  */
 function mapTransferStatus(status: number): string {

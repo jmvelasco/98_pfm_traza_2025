@@ -9,11 +9,7 @@ vi.mock('../hooks/useWallet');
 vi.mock('../lib/contract');
 
 import { useWallet } from '../hooks/useWallet';
-import {
-  createToken,
-  getTokenDetails,
-  getUserTokensWithBalance,
-} from '../lib/contract';
+import { createToken, getTokenDetails, getUserTokensWithBalance } from '../lib/contract';
 
 describe('PackageProducts Component', () => {
   beforeEach(() => {
@@ -30,7 +26,7 @@ describe('PackageProducts Component', () => {
     });
   });
 
-  it.skip('should display loading state while fetching tokens', async () => {
+  it('should display loading state while fetching tokens', async () => {
     // Mock getUserTokensWithBalance to return a promise that doesn't resolve immediately
     vi.mocked(getUserTokensWithBalance).mockReturnValue(new Promise(() => {}));
 
@@ -43,7 +39,7 @@ describe('PackageProducts Component', () => {
     expect(screen.getByText(/loading tokens/i)).toBeInTheDocument();
   });
 
-  it.skip('should display message when no eligible tokens are available', async () => {
+  it('should display message when no eligible tokens are available', async () => {
     // Mock getUserTokensWithBalance to return empty array
     vi.mocked(getUserTokensWithBalance).mockResolvedValue([]);
 
@@ -58,10 +54,10 @@ describe('PackageProducts Component', () => {
     });
   });
 
-  it.skip('should display token selection when tokens are available', async () => {
+  it('should display token selection when tokens are available', async () => {
     // Mock getUserTokensWithBalance to return token IDs
     vi.mocked(getUserTokensWithBalance).mockResolvedValue([1, 2]);
-    
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockImplementation((id) => {
       if (id === 1) {
@@ -72,6 +68,8 @@ describe('PackageProducts Component', () => {
           parentId: 5, // parentId > 0 for processed products
           features: '{}',
           totalSupply: 10,
+          creator: '0x123',
+          dateCreated: Date.now(),
         });
       }
       if (id === 2) {
@@ -82,6 +80,8 @@ describe('PackageProducts Component', () => {
           parentId: 6, // parentId > 0 for processed products
           features: '{}',
           totalSupply: 5,
+          creator: '0x123',
+          dateCreated: Date.now(),
         });
       }
       return Promise.resolve(null);
@@ -100,10 +100,10 @@ describe('PackageProducts Component', () => {
     });
   });
 
-  it.skip('should display form validation errors', async () => {
+  it('should display form validation errors', async () => {
     // Mock getUserTokensWithBalance to return token IDs
     vi.mocked(getUserTokensWithBalance).mockResolvedValue([1]);
-    
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockResolvedValue({
       id: 1,
@@ -112,6 +112,8 @@ describe('PackageProducts Component', () => {
       parentId: 5, // parentId > 0 for processed products
       features: '{}',
       totalSupply: 10,
+      creator: '0x123',
+      dateCreated: Date.now(),
     });
 
     const user = userEvent.setup();
@@ -129,27 +131,34 @@ describe('PackageProducts Component', () => {
     await user.click(screen.getByRole('button', { name: /package/i }));
 
     // Should show validation error
-    expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/name is required/i)).toBeInTheDocument();
+    });
 
     // Fill name but not amount
     await user.type(screen.getByLabelText(/package name/i), 'Test Package');
     await user.click(screen.getByRole('button', { name: /package/i }));
 
     // Should show amount validation error
-    expect(screen.getByText(/amount must be greater than 0/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/amount must be greater than 0/i)).toBeInTheDocument();
+    });
 
     // Fill amount with value greater than balance
+    await user.clear(screen.getByLabelText(/amount/i));
     await user.type(screen.getByLabelText(/amount/i), '20');
     await user.click(screen.getByRole('button', { name: /package/i }));
 
     // Should show insufficient balance error
-    expect(screen.getByText(/insufficient balance/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/insufficient balance/i)).toBeInTheDocument();
+    });
   });
 
-  it.skip('should successfully create a package', async () => {
+  it('should successfully create a package', async () => {
     // Mock getUserTokensWithBalance to return token IDs
     vi.mocked(getUserTokensWithBalance).mockResolvedValue([1]);
-    
+
     // Mock getTokenDetails to return token details
     vi.mocked(getTokenDetails).mockResolvedValue({
       id: 1,
@@ -158,10 +167,14 @@ describe('PackageProducts Component', () => {
       parentId: 5, // parentId > 0 for processed products
       features: '{}',
       totalSupply: 10,
+      creator: '0x123',
+      dateCreated: Date.now(),
     });
 
-    // Mock createToken to resolve successfully
-    vi.mocked(createToken).mockResolvedValue(3); // Return new token ID
+    // Mock createToken to resolve successfully with delay
+    vi.mocked(createToken).mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100))
+    );
 
     const user = userEvent.setup();
     render(<PackageProducts />);
@@ -183,7 +196,9 @@ describe('PackageProducts Component', () => {
     await user.click(screen.getByRole('button', { name: /package/i }));
 
     // Should show loading state
-    expect(screen.getByText(/packaging products/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/packaging products/i)).toBeInTheDocument();
+    });
 
     // Should call createToken with correct parameters
     await waitFor(() => {
