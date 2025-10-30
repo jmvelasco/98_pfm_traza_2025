@@ -883,79 +883,74 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
       balance: Number(tokenData[3]), // Use totalSupply as fallback for balance
     };
 
-    const transfers = await getTokenTransferHistory(tokenId);
     const lineage = await getTokenLineage(tokenId);
 
     const timeline: TimelineEntry[] = [];
 
-    // Add creation event (always first)
-    const creatorInfo = await getUserRoleInfo(tokenDetails.creator);
-    const tokenInfo: TokenLineage = {
-      tokenId: tokenDetails.id,
-      parentId: tokenDetails.parentId || 0,
-      name: tokenDetails.name,
-      creator: tokenDetails.creator,
-      creatorRole: creatorInfo.role,
-      createdAt: tokenDetails.dateCreated || Date.now() / 1000,
-      level: tokenDetails.parentId ? 1 : 0,
-      currentBalance: tokenDetails.balance,
-      totalSupply: tokenDetails.totalSupply,
-      features: tokenDetails.features || '',
-    };
+    // First, add creation events for all tokens in the lineage (from oldest to newest)
+    const allTokensInChain = [
+      ...lineage,
+      {
+        tokenId: tokenDetails.id,
+        parentId: tokenDetails.parentId || 0,
+        name: tokenDetails.name,
+        creator: tokenDetails.creator,
+        creatorRole: (await getUserRoleInfo(tokenDetails.creator)).role,
+        createdAt: tokenDetails.dateCreated || Date.now() / 1000,
+        level: tokenDetails.parentId ? 1 : 0,
+        currentBalance: tokenDetails.balance,
+        totalSupply: tokenDetails.totalSupply,
+        features: tokenDetails.features || '',
+      },
+    ];
 
-    timeline.push({
-      type: 'creation',
-      timestamp: tokenDetails.dateCreated || Date.now() / 1000,
-      tokenInfo,
-    });
+    // Sort tokens by creation date to show chronological order
+    allTokensInChain.sort((a, b) => a.createdAt - b.createdAt);
 
-    // Add transformation event if token has a parent
-    if (tokenDetails.parentId && tokenDetails.parentId > 0) {
-      const parentToken = lineage.find((t) => t.tokenId === tokenDetails.parentId);
-      if (parentToken) {
-        timeline.push({
-          type: 'transformation',
-          timestamp: tokenDetails.dateCreated || Date.now() / 1000,
-          tokenInfo,
-          parentToken,
-          stockConsumption: {
-            consumedAmount: tokenDetails.totalSupply, // Simplified: assumes 1:1 conversion
-            producedAmount: tokenDetails.totalSupply,
-            consumedTokenId: tokenDetails.parentId,
-            producedTokenId: tokenDetails.id,
-          },
-        });
+    // Add creation and transformation events for each token in chronological order
+    for (const token of allTokensInChain) {
+      // Add creation event
+      timeline.push({
+        type: 'creation',
+        timestamp: token.createdAt,
+        tokenInfo: token,
+      });
+
+      // Add transformation event if token has a parent
+      if (token.parentId && token.parentId > 0) {
+        const parentToken = allTokensInChain.find((t) => t.tokenId === token.parentId);
+        if (parentToken) {
+          timeline.push({
+            type: 'transformation',
+            timestamp: token.createdAt,
+            tokenInfo: token,
+            parentToken,
+            stockConsumption: {
+              consumedAmount: token.totalSupply, // Simplified: assumes 1:1 conversion
+              producedAmount: token.totalSupply,
+              consumedTokenId: token.parentId,
+              producedTokenId: token.tokenId,
+            },
+          });
+        }
       }
     }
 
-    // Add transfer events for current token
-    for (const transfer of transfers) {
-      timeline.push({
-        type: 'transfer',
-        timestamp: transfer.timestamp,
-        tokenInfo,
-        transferInfo: transfer,
-      });
-    }
-
-    // Add transfer events for parent tokens in the lineage (full supply chain history)
-    for (const parentToken of lineage) {
+    // Add all transfer events for all tokens in the chain
+    for (const token of allTokensInChain) {
       try {
-        const parentTransfers = await getTokenTransferHistory(parentToken.tokenId);
-        for (const parentTransfer of parentTransfers) {
+        const tokenTransfers = await getTokenTransferHistory(token.tokenId);
+        for (const transfer of tokenTransfers) {
           timeline.push({
             type: 'transfer',
-            timestamp: parentTransfer.timestamp,
-            tokenInfo: parentToken, // Use parent token info
-            transferInfo: parentTransfer,
+            timestamp: transfer.timestamp,
+            tokenInfo: token,
+            transferInfo: transfer,
           });
         }
       } catch (error) {
-        // If we can't get parent transfer history, continue without it
-        console.warn(
-          `Could not get transfer history for parent token ${parentToken.tokenId}:`,
-          error
-        );
+        // If we can't get transfer history, continue without it
+        console.warn(`Could not get transfer history for token ${token.tokenId}:`, error);
       }
     }
 
