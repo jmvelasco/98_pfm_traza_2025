@@ -802,11 +802,49 @@ export async function getTokenTransferHistory(tokenId: number): Promise<Transfer
 
   try {
     // Real contract implementation for transfer history
-    // For now, return empty history as the contract doesn't expose transfer events directly
-    // This would need to be implemented by querying contract events or maintaining transfer logs
-    const emptyHistory: TransferHistoryEntry[] = [];
-    traceabilityCache.set(cacheKey, emptyHistory);
-    return emptyHistory;
+    const provider = await getReadProvider();
+    const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+
+    // Get total number of transfers to iterate through
+    const nextTransferId = Number(await contract.nextTransferId());
+    const transferHistory: TransferHistoryEntry[] = [];
+
+    // Iterate through all transfers and filter by tokenId and status = Accepted (1)
+    for (let id = 1; id < nextTransferId; id++) {
+      try {
+        const transfer = await contract.getTransfer(id);
+
+        // Filter for accepted transfers of this specific token
+        if (Number(transfer.tokenId) === tokenId && Number(transfer.status) === 1) {
+          // Get role information for from and to addresses
+          const [fromInfo, toInfo] = await Promise.all([
+            getUserRoleInfo(transfer.from),
+            getUserRoleInfo(transfer.to),
+          ]);
+
+          transferHistory.push({
+            transferId: Number(transfer.id),
+            tokenId: Number(transfer.tokenId),
+            from: transfer.from,
+            fromRole: fromInfo.role,
+            to: transfer.to,
+            toRole: toInfo.role,
+            amount: Number(transfer.amount),
+            timestamp: Number(transfer.dateCreated),
+            status: 'Accepted', // We only include accepted transfers
+          });
+        }
+      } catch {
+        // Transfer might not exist or be inaccessible, skip
+        continue;
+      }
+    }
+
+    // Sort by timestamp (oldest first)
+    transferHistory.sort((a, b) => a.timestamp - b.timestamp);
+
+    traceabilityCache.set(cacheKey, transferHistory);
+    return transferHistory;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error getting token transfer history:', errorMsg);
@@ -890,7 +928,7 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
       }
     }
 
-    // Add transfer events
+    // Add transfer events for current token
     for (const transfer of transfers) {
       timeline.push({
         type: 'transfer',
@@ -898,6 +936,27 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
         tokenInfo,
         transferInfo: transfer,
       });
+    }
+
+    // Add transfer events for parent tokens in the lineage (full supply chain history)
+    for (const parentToken of lineage) {
+      try {
+        const parentTransfers = await getTokenTransferHistory(parentToken.tokenId);
+        for (const parentTransfer of parentTransfers) {
+          timeline.push({
+            type: 'transfer',
+            timestamp: parentTransfer.timestamp,
+            tokenInfo: parentToken, // Use parent token info
+            transferInfo: parentTransfer,
+          });
+        }
+      } catch (error) {
+        // If we can't get parent transfer history, continue without it
+        console.warn(
+          `Could not get transfer history for parent token ${parentToken.tokenId}:`,
+          error
+        );
+      }
     }
 
     // Sort by timestamp
