@@ -272,7 +272,7 @@ describe('TraceabilityModal Component', () => {
         features: '{}',
         parentId: 0,
         dateCreated: Date.now(),
-        balance: 50
+        balance: 50,
       };
 
       vi.mocked(contractHelpers.getTokenDetails).mockResolvedValue(mockTokenDetails);
