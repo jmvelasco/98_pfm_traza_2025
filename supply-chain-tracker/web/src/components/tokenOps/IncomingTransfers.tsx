@@ -25,8 +25,8 @@ export default function IncomingTransfers({ showAllStatuses = true }: Props) {
       setProcessingId(id);
       await (contract as any).acceptTransfer(Number(id));
       refresh();
-    } catch (err: any) {
-      setActionError(err?.message || 'Operation failed');
+    } catch (error: any) {
+      setActionError(error?.message || 'Operation failed');
     } finally {
       setProcessingId(null);
     }
@@ -38,8 +38,8 @@ export default function IncomingTransfers({ showAllStatuses = true }: Props) {
       setProcessingId(id);
       await (contract as any).rejectTransfer(Number(id));
       refresh();
-    } catch (err: any) {
-      setActionError(err?.message || 'Operation failed');
+    } catch (error: any) {
+      setActionError(error?.message || 'Operation failed');
     } finally {
       setProcessingId(null);
     }

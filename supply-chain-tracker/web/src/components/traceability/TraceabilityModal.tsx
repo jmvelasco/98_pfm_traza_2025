@@ -59,8 +59,8 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
       setData({ lineage, timeline });
       setTokenDetails(details);
       setLoadingState('success');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
       let canRetry = true;
       if (errorMessage.includes('Token does not exist') || errorMessage.includes('Access denied')) {

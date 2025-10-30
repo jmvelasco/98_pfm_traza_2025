@@ -39,7 +39,7 @@ export default function CreateRawMaterial() {
       }, 2000);
     } catch (error) {
       console.error('Error minting token:', error);
-      setMessage((error as any)?.message || 'Mint failed');
+      setMessage('Mint failed');
     } finally {
       setLoading(false);
     }

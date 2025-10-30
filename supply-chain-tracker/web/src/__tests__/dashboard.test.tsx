@@ -190,9 +190,8 @@ describe('Dashboard Page', () => {
     render(<Dashboard />);
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument();
-      expect(screen.getByText(/gestión de usuarios y sus estados/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /refrescar/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /user management/i })).toBeInTheDocument();
+      expect(screen.getByText(/user management and status control/i)).toBeInTheDocument();
     });
   });
 

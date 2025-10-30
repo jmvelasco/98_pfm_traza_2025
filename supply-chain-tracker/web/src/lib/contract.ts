@@ -41,9 +41,9 @@ async function ensureWalletOnCorrectNetwork(): Promise<void> {
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: hexChainId }],
         });
-      } catch (err: any) {
+      } catch (error: any) {
         // 4902: Unrecognized chain; try to add
-        if (err?.code === 4902) {
+        if (error?.code === 4902) {
           await window.ethereum.request?.({
             method: 'wallet_addEthereumChain',
             params: [
@@ -56,7 +56,7 @@ async function ensureWalletOnCorrectNetwork(): Promise<void> {
             ],
           });
         } else {
-          throw err;
+          throw error;
         }
       }
     }

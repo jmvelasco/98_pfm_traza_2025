@@ -147,9 +147,9 @@ export function useTransfersList({
         }
         setItems(items);
         setTotal(total);
-      } catch (err: any) {
+      } catch (error: any) {
         if (mounted) {
-          setError(err?.message || 'Failed to load transfers');
+          setError(error?.message || 'Failed to load transfers');
           setItems([]);
           setTotal(0);
         }

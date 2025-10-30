@@ -219,8 +219,8 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
       setMessage('Transfer requested');
       // Reset amount after success; keep destination
       setAmount('');
-    } catch (err: any) {
-      setMessage(err?.message || 'Transfer failed');
+    } catch (error: any) {
+      setMessage(error?.message || 'Transfer failed');
     } finally {
       setLoading(false);
     }

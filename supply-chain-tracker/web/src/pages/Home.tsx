@@ -25,8 +25,8 @@ export default function Home() {
     try {
       await requestUserRole(address, selectedRole);
       await refetch();
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
       setSubmitError('Error requesting role');
     } finally {
       setSubmitLoading(false);
