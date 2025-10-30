@@ -62,7 +62,7 @@ export default function Home() {
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">
-          <label htmlFor="role" className="block mb-2 text-gray-700">
+          <label htmlFor="role" className="block mb-2 text-gray-300">
             Select Role
           </label>
           <select
