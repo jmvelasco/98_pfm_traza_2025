@@ -24,10 +24,10 @@ export default function TransferToConsumer() {
   const [eligible, setEligible] = useState<TokenDetailsWithAvailableBalance[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  // Listen for TransferRequested events
-  const handleTransferRequested = (from: string, to: string, tokenId: string) => {
+  // Listen for TransferRequested events to trigger re-render
+  const handleTransferRequested = (from: string) => {
     if (from === address) {
-      console.log('Transfer requested:', { from, to, tokenId });
+      // Transfer successful - component will re-render automatically due to event listener
     }
   };
 

@@ -6,6 +6,9 @@
 import { ethers } from 'ethers';
 import { CONTRACT_CONFIG, NETWORK_CONFIG } from '../config/contracts';
 import { SupplyChain__factory } from '../types/factories/SupplyChain__factory';
+
+// Constants for addresses
+const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
 import {
   UserStatus as StatusEnum,
   UserRole as UserRoleEnum,
@@ -688,91 +691,61 @@ export async function getTokenLineage(tokenId: number): Promise<TokenLineage[]> 
   }
 
   try {
-    // Mock implementation for testing - will be replaced with real contract calls
-    // Check for special test cases first
-    if (tokenId === 99999) {
-      throw new Error('Token does not exist');
-    }
+    // Real contract implementation
+    const lineage: TokenLineage[] = [];
+    let currentTokenId = tokenId;
+    let level = 0;
 
-    if (tokenId === 1) {
-      // Raw material with no parents
-      traceabilityCache.set(cacheKey, []);
-      return [];
-    }
+    // Build lineage by following parentId chain up to root (parentId = 0)
+    while (currentTokenId > 0 && level < 10) {
+      // Safety limit to prevent infinite loops
+      // TODO: This function should receive userAddress as parameter instead of using empty address
+      const tokenDetails = await getTokenDetails(
+        currentTokenId,
+        NULL_ADDRESS // Empty address for public token info only
+      );
 
-    if (tokenId === 999) {
-      // Deep inheritance chain for testing
-      const deepLineage: TokenLineage[] = [];
-      for (let i = 0; i < 5; i++) {
-        deepLineage.push({
-          tokenId: i + 1,
-          parentId: i,
-          name: `Token Level ${i}`,
-          creator: `0x${i}abc`,
-          creatorRole: i === 0 ? 'Producer' : i === 1 ? 'Factory' : 'Retailer',
-          createdAt: 1698000000 + i * 1000,
-          level: i,
-          currentBalance: 100 - i * 10,
-          totalSupply: 200 - i * 20,
-          features: `{"level": ${i}}`,
-        });
+      if (!tokenDetails) {
+        break; // Token not found or no access
       }
-      traceabilityCache.set(cacheKey, deepLineage);
-      return deepLineage;
+
+      // Get creator role info
+      const creatorInfo = await getUserRoleInfo(tokenDetails.creator);
+
+      const tokenLineage: TokenLineage = {
+        tokenId: tokenDetails.id,
+        parentId: tokenDetails.parentId,
+        name: tokenDetails.name,
+        creator: tokenDetails.creator,
+        creatorRole: creatorInfo?.role || 'Unknown',
+        createdAt: tokenDetails.dateCreated,
+        level: level,
+        currentBalance: tokenDetails.balance,
+        totalSupply: tokenDetails.totalSupply,
+        features: tokenDetails.features,
+      };
+
+      // Add to front of array (so we get chronological order: root -> leaf)
+      lineage.unshift(tokenLineage);
+
+      // Move to parent
+      currentTokenId = tokenDetails.parentId;
+      level++;
+
+      // If we reached the root (parentId = 0), stop
+      if (tokenDetails.parentId === 0) {
+        break;
+      }
     }
 
-    if (tokenId === 123) {
-      // Standard test case with 3-level lineage
-      const mockLineage: TokenLineage[] = [
-        {
-          tokenId: 1,
-          parentId: 0,
-          name: 'Raw Soybeans',
-          creator: '0x123abc',
-          creatorRole: 'Producer',
-          createdAt: 1698000000,
-          level: 0,
-          currentBalance: 500,
-          totalSupply: 1000,
-          features: '{"organic": true}',
-        },
-        {
-          tokenId: 2,
-          parentId: 1,
-          name: 'Processed Soy Milk',
-          creator: '0x456def',
-          creatorRole: 'Factory',
-          createdAt: 1698001000,
-          level: 1,
-          currentBalance: 200,
-          totalSupply: 300,
-          features: '{"pasteurized": true}',
-        },
-        {
-          tokenId: 123,
-          parentId: 2,
-          name: 'Packaged Soy Milk',
-          creator: '0x789ghi',
-          creatorRole: 'Retailer',
-          createdAt: 1698002000,
-          level: 2,
-          currentBalance: 50,
-          totalSupply: 100,
-          features: '{"packaged": true, "expiry": "2025-12-31"}',
-        },
-      ];
-      traceabilityCache.set(cacheKey, mockLineage);
-      return mockLineage;
-    }
+    // Remove the queried token itself from lineage (we only want ancestors)
+    const ancestorsOnly = lineage.filter((token) => token.tokenId !== tokenId);
 
-    // Default case: empty lineage (raw material)
-    traceabilityCache.set(cacheKey, []);
-    return [];
+    traceabilityCache.set(cacheKey, ancestorsOnly);
+    return ancestorsOnly;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMsg.includes('Token does not exist') || tokenId === 99999) {
-      throw new Error('Token does not exist');
-    }
+    console.error('Error getting token lineage:', errorMsg);
     throw error;
   }
 }
@@ -794,30 +767,19 @@ export async function getUserRoleInfo(
   }
 
   try {
-    // Mock implementation for testing - will be replaced with real contract calls
-    if (userAddress === '0x000000') {
-      throw new Error('User not found');
-    }
+    // Real contract implementation
+    const userInfo = await getUserInfo(userAddress);
 
-    if (userAddress === '0x123abc') {
-      const result = {
-        role: 'Producer',
-        status: 'Approved',
-      };
-      traceabilityCache.set(cacheKey, result);
-      return result;
-    }
-
-    // Default mock user info
     const result = {
-      role: 'Consumer',
-      status: 'Approved',
+      role: userInfo.role || 'Unknown',
+      status: userInfo.status || 'Unknown',
     };
+
     traceabilityCache.set(cacheKey, result);
     return result;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMsg.includes('User not registered') || userAddress === '0x000000') {
+    if (errorMsg.includes('User not registered') || userAddress === NULL_ADDRESS) {
       throw new Error('User not found');
     }
     throw error;
@@ -839,53 +801,15 @@ export async function getTokenTransferHistory(tokenId: number): Promise<Transfer
   }
 
   try {
-    // For now, return mock data based on test expectations
-    // This will be replaced with real contract calls
-    if (tokenId === 99999) {
-      throw new Error('Token does not exist');
-    }
-
-    if (tokenId === 1) {
-      // Raw material with no transfers yet
-      const emptyHistory: TransferHistoryEntry[] = [];
-      traceabilityCache.set(cacheKey, emptyHistory);
-      return emptyHistory;
-    }
-
-    // Mock transfer history for testing
-    const mockHistory: TransferHistoryEntry[] = [
-      {
-        transferId: 1,
-        tokenId: tokenId,
-        from: '0x123abc',
-        fromRole: 'Producer',
-        to: '0x456def',
-        toRole: 'Factory',
-        amount: 100,
-        timestamp: 1698000000,
-        status: 'Accepted',
-      },
-      {
-        transferId: 2,
-        tokenId: tokenId,
-        from: '0x456def',
-        fromRole: 'Factory',
-        to: '0x789ghi',
-        toRole: 'Retailer',
-        amount: 50,
-        timestamp: 1698001000,
-        status: 'Accepted',
-      },
-    ];
-
-    // Cache and return
-    traceabilityCache.set(cacheKey, mockHistory);
-    return mockHistory;
+    // Real contract implementation for transfer history
+    // For now, return empty history as the contract doesn't expose transfer events directly
+    // This would need to be implemented by querying contract events or maintaining transfer logs
+    const emptyHistory: TransferHistoryEntry[] = [];
+    traceabilityCache.set(cacheKey, emptyHistory);
+    return emptyHistory;
   } catch (error: unknown) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    if (errorMsg.includes('Token does not exist') || tokenId === 99999) {
-      throw new Error('Token does not exist');
-    }
+    console.error('Error getting token transfer history:', errorMsg);
     throw error;
   }
 }
@@ -957,7 +881,7 @@ export async function buildTokenTimeline(tokenId: number): Promise<TimelineEntry
           tokenInfo,
           parentToken,
           stockConsumption: {
-            consumedAmount: tokenDetails.totalSupply, // Mock data
+            consumedAmount: tokenDetails.totalSupply, // Simplified: assumes 1:1 conversion
             producedAmount: tokenDetails.totalSupply,
             consumedTokenId: tokenDetails.parentId,
             producedTokenId: tokenDetails.id,

@@ -116,60 +116,6 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
     return /^0x[a-fA-F0-9]{40}$/.test(addr);
   }
 
-  if (parentId === 0) {
-    return (
-      <div data-testid="transfer-form">
-        <p>Raw material tokens cannot be transferred by factory</p>
-      </div>
-    );
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!isValidAddress(destination)) {
-      return;
-    }
-    const amountNum = Number(amount);
-    if (!Number.isFinite(amountNum) || amountNum <= 0) {
-      setMessage('Amount must be greater than 0');
-      return;
-    }
-    if (amountNum > balance) {
-      setMessage('Insufficient balance');
-      return;
-    }
-    // Business validation: recipient must be an Approved Retailer
-    try {
-      const info = await getUserInfo(destination);
-      const role = info?.role;
-      const status = info?.status;
-      if (role !== 'Retailer' || status !== 'Approved') {
-        setMessage('Recipient must be an approved retailer');
-        return;
-      }
-    } catch (_err) {
-      // In case of API error, surface a generic validation error
-      setMessage('Recipient must be an approved retailer');
-      return;
-    }
-    // Success flow
-    setLoading(true);
-    setMessage(null);
-    // Ensure a pending status is visible for at least one paint without delaying the request call
-    setShowPending(true);
-    // setTimeout(() => setShowPending(false), 10);
-    try {
-      await requestTransfer(tokenId, destination, amountNum);
-      setMessage('Transfer requested');
-      // Reset amount after success; keep destination
-      setAmount('');
-    } catch (err: any) {
-      setMessage(err?.message || 'Transfer failed');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // When the transfer is effectively requested (event observed), clear the form and hide message
   useEffect(() => {
     if (typeof window === 'undefined' || !window.ethereum || !address) return;
@@ -225,6 +171,60 @@ export function TransferForm({ tokenId, parentId, balance }: TransferFormProps) 
       }
     };
   }, [address]);
+
+  if (parentId === 0) {
+    return (
+      <div data-testid="transfer-form">
+        <p>Raw material tokens cannot be transferred by factory</p>
+      </div>
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isValidAddress(destination)) {
+      return;
+    }
+    const amountNum = Number(amount);
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      setMessage('Amount must be greater than 0');
+      return;
+    }
+    if (amountNum > balance) {
+      setMessage('Insufficient balance');
+      return;
+    }
+    // Business validation: recipient must be an Approved Retailer
+    try {
+      const info = await getUserInfo(destination);
+      const role = info?.role;
+      const status = info?.status;
+      if (role !== 'Retailer' || status !== 'Approved') {
+        setMessage('Recipient must be an approved retailer');
+        return;
+      }
+    } catch (_err) {
+      // In case of API error, surface a generic validation error
+      setMessage('Recipient must be an approved retailer');
+      return;
+    }
+    // Success flow
+    setLoading(true);
+    setMessage(null);
+    // Ensure a pending status is visible for at least one paint without delaying the request call
+    // setShowPending(true);
+    // setTimeout(() => setShowPending(false), 10);
+    try {
+      await requestTransfer(tokenId, destination, amountNum);
+      setMessage('Transfer requested');
+      // Reset amount after success; keep destination
+      setAmount('');
+    } catch (err: any) {
+      setMessage(err?.message || 'Transfer failed');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <form data-testid="transfer-form" onSubmit={handleSubmit} noValidate className="mt-2 space-y-3">
