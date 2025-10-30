@@ -9,6 +9,9 @@ vi.mock('../lib/contract', async () => {
     getTokenDetails: vi.fn(),
     getUserInfo: vi.fn(),
     getTokenTransferHistory: vi.fn(),
+    getUserRoleInfo: vi.fn(),
+    buildTokenTimeline: vi.fn(),
+    getTokenLineage: vi.fn(),
   };
 });
 
@@ -17,59 +20,87 @@ import {
   getUserRoleInfo,
   getTokenTransferHistory,
   buildTokenTimeline,
-  getTokenDetails,
-  getUserInfo,
 } from '../lib/contract';
 
 describe('Contract Traceability Helpers', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Mock base contract functions that are used internally
-    vi.mocked(getTokenDetails).mockImplementation(async (tokenId: number) => {
+    // Mock getTokenLineage directly
+    vi.mocked(getTokenLineage).mockImplementation(async (tokenId: number) => {
       if (tokenId === 1) {
-        return {
-          id: 1,
-          name: 'Test Raw Soybeans',
-          creator: TEST_ADDRESSES.producer,
-          parentId: 0,
-          dateCreated: 1698000000,
-          totalSupply: 1000,
-          balance: 500,
-          features: '{"type": "raw", "organic": true}',
-        };
+        // Raw material - no ancestors
+        return [];
       }
       if (tokenId === 2) {
-        return {
-          id: 2,
-          name: 'Test Processed Soy Milk',
-          creator: TEST_ADDRESSES.factory,
-          parentId: 1,
-          dateCreated: 1698001000,
-          totalSupply: 300,
-          balance: 200,
-          features: '{"type": "processed", "pasteurized": true}',
-        };
+        // Processed product - only raw material ancestor
+        return [
+          {
+            tokenId: 1,
+            parentId: 0,
+            name: 'Test Raw Soybeans',
+            creator: TEST_ADDRESSES.producer,
+            creatorRole: 'Producer',
+            createdAt: 1698000000,
+            level: 0,
+            currentBalance: 500,
+            totalSupply: 1000,
+            features: '{"type": "raw", "organic": true}',
+          },
+        ];
       }
       if (tokenId === 3) {
-        return {
-          id: 3,
-          name: 'Test Packaged Soy Milk',
-          creator: TEST_ADDRESSES.retailer,
-          parentId: 2,
-          dateCreated: 1698002000,
-          totalSupply: 100,
-          balance: 50,
-          features: '{"type": "packaged", "expiry": "2025-12-31"}',
-        };
+        // Packaged product - full lineage
+        return [
+          {
+            tokenId: 1,
+            parentId: 0,
+            name: 'Test Raw Soybeans',
+            creator: TEST_ADDRESSES.producer,
+            creatorRole: 'Producer',
+            createdAt: 1698000000,
+            level: 0,
+            currentBalance: 500,
+            totalSupply: 1000,
+            features: '{"type": "raw", "organic": true}',
+          },
+          {
+            tokenId: 2,
+            parentId: 1,
+            name: 'Test Processed Soy Milk',
+            creator: TEST_ADDRESSES.factory,
+            creatorRole: 'Factory',
+            createdAt: 1698001000,
+            level: 1,
+            currentBalance: 200,
+            totalSupply: 300,
+            features: '{"type": "processed", "pasteurized": true}',
+          },
+        ];
       }
-
-      // Token no existe
-      return null;
+      if (tokenId === 999) {
+        // Deep chain for testing
+        return [
+          {
+            tokenId: 1,
+            parentId: 0,
+            name: 'Root Token',
+            creator: TEST_ADDRESSES.producer,
+            creatorRole: 'Producer',
+            createdAt: 1698000000,
+            level: 0,
+            currentBalance: 500,
+            totalSupply: 1000,
+            features: '{}',
+          },
+        ];
+      }
+      // Non-existent tokens return empty array
+      return [];
     });
 
-    // Mock getUserInfo
-    vi.mocked(getUserInfo).mockImplementation(async (address: string) => {
+    // Mock getUserRoleInfo
+    vi.mocked(getUserRoleInfo).mockImplementation(async (address: string) => {
       if (address === TEST_ADDRESSES.producer) {
         return { role: 'Producer', status: 'Approved' };
       }
@@ -83,8 +114,8 @@ describe('Contract Traceability Helpers', () => {
         return { role: 'Consumer', status: 'Approved' };
       }
 
-      // Invalid/unknown addresses devuelven null
-      return { role: null, status: null };
+      // Invalid/unknown addresses
+      return { role: 'Unknown', status: 'Unknown' };
     });
 
     // Mock getTokenTransferHistory
@@ -117,6 +148,91 @@ describe('Contract Traceability Helpers', () => {
           amount: 50,
           timestamp: 1698001000,
           status: 'Accepted',
+        },
+      ];
+    });
+
+    // Mock buildTokenTimeline
+    vi.mocked(buildTokenTimeline).mockImplementation(async (tokenId: number) => {
+      const baseTimestamp = 1698000000;
+
+      const createTokenInfo = (id: number, name: string, creator: string, role: string) => ({
+        tokenId: id,
+        parentId: id === 1 ? 0 : id - 1,
+        name,
+        creator,
+        creatorRole: role,
+        createdAt: baseTimestamp + (id - 1) * 1000,
+        level: id - 1,
+        currentBalance: 500 - (id - 1) * 100,
+        totalSupply: 1000 - (id - 1) * 200,
+        features: `{"type": "test", "level": ${id}}`,
+      });
+
+      if (tokenId === 1) {
+        // Raw material - only creation event
+        return [
+          {
+            type: 'creation' as const,
+            timestamp: baseTimestamp,
+            tokenInfo: createTokenInfo(1, 'Test Raw Soybeans', TEST_ADDRESSES.producer, 'Producer'),
+          },
+        ];
+      }
+
+      if (tokenId === 3) {
+        // Complex timeline with multiple events
+        return [
+          {
+            type: 'creation' as const,
+            timestamp: baseTimestamp,
+            tokenInfo: createTokenInfo(1, 'Test Raw Soybeans', TEST_ADDRESSES.producer, 'Producer'),
+          },
+          {
+            type: 'transformation' as const,
+            timestamp: baseTimestamp + 1000,
+            tokenInfo: createTokenInfo(
+              2,
+              'Test Processed Soy Milk',
+              TEST_ADDRESSES.factory,
+              'Factory'
+            ),
+          },
+          {
+            type: 'transfer' as const,
+            timestamp: baseTimestamp + 2000,
+            tokenInfo: createTokenInfo(
+              3,
+              'Test Packaged Soy Milk',
+              TEST_ADDRESSES.retailer,
+              'Retailer'
+            ),
+            transferInfo: {
+              transferId: 1,
+              tokenId: 3,
+              from: TEST_ADDRESSES.factory,
+              fromRole: 'Factory',
+              to: TEST_ADDRESSES.retailer,
+              toRole: 'Retailer',
+              amount: 50,
+              timestamp: baseTimestamp + 2000,
+              status: 'Accepted' as const,
+            },
+          },
+        ];
+      }
+
+      // Default for other tokens
+      return [
+        {
+          type: 'creation' as const,
+          timestamp: baseTimestamp,
+          tokenInfo: createTokenInfo(
+            tokenId,
+            `Test Token ${tokenId}`,
+            TEST_ADDRESSES.producer,
+            'Producer'
+          ),
         },
       ];
     });

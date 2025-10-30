@@ -20,3 +20,22 @@ try {
   // Some versions may call getResolver internally; ensure it doesn't throw
   vi.spyOn(ethers.JsonRpcProvider.prototype as any, 'getResolver').mockResolvedValue(null);
 } catch {}
+
+// Mock console.error to prevent stderr pollution during tests
+// while still allowing tests to verify error handling behavior
+const originalConsoleError = console.error;
+vi.spyOn(console, 'error').mockImplementation((...args: any[]) => {
+  const message = args[0]?.toString() || '';
+
+  // Silence known test-related error messages that are expected during error-case testing
+  if (
+    message.includes('Error processing materials:') ||
+    message.includes('Error calculating available balance:') ||
+    message.includes('JsonRpcProvider failed to detect network')
+  ) {
+    return; // Silently ignore these expected errors in tests
+  }
+
+  // Allow other errors to still be logged (for debugging real issues)
+  originalConsoleError.apply(console, args);
+});

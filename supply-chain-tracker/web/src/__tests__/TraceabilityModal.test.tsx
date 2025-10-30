@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TraceabilityModal } from '../components/traceability/TraceabilityModal';
 import * as contractHelpers from '../lib/contract';
@@ -13,20 +13,68 @@ vi.mock('../lib/contract', () => ({
   getTokenDetails: vi.fn(),
 }));
 
+// Mock ethers to prevent real blockchain calls
+vi.mock('ethers', () => ({
+  ethers: {
+    BrowserProvider: vi.fn().mockImplementation(() => ({
+      getSigner: vi.fn().mockResolvedValue({
+        address: '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51',
+      }),
+    })),
+  },
+}));
+
 describe('TraceabilityModal Component', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Mock window.ethereum and DOM APIs to prevent state updates during render
+    Object.defineProperty(window, 'ethereum', {
+      value: {
+        request: vi.fn().mockResolvedValue(['0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51']),
+      },
+      writable: true,
+    });
+
+    Object.defineProperty(window, 'innerWidth', {
+      value: 1024,
+      writable: true,
+    });
+
+    // Mock document methods to prevent DOM manipulations during tests
+    Object.defineProperty(document, 'documentElement', {
+      value: {
+        clientWidth: 1024,
+      },
+      writable: true,
+    });
+
+    // Mock contract functions to resolve immediately
+    vi.mocked(contractHelpers.getTokenLineage).mockResolvedValue([]);
+    vi.mocked(contractHelpers.buildTokenTimeline).mockResolvedValue([]);
+    vi.mocked(contractHelpers.getTokenDetails).mockResolvedValue({
+      id: 123,
+      name: 'Test Token',
+      creator: '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51',
+      parentId: 0,
+      dateCreated: Date.now(),
+      totalSupply: 1000,
+      balance: 500,
+      features: '{}',
+    });
   });
 
   describe('Basic Modal Functionality', () => {
-    it('should render modal when isOpen is true', () => {
+    it('should render modal when isOpen is true', async () => {
       // RED Test: This will FAIL because TraceabilityModal component doesn't exist yet
       const onClose = vi.fn();
 
-      render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+      await act(async () => {
+        render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+      });
 
       expect(screen.getByRole('dialog')).toBeInTheDocument();
-      expect(screen.getByText('Token Traceability - #123')).toBeInTheDocument();
+      expect(screen.getByText('TEST TOKEN - #123')).toBeInTheDocument();
     });
 
     it('should not render modal when isOpen is false', () => {
@@ -55,10 +103,14 @@ describe('TraceabilityModal Component', () => {
       // RED Test: Testing overlay click to close
       const onClose = vi.fn();
 
-      render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+      await act(async () => {
+        render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
+      });
 
       const overlay = screen.getByTestId('modal-overlay');
-      fireEvent.click(overlay);
+      await act(async () => {
+        fireEvent.click(overlay);
+      });
 
       expect(onClose).toHaveBeenCalledOnce();
     });
@@ -200,24 +252,28 @@ describe('TraceabilityModal Component', () => {
   });
 
   describe('Responsive Design', () => {
-    it('should be responsive and work on mobile viewports', () => {
+    it('should be responsive and work on mobile viewports', async () => {
       // RED Test: Mobile responsiveness
       // Mock mobile viewport
       Object.defineProperty(window, 'innerWidth', { value: 375 });
       Object.defineProperty(window, 'innerHeight', { value: 667 });
 
-      render(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+      await act(async () => {
+        render(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+      });
 
       const modal = screen.getByRole('dialog');
       expect(modal).toHaveClass('mobile-responsive');
     });
 
-    it('should handle tablet and desktop viewports', () => {
+    it('should handle tablet and desktop viewports', async () => {
       // RED Test: Desktop responsiveness
       Object.defineProperty(window, 'innerWidth', { value: 1024 });
       Object.defineProperty(window, 'innerHeight', { value: 768 });
 
-      render(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+      await act(async () => {
+        render(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+      });
 
       const modal = screen.getByRole('dialog');
       expect(modal).toHaveClass('desktop-responsive');
@@ -247,13 +303,19 @@ describe('TraceabilityModal Component', () => {
       document.body.appendChild(triggerElement);
       triggerElement.focus();
 
-      const { rerender } = render(
-        <TraceabilityModal isOpen={false} onClose={vi.fn()} tokenId={123} />
-      );
+      await act(async () => {
+        const { rerender } = render(
+          <TraceabilityModal isOpen={false} onClose={vi.fn()} tokenId={123} />
+        );
 
-      rerender(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+        await act(async () => {
+          rerender(<TraceabilityModal isOpen={true} onClose={vi.fn()} tokenId={123} />);
+        });
 
-      rerender(<TraceabilityModal isOpen={false} onClose={vi.fn()} tokenId={123} />);
+        await act(async () => {
+          rerender(<TraceabilityModal isOpen={false} onClose={vi.fn()} tokenId={123} />);
+        });
+      });
 
       // In JSDOM, focus restoration might not work exactly as in a real browser
       // Just verify the element is still in the document and focusable
@@ -296,10 +358,14 @@ describe('TraceabilityModal Component', () => {
       vi.mocked(contractHelpers.buildTokenTimeline).mockResolvedValue([]);
 
       const onClose = vi.fn();
-      render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={123} />);
 
-      // Should show default header when token details can't be loaded
-      expect(screen.getByText('Token Traceability - #123')).toBeInTheDocument();
+      await act(async () => {
+        render(<TraceabilityModal isOpen={true} onClose={onClose} tokenId={456} />);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Token Traceability - #456')).toBeInTheDocument();
+      });
     });
   });
 });

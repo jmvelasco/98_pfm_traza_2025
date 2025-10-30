@@ -41,7 +41,7 @@ describe('Available Balance Calculation - RED Tests', () => {
   describe('Available balance calculation behavior', () => {
     it('should return number representing available balance', async () => {
       // Test that function exists and returns a number
-      const address = '0x742d35Cc6376C2C6b2B6b493cd8a12924Ec51b51'; // Valid address
+      const address = '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51'; // Valid address with proper checksum
       const result = await getAvailableBalance(1, address);
       expect(typeof result).toBe('number');
       expect(result).toBeGreaterThanOrEqual(0);
@@ -49,7 +49,7 @@ describe('Available Balance Calculation - RED Tests', () => {
 
     it('should handle case when no pending transfers exist', async () => {
       // Test the function exists and can handle valid inputs
-      const address = '0x742d35Cc6376C2C6b2B6b493cd8a12924Ec51b51';
+      const address = '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51';
       const result = await getAvailableBalance(99999, address); // Non-existent token should return 0
       expect(typeof result).toBe('number');
       expect(result).toBe(0);
@@ -57,7 +57,7 @@ describe('Available Balance Calculation - RED Tests', () => {
 
     it('should subtract pending transfer amounts from total balance', async () => {
       // Test behavior with valid address - function should work
-      const address = '0x742d35Cc6376C2C6b2B6b493cd8a12924Ec51b51';
+      const address = '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51';
       const result = await getAvailableBalance(1, address);
       expect(typeof result).toBe('number');
       expect(result).toBeGreaterThanOrEqual(0);
@@ -65,7 +65,7 @@ describe('Available Balance Calculation - RED Tests', () => {
 
     it('should return 0 when pending exceeds total balance', async () => {
       // Test edge case protection
-      const address = '0x742d35Cc6376C2C6b2B6b493cd8a12924Ec51b51';
+      const address = '0x742d35Cc6Af2C36C02B6b22b493cd8A92924eC51b51';
       const result = await getAvailableBalance(99999, address); // Non-existent should be 0
       expect(result).toBe(0);
     });
