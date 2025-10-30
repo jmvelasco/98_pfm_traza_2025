@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { GoToDashboard } from '../../components/ui/GoToDashboard';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { useWallet } from '../../hooks/useWallet';
 import { changeStatusUser, getUsers, type Users } from '../../lib/contract';
@@ -7,8 +7,8 @@ import { UserRole, UserStatus } from '../../lib/enums';
 
 export default function Users() {
   const { address } = useWallet();
-  const { userInfo: myInfo } = useUserInfo(address);
-  const isAdmin = myInfo?.role === 'Admin';
+  const { userInfo } = useUserInfo(address);
+  const isAdmin = userInfo?.role === 'Admin';
 
   const [users, setUsers] = useState<Users[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,8 @@ export default function Users() {
     try {
       const list = await getUsers();
       setUsers(list);
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setError('Error cargando usuarios pendientes');
     } finally {
       setLoading(false);
@@ -33,7 +34,8 @@ export default function Users() {
     try {
       await changeStatusUser(targetAddress, UserStatus.Approved);
       await fetchRows();
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setError('Error al actualizar estado');
     } finally {
       setLoading(false);
@@ -46,7 +48,8 @@ export default function Users() {
     try {
       await changeStatusUser(targetAddress, UserStatus.Rejected);
       await fetchRows();
-    } catch (e) {
+    } catch (err) {
+      console.error(err);
       setError('Error al actualizar estado');
     } finally {
       setLoading(false);
@@ -63,12 +66,7 @@ export default function Users() {
       <section>
         <h2 className="text-2xl font-semibold">Users</h2>
         <p className="mt-2 text-gray-600">Acceso restringido a administradores.</p>
-        <Link
-          to="/dashboard"
-          className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Go to Dashboard
-        </Link>
+        <GoToDashboard />
       </section>
     );
   }
@@ -131,12 +129,7 @@ export default function Users() {
                 ))}
               </tbody>
             </table>
-            <Link
-              to="/dashboard"
-              className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Go to Dashboard
-            </Link>
+            <GoToDashboard />
           </>
         )}
 

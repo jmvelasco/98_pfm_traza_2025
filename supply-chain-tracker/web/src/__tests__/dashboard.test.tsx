@@ -78,6 +78,36 @@ describe('Dashboard Page', () => {
     expect(screen.getByText(/no role assigned/i)).toBeInTheDocument();
   });
 
+  it('blocks access when user status is Pending', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Producer, status: UserStatus.Pending },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/your account is not approved yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/status: pending/i)).toBeInTheDocument();
+    expect(screen.getByText(/return to home/i)).toBeInTheDocument();
+  });
+
+  it('blocks access when user status is Rejected', () => {
+    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
+    vi.mocked(useUserInfo).mockReturnValue({
+      userInfo: { role: UserRole.Factory, status: UserStatus.Rejected },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<Dashboard />);
+    expect(screen.getByText(/your account is not approved yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/status: rejected/i)).toBeInTheDocument();
+    expect(screen.getByText(/return to home/i)).toBeInTheDocument();
+  });
+
   it('shows Producer dashboard with create raw material action', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({

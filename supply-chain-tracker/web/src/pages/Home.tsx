@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { GoToDashboard } from '../components/ui/GoToDashboard';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
 import { requestUserRole } from '../lib/contract';
 import { ROLES, STATUS_LABELS, UserRole, UserStatus } from '../lib/enums';
 
-function isValidStatus(status: any): status is UserStatus {
-  return Object.values(UserStatus).includes(status);
+function isValidStatus(status: unknown): status is UserStatus {
+  return Object.values(UserStatus).includes(status as UserStatus);
 }
 
 export default function Home() {
@@ -26,6 +26,7 @@ export default function Home() {
       await requestUserRole(address, selectedRole);
       await refetch();
     } catch (err) {
+      console.error(err);
       setSubmitError('Error requesting role');
     } finally {
       setSubmitLoading(false);
@@ -70,12 +71,7 @@ export default function Home() {
           <p>
             Status: {isValidStatus(userInfo.status) ? STATUS_LABELS[userInfo.status] : 'Unknown'}
           </p>
-          <Link
-            to="/dashboard"
-            className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Go to Dashboard
-          </Link>
+          <GoToDashboard />
         </div>
       ) : (
         <form onSubmit={handleRequestRole} className="mt-4">

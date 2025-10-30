@@ -7,7 +7,7 @@ import { TraceabilityModal } from '../components/traceability/TraceabilityModal'
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
-import { UserRole } from '../lib/enums';
+import { UserRole, UserStatus } from '../lib/enums';
 
 export default function Dashboard() {
   const { address, isConnected } = useWallet();
@@ -66,6 +66,24 @@ export default function Dashboard() {
     return (
       <div className="text-center py-8">
         <p className="text-gray-600">No role assigned. Please request a role from the home page.</p>
+      </div>
+    );
+  }
+
+  // User not approved - redirect to home
+  if (userInfo.status !== UserStatus.Approved) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-yellow-600 mb-4">
+          Your account is not approved yet. Please wait for admin approval.
+        </p>
+        <p className="text-sm text-gray-500">Status: {userInfo.status || 'Unknown'}</p>
+        <button
+          onClick={() => (window.location.href = '/')}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          Return to Home
+        </button>
       </div>
     );
   }
