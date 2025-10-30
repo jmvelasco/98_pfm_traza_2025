@@ -95,13 +95,27 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
     };
 
     if (isOpen) {
+      // Disable body scroll when modal is open
+      const originalOverflow = document.body.style.overflow;
+      const originalPaddingRight = document.body.style.paddingRight;
+      
+      // Calculate scrollbar width to prevent layout shift
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
       document.addEventListener('keydown', handleKeyDown);
+      
       // Focus management - focus the close button when modal opens
       if (closeButtonRef.current) {
         closeButtonRef.current.focus();
       }
 
       return () => {
+        // Restore original body scroll
+        document.body.style.overflow = originalOverflow;
+        document.body.style.paddingRight = originalPaddingRight;
         document.removeEventListener('keydown', handleKeyDown);
       };
     }
@@ -125,7 +139,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
     >
       <div
         className={`
-          relative bg-white rounded-lg shadow-xl max-h-[90vh] overflow-hidden
+          relative bg-white rounded-lg shadow-xl max-h-[90vh] flex flex-col
           ${
             isResponsive
               ? 'w-full h-full m-4 mobile-responsive'
@@ -138,7 +152,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
           <h2 id="traceability-title" className="text-lg font-semibold text-gray-900">
             {tokenDetails?.name
               ? `${tokenDetails.name.toUpperCase()} - #${tokenId}`
@@ -162,7 +176,7 @@ export const TraceabilityModal: React.FC<TraceabilityModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 min-h-0">
           {loadingState === 'loading' && (
             <div
               className="flex flex-col items-center justify-center py-12"
