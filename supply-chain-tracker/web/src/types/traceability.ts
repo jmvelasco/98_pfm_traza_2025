@@ -18,6 +18,7 @@ export interface TokenLineage {
 export interface TransferHistoryEntry {
   transferId: number;
   tokenId: number;
+  tokenName?: string; // Name of the transferred token
   from: string;
   fromRole: string;
   to: string;
