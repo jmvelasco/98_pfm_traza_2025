@@ -21,7 +21,7 @@ function createMockWalletState(overrides?: Partial<UseWalletReturn>): UseWalletR
     chainId: null,
     networkName: null,
     connect: vi.fn(),
-    getBalance: vi.fn(),
+    getBalance: vi.fn().mockResolvedValue('0.0'),
     switchNetwork: vi.fn(),
     getCurrentNetwork: vi.fn(),
     ...overrides,
