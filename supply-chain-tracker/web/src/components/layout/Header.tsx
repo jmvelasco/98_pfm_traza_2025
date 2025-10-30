@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { WalletConnect } from '../wallet/WalletConnect';
+import { SupplyChainOverview } from './SupplyChainOverview';
 
 export default function Header() {
   // Header shows app title and wallet connect; role-based nav removed.
@@ -12,9 +13,14 @@ export default function Header() {
             Supply Chain Tracker
           </Link>
         </h1>
-        <nav className="flex items-center gap-4">
-          <WalletConnect />
-        </nav>
+        <div className="flex flex-col gap-2">
+          <nav className="flex items-center gap-4 justify-end">
+            <WalletConnect />
+          </nav>
+          <div className="flex justify-end">
+            <SupplyChainOverview />
+          </div>
+        </div>
       </div>
     </header>
   );

@@ -1,14 +1,16 @@
 # 📊 PROGRESS.md — Progreso del Proyecto Supply Chain Tracker (13-29 octubre 2025)
 
-## 🚀 **ESTADO ACTUAL — 29 octubre 2025**
+## 🚀 **ESTADO ACTUAL — 30 octubre 2025**
 
-- **170/170 tests pasando** ✅ — Suite completa sin regresiones
+- **219/219 tests pasando** ✅ — Suite completa sin regresiones
 - **Supply Chain completo funcional**: Producer → Factory → Retailer → Consumer ✅
 - **Available Balance System**: Lógica de balance disponible vs. pendiente implementada ✅
+- **Supply Chain Overview**: Panel de visualización completa en Header implementado ✅
 - **Consumer Dashboard**: UX restructurado, TraceabilityModal pending 🔨
 
 ## 📅 Actualizaciones recientes
 
+- **30 Oct 2025** — **Supply Chain Overview** ✅ — Panel completo de distribución de tokens en tiempo real
 - **29 Oct 2025** — **Consumer dashboard restructuring** ✅ + **Available Balance System** ✅ completados
 - **28 Oct 2025** — **Retailer dashboard completo** ✅ (PackageProducts + TransferToConsumer)
 - **26-27 Oct 2025** — **Factory dashboard completo** ✅ (ProcessMaterials + TransferToRetailer)
@@ -849,7 +851,146 @@ _Resultado: ✅ Panel Admin Users completado, Web3 sync corregido, 31/31 tests p
 
 ---
 
-## ➕ Fase 6 — Tokens en Dashboard: MyTokens en tiempo real y UX de Mint (20 octubre 2025)
+## ➕ Fase 6 — Supply Chain Overview: Panel de Visualización Completa (30 octubre 2025)
+
+### 🎯 Objetivo
+
+Implementar un panel completo de Supply Chain Overview en el Header para visualización en tiempo real de la distribución de tokens y balances del sistema completo.
+
+### ✅ Funcionalidades Implementadas
+
+#### **1. Hook useSupplyChainOverview** (`src/hooks/useSupplyChainOverview.ts`)
+
+- **Fetching automático**: Obtiene todos los tokens del sistema desde el contrato
+- **Análisis de niveles**: Determina automáticamente si tokens son raw/processed/final
+- **Distribución de balances**: Calcula balances por usuario y rol con porcentajes
+- **Datos agregados**: Total tokens y supply del sistema
+- **Real-time updates**: Auto-refresh cada 5 segundos
+- **Error handling**: Manejo robusto de errores de red y contrato
+
+#### **2. Componente SupplyChainOverview** (`src/components/layout/SupplyChainOverview.tsx`)
+
+- **Dropdown profesional**: Panel flotante con backdrop y z-indexing correcto
+- **Diseño espectacular**:
+  - Gradientes por rol (Verde/Azul/Púrpura/Naranja para Producer/Factory/Retailer/Consumer)
+  - Iconos de nivel (🌾 🏭 📦 para raw/processed/final)
+  - Animaciones y efectos hover
+- **Visualización de jerarquía**:
+  - Tokens organizados por nivel (raw → processed → final)
+  - Parent-child relationships claramente mostradas
+  - Balance distribution con role badges
+- **Estadísticas en tiempo real**:
+  - Total tokens y supply del sistema
+  - Amounts procesados por cada token parent
+  - Percentages de distribución por usuario
+
+#### **3. Integración en Header** (`src/components/layout/Header.tsx`)
+
+- **Posicionamiento estratégico**: Entre título y WalletConnect
+- **Acceso one-click**: Botón "📊 Supply Chain" en navigation
+- **Integración seamless**: Mantiene diseño consistente del Header
+
+### 🎨 **Características de Diseño**
+
+#### **Visualización de Tokens**:
+
+```
+🌾 Raw Materials (verde) → 🏭 Processed (azul) → 📦 Final Products (púrpura)
+```
+
+#### **Balance Distribution Display**:
+
+- **Role badges** con colores distintivos
+- **Direcciones truncadas** (0x1234...5678) para legibilidad
+- **Balances y porcentajes** ordenados por cantidad (mayor a menor)
+- **Parent token references** para productos derivados
+
+#### **Real-time Features**:
+
+- **Auto-refresh**: Actualización cada 5 segundos
+- **Loading states**: Spinner animado durante fetch
+- **Error resilience**: Manejo graceful de fallos de red
+- **Empty states**: Messages informativos cuando no hay datos
+
+### 🔧 **Implementación Técnica**
+
+#### **Hook de Datos** (`useSupplyChainOverview`):
+
+```typescript
+interface TokenOverview {
+  id: number;
+  name: string;
+  totalSupply: number;
+  parentId: number;
+  level: "raw" | "processed" | "final";
+  balances: UserBalance[];
+  processedAmount: number; // cuánto se ha procesado de este token
+}
+
+interface UserBalance {
+  address: string;
+  role: UserRole;
+  balance: number;
+  percentage: number;
+}
+```
+
+#### **Lógica de Niveles**:
+
+- **Raw**: `parentId === 0` (materias primas originales)
+- **Processed**: `parentId > 0 && hasChildren` (productos intermedios)
+- **Final**: `parentId > 0 && !hasChildren` (productos finales)
+
+#### **Integración de Contrato**:
+
+- **Lectura directa**: `contract.getToken()`, `contract.getTokenBalance()`, `contract.nextTokenId()`
+- **Well-known addresses**: Mapping de direcciones conocidas a roles
+- **Provider read-only**: JsonRpcProvider para evitar errores de Anvil restart
+
+### 📊 **Valor para Manual Testing**
+
+El Supply Chain Overview aborda directamente los requisitos de validación del `MANUAL_TESTING_GUIDE.md`:
+
+#### **🔍 Verificación de Balances** (Sección del Manual):
+
+```
+Producer: 100 Wheat (Token #1)
+Factory: 0
+Retailer: 0
+Consumer: 0
+```
+
+**Ahora disponible en tiempo real** a través del panel Overview:
+
+- ✅ **Visibilidad completa**: Todos los balances del sistema en una vista
+- ✅ **Validación instantánea**: No need para navegar entre cuentas
+- ✅ **Tracking de flujo**: Ve cómo tokens fluyen Producer → Factory → Retailer → Consumer
+- ✅ **Conservación verificable**: Total supply = suma de balances individuales
+
+### ✅ Verificación Final
+
+```bash
+✓ Compilación TypeScript: Sin errores
+✓ Build production: OK
+✓ Tests suite: 219/219 pasando
+✓ Integración Header: Seamless
+✓ Real-time updates: Funcionando cada 5s
+```
+
+### 🚀 **Impacto en Testing Manual**
+
+La implementación del Supply Chain Overview **mejora significativamente** la experiencia de testing manual:
+
+1. **Validación de balances instantánea**: Ya no necesitas cambiar entre cuentas MetaMask para verificar distribución
+2. **Visibilidad del flujo completo**: Ves en tiempo real cómo los tokens se mueven por la supply chain
+3. **Debugging facilitado**: Detectas inmediatamente si alguna transferencia no se completó correctamente
+4. **Professional presentation**: Para demos académicas, muestra la complejidad y completitud del sistema
+
+**Estado del proyecto**: Supply Chain Overview completamente implementado y listo para manual testing validation 🚀
+
+---
+
+## ➕ Fase 7 — Tokens en Dashboard: MyTokens en tiempo real y UX de Mint (20 octubre 2025)
 
 ### 🎯 Objetivo
 

@@ -112,7 +112,7 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
+          <h2 className="text-xl font-semibold text-blue-400 mb-4">Products</h2>
           {address ? (
             <MyTokens
               userAddress={address}
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
       {/* My Tokens Section */}
       <section>
-        <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
+        <h2 className="text-xl font-semibold text-blue-400 mb-4">Assets</h2>
         {address ? (
           <MyTokens userAddress={address} />
         ) : (
