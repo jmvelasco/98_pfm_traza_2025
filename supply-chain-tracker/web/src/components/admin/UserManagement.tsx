@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { GoToDashboard } from '../../components/ui/GoToDashboard';
+import { GoToDashboard } from '../ui/GoToDashboard';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { useWallet } from '../../hooks/useWallet';
 import { changeStatusUser, getUsers, type Users } from '../../lib/contract';
 import { UserRole, UserStatus } from '../../lib/enums';
 
-export default function Users() {
+export function UserManagement() {
   const { address } = useWallet();
   const { userInfo } = useUserInfo(address);
   const isAdmin = userInfo?.role === 'Admin';
@@ -58,8 +58,7 @@ export default function Users() {
 
   useEffect(() => {
     if (isAdmin) fetchRows();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin]);
+  }, [isAdmin]); // fetchRows is stable, no need to include
 
   if (!isAdmin) {
     return (
@@ -91,33 +90,41 @@ export default function Users() {
         {loading && <p className="text-gray-500">Cargando…</p>}
         {!loading && users.length === 0 && <p className="text-gray-500">No hay usuarios.</p>}
         {!loading && users.length > 0 && (
-          <>
-            <table className="w-full border text-sm">
-              <thead>
-                <tr className="bg-gray-900 text-left">
-                  <th className="p-2 border">Address</th>
-                  <th className="p-2 border">Rol</th>
-                  <th className="p-2 border">Estado</th>
-                  <th className="p-2 border">Acciones</th>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="min-w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                    Address
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Rol</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                    Estado
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200">
                 {nonAdminUsers.map((r) => (
-                  <tr key={r.address} className="border-b">
-                    <td className="p-2 font-mono text-xs break-all">{r.address}</td>
-                    <td className="p-2">{r.role ?? '—'}</td>
-                    <td className="p-2">{r.status ?? '—'}</td>
-                    <td className="p-2">
+                  <tr key={r.address}>
+                    <td className="px-4 py-2 text-gray-600 font-mono text-xs break-all">
+                      {r.address}
+                    </td>
+                    <td className="px-4 py-2 text-gray-600">{r.role ?? '—'}</td>
+                    <td className="px-4 py-2 text-gray-600">{r.status ?? '—'}</td>
+                    <td className="px-4 py-2 text-gray-600">
                       <div className="flex gap-2">
                         <button
-                          className="rounded bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-700 disabled:opacity-50"
+                          className="px-2 py-1 text-xs bg-green-50 text-green-700 border border-green-200 rounded disabled:opacity-50 cursor-pointer"
                           onClick={() => handleApprove(r.address)}
                           disabled={loading || r.status === UserStatus.Approved}
                         >
                           Aprobar
                         </button>
                         <button
-                          className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700 disabled:opacity-50"
+                          className="px-2 py-1 text-xs bg-red-50 text-red-700 border border-red-200 rounded disabled:opacity-50 cursor-pointer"
                           onClick={() => handleReject(r.address)}
                           disabled={loading || r.status === UserStatus.Rejected}
                         >
@@ -129,8 +136,7 @@ export default function Users() {
                 ))}
               </tbody>
             </table>
-            <GoToDashboard />
-          </>
+          </div>
         )}
 
         {error && (

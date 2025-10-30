@@ -114,12 +114,7 @@ describe('Home page registration', () => {
     expect(await screen.findByText(/error/i)).toBeInTheDocument();
   });
 
-  it('redirects admin users to /admin/users automatically', async () => {
-    // Spy on window.location.href setter
-    const locationAssignSpy = vi.fn();
-    delete (window as any).location;
-    (window as any).location = { href: '', assign: locationAssignSpy };
-
+  it('shows admin users normal home page with dashboard link', async () => {
     vi.mocked(useWallet).mockReturnValue(
       createMockWalletState({
         address: '0xADMIN',
@@ -135,12 +130,13 @@ describe('Home page registration', () => {
 
     renderWithRouter(<Home />);
 
-    // Wait for the redirect to happen
-    await waitFor(
-      () => {
-        expect(window.location.href).toBe('/admin/users');
-      },
-      { timeout: 2000 }
-    );
+    // Admin users now see the normal home page with Go to Dashboard link
+    await waitFor(() => {
+      expect(screen.getByText(/role:/i)).toBeInTheDocument();
+      expect(screen.getByText(/admin/i)).toBeInTheDocument();
+      expect(screen.getByText(/status:/i)).toBeInTheDocument();
+      expect(screen.getByText(/approved/i)).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /go to dashboard/i })).toBeInTheDocument();
+    });
   });
 });

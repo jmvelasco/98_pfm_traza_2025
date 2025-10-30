@@ -55,26 +55,7 @@ describe('AppRoutes', () => {
     expect(screen.queryByRole('link', { name: /admin users/i })).not.toBeInTheDocument();
   });
 
-  it('renders Admin Users page at "/admin/users"', () => {
-    vi.mocked(useWallet).mockReturnValue(createMockWalletState());
-    vi.mocked(useUserInfo).mockReturnValue({
-      userInfo: null,
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(
-      <Web3Provider>
-        <MemoryRouter initialEntries={['/admin/users']}>
-          <AppRoutes />
-        </MemoryRouter>
-      </Web3Provider>
-    );
-
-    // Page title is now just "Users"
-    expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument();
-  });
+  // Test removed: /admin/users route no longer exists - admin functionality now integrated in Dashboard
 
   it('renders Dashboard page at "/dashboard"', async () => {
     vi.mocked(useWallet).mockReturnValue(

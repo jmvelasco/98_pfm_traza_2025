@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { UserManagement } from '../components/admin/UserManagement';
 import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import MyTokens from '../components/tokenOps/MyTokens';
 import OutgoingTransfers from '../components/tokenOps/OutgoingTransfers';
@@ -90,75 +91,86 @@ export default function Dashboard() {
 
   const role = userInfo.role;
 
+  // Admin Dashboard: Only show user management
+  if (role === UserRole.Admin) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-blue-200">Admin Dashboard</h1>
+        <UserManagement />
+      </div>
+    );
+  }
+
+  // Consumer Dashboard: Only transfers and products with traceability
+  if (role === UserRole.Consumer) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-blue-200">Consumer Dashboard</h1>
+
+        <section>
+          <IncomingTransfers />
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
+          {address ? (
+            <MyTokens
+              userAddress={address}
+              onTokenClick={handleOpenTraceability}
+              isClickable={true}
+            />
+          ) : (
+            <div className="bg-white rounded-lg shadow p-6 text-center">
+              <p className="text-gray-500">Connect your wallet to see your products.</p>
+            </div>
+          )}
+        </section>
+
+        {/* TraceabilityModal for Consumer */}
+        {selectedTokenId && (
+          <TraceabilityModal
+            isOpen={isTraceabilityModalOpen}
+            onClose={handleCloseTraceability}
+            tokenId={selectedTokenId}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Producer/Factory/Retailer Dashboard: Actions, Tokens, and Transfers
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-blue-200">{role} Dashboard</h1>
 
-      {role !== UserRole.Consumer && (
-        <>
-          {/* Quick Actions */}
-          <section>
-            <RoleActions role={role} />
-          </section>
+      {/* Quick Actions */}
+      <section>
+        <RoleActions role={role} />
+      </section>
 
-          {/* My Tokens Section */}
-          <section>
-            <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
-            {address ? (
-              <MyTokens userAddress={address} />
-            ) : (
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <p className="text-gray-500">Connect your wallet to see your tokens.</p>
-              </div>
-            )}
-          </section>
+      {/* My Tokens Section */}
+      <section>
+        <h2 className="text-xl font-semibold text-blue-400 mb-4">My Tokens</h2>
+        {address ? (
+          <MyTokens userAddress={address} />
+        ) : (
+          <div className="bg-white rounded-lg shadow p-6 text-center">
+            <p className="text-gray-500">Connect your wallet to see your tokens.</p>
+          </div>
+        )}
+      </section>
 
-          {/* Pending Transfers Section */}
-          <section className="space-y-6">
-            {role === UserRole.Producer ? (
-              <>
-                <OutgoingTransfers showAllStatuses={true} />
-              </>
-            ) : (
-              <>
-                <IncomingTransfers />
-                <OutgoingTransfers showAllStatuses={true} />
-              </>
-            )}
-          </section>
-        </>
-      )}
-
-      {role === UserRole.Consumer && (
-        <>
-          <section>
+      {/* Transfers Section */}
+      <section className="space-y-6">
+        {role === UserRole.Producer ? (
+          <OutgoingTransfers showAllStatuses={true} />
+        ) : (
+          <>
             <IncomingTransfers />
-          </section>
-          <section>
-            <h2 className="text-xl font-semibold text-blue-400 mb-4">My Products</h2>
-            {address ? (
-              <MyTokens
-                userAddress={address}
-                onTokenClick={handleOpenTraceability}
-                isClickable={true}
-              />
-            ) : (
-              <div className="bg-white rounded-lg shadow p-6 text-center">
-                <p className="text-gray-500">Connect your wallet to see your products.</p>
-              </div>
-            )}
-          </section>
-
-          {/* TraceabilityModal for Consumer */}
-          {selectedTokenId && (
-            <TraceabilityModal
-              isOpen={isTraceabilityModalOpen}
-              onClose={handleCloseTraceability}
-              tokenId={selectedTokenId}
-            />
-          )}
-        </>
-      )}
+            <OutgoingTransfers showAllStatuses={true} />
+          </>
+        )}
+      </section>
     </div>
   );
 }

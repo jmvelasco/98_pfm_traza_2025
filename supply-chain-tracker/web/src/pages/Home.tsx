@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { GoToDashboard } from '../components/ui/GoToDashboard';
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
@@ -32,19 +32,6 @@ export default function Home() {
       setSubmitLoading(false);
     }
   };
-
-  const isAdmin = userInfo?.role === 'Admin';
-
-  // Auto-redirect admin users to admin panel
-  useEffect(() => {
-    if (isAdmin && userInfo?.status === UserStatus.Approved) {
-      window.location.href = '/admin/users';
-    }
-  }, [isAdmin, userInfo?.status]);
-
-  if (isAdmin && userInfo?.status === UserStatus.Approved) {
-    return null;
-  }
 
   if (!isConnected) {
     return (

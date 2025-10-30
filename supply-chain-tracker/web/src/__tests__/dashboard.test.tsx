@@ -178,7 +178,7 @@ describe('Dashboard Page', () => {
     });
   });
 
-  it('shows Admin dashboard with system management actions', async () => {
+  it('shows Admin dashboard with user management', async () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     vi.mocked(useUserInfo).mockReturnValue({
       userInfo: { role: UserRole.Admin, status: UserStatus.Approved },
@@ -190,8 +190,9 @@ describe('Dashboard Page', () => {
     render(<Dashboard />);
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
-      expect(screen.getByText(/manage users/i)).toBeInTheDocument();
-      expect(screen.getByText(/system statistics/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /users/i })).toBeInTheDocument();
+      expect(screen.getByText(/gestión de usuarios y sus estados/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /refrescar/i })).toBeInTheDocument();
     });
   });
 
