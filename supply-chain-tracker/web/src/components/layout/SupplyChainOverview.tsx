@@ -155,7 +155,7 @@ export function SupplyChainOverview() {
                               >
                                 {balance.role}
                               </span>
-                              <code className="text-xs bg-gray-700 px-1 rounded">
+                              <code className="text-xs bg-green-700 px-1 rounded">
                                 {balance.address.slice(0, 6)}...{balance.address.slice(-4)}
                               </code>
                             </div>

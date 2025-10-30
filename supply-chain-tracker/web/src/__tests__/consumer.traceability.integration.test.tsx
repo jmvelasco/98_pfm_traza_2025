@@ -112,7 +112,7 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       // Wait for Consumer dashboard to load
       await waitFor(() => {
         expect(screen.getByText('Consumer Dashboard')).toBeInTheDocument();
-        expect(screen.getByText('My Products')).toBeInTheDocument();
+        expect(screen.getByText('Products')).toBeInTheDocument();
       });
 
       // Should show token cards
@@ -240,8 +240,8 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
         expect(screen.getByText('Consumer Dashboard')).toBeInTheDocument();
       });
 
-      // Should show My Products section
-      expect(screen.getByText('My Products')).toBeInTheDocument();
+      // Should show Products section
+      expect(screen.getByText('Products')).toBeInTheDocument();
 
       // Should NOT show RoleActions (Quick Actions section)
       expect(screen.queryByText('Quick Actions')).not.toBeInTheDocument();

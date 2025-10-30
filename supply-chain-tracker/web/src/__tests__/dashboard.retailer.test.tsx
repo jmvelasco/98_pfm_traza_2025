@@ -53,8 +53,8 @@ describe('Dashboard - Retailer role', () => {
     expect(screen.getByText('Transfer to Consumer')).toBeInTheDocument();
     expect(screen.getByText('Sell products to end consumers')).toBeInTheDocument();
 
-    // Check for MyTokens section
-    expect(screen.getByText(/my tokens/i)).toBeInTheDocument();
+    // Check for Inventory section (Retailer role)
+    expect(screen.getByText(/inventory/i)).toBeInTheDocument();
 
     // Check for Outgoing Transfers section
     expect(screen.getByRole('heading', { name: /incoming transfers/i })).toBeInTheDocument();

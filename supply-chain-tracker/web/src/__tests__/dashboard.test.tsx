@@ -172,7 +172,7 @@ describe('Dashboard Page', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /consumer dashboard/i })).toBeInTheDocument();
       expect(screen.getByText(/incoming transfers/i)).toBeInTheDocument();
-      expect(screen.getByText(/my products/i)).toBeInTheDocument();
+      expect(screen.getByText(/products/i)).toBeInTheDocument();
       // Consumer should NOT see transfer option
       expect(screen.queryByText(/transfer to/i)).not.toBeInTheDocument();
     });
@@ -206,7 +206,7 @@ describe('Dashboard Page', () => {
 
     render(<Dashboard />);
     await waitFor(() => {
-      expect(screen.getByText(/my tokens/i)).toBeInTheDocument();
+      expect(screen.getByText(/raw materials/i)).toBeInTheDocument();
       expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
     });
   });

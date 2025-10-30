@@ -91,6 +91,22 @@ export default function Dashboard() {
 
   const role = userInfo.role;
 
+  // Helper function to get role-specific section titles
+  const getSectionTitle = (role: UserRole): string => {
+    switch (role) {
+      case UserRole.Producer:
+        return 'Raw Materials';
+      case UserRole.Factory:
+        return 'Production';
+      case UserRole.Retailer:
+        return 'Inventory';
+      case UserRole.Consumer:
+        return 'Products';
+      default:
+        return 'Assets'; // fallback
+    }
+  };
+
   // Admin Dashboard: Only show user management
   if (role === UserRole.Admin) {
     return (
@@ -112,7 +128,7 @@ export default function Dashboard() {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold text-blue-400 mb-4">Products</h2>
+          <h2 className="text-xl font-semibold text-blue-400 mb-4">{getSectionTitle(role)}</h2>
           {address ? (
             <MyTokens
               userAddress={address}
@@ -150,7 +166,7 @@ export default function Dashboard() {
 
       {/* My Tokens Section */}
       <section>
-        <h2 className="text-xl font-semibold text-blue-400 mb-4">Assets</h2>
+        <h2 className="text-xl font-semibold text-blue-400 mb-4">{getSectionTitle(role)}</h2>
         {address ? (
           <MyTokens userAddress={address} />
         ) : (

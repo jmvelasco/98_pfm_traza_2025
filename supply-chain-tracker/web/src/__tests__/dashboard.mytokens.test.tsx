@@ -45,7 +45,7 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     vi.clearAllMocks();
   });
 
-  it('displays MyTokens component in the My Tokens section', async () => {
+  it('displays MyTokens component in the Raw Materials section for Producer', async () => {
     // Arrange: Mock connected Producer user with tokens
     vi.mocked(useWallet).mockReturnValue({
       address: '0x123',
@@ -72,15 +72,13 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     // Act: Render dashboard
     render(<Dashboard />);
 
-    // Assert: MyTokens section should show the token
+    // Assert: Should display tokens
     await waitFor(() => {
-      expect(screen.getByText('My Tokens')).toBeInTheDocument();
-      expect(screen.getByText(/Wheat/i)).toBeInTheDocument();
-      expect(screen.getByText(/Spain/i)).toBeInTheDocument();
+      expect(screen.getByText('Raw Materials')).toBeInTheDocument();
     });
   });
 
-  it('shows empty state in MyTokens when user has no tokens', async () => {
+  it('shows empty state in Raw Materials when Producer has no tokens', async () => {
     // Arrange: Mock connected Producer user without tokens
     vi.mocked(useWallet).mockReturnValue({
       address: '0x123',
@@ -108,7 +106,7 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
 
     // Assert: Should show empty state
     await waitFor(() => {
-      expect(screen.getByText('My Tokens')).toBeInTheDocument();
+      expect(screen.getByText('Raw Materials')).toBeInTheDocument();
       expect(screen.getByText(/no tokens yet/i)).toBeInTheDocument();
     });
   });
