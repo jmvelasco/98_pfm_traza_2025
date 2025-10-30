@@ -81,7 +81,7 @@ const TransferEvent: React.FC<EventProps> = ({ entry, formatAddress }) => (
         </div>
         <div className="flex justify-between text-xs">
           <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded">
-            {entry.transferInfo.amount} units transferred
+            {entry.transferInfo.amount} units of {entry.tokenInfo.name} transferred
           </span>
           <span className="text-gray-500">Remaining: {entry.tokenInfo.currentBalance} units</span>
         </div>

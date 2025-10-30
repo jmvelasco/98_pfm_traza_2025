@@ -8,7 +8,7 @@ describe('LineageNode Component', () => {
     it('should display product name in transfer amount text', () => {
       // RED Test: This will FAIL because current implementation shows "100 units transferred"
       // but we want "100 units of Organic Wheat transferred"
-      
+
       const mockTransferEntry: TimelineEntry = {
         type: 'transfer',
         timestamp: 1698668400000, // Oct 30, 2023
@@ -22,7 +22,7 @@ describe('LineageNode Component', () => {
           level: 0,
           currentBalance: 50,
           totalSupply: 100,
-          features: '{"origin": "Farm A", "organic": true}'
+          features: '{"origin": "Farm A", "organic": true}',
         },
         transferInfo: {
           transferId: 1,
@@ -33,8 +33,8 @@ describe('LineageNode Component', () => {
           toRole: 'Factory',
           amount: 100,
           timestamp: 1698668400000,
-          status: 'Accepted'
-        }
+          status: 'Accepted',
+        },
       };
 
       render(<LineageNode entry={mockTransferEntry} />);
@@ -57,7 +57,7 @@ describe('LineageNode Component', () => {
           level: 0,
           currentBalance: 25,
           totalSupply: 50,
-          features: '{"variety": "arabica", "premium": true}'
+          features: '{"variety": "arabica", "premium": true}',
         },
         transferInfo: {
           transferId: 2,
@@ -68,13 +68,15 @@ describe('LineageNode Component', () => {
           toRole: 'Factory',
           amount: 50,
           timestamp: 1698668400000,
-          status: 'Accepted'
-        }
+          status: 'Accepted',
+        },
       };
 
       render(<LineageNode entry={mockTransferEntry} />);
 
-      expect(screen.getByText('50 units of Premium Coffee Beans (Arabica) transferred')).toBeInTheDocument();
+      expect(
+        screen.getByText('50 units of Premium Coffee Beans (Arabica) transferred')
+      ).toBeInTheDocument();
     });
   });
 });
