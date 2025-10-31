@@ -60,33 +60,33 @@ beforeEach(() => {
 describe('Web3Provider Account Change Bug', () => {
   it('updates to correct account when MetaMask account changes after page reload', async () => {
     const { result } = renderHook(() => useWeb3(), { wrapper: Web3Provider });
-    
+
     // Initial connect with first account
     mockEthereum.request.mockImplementationOnce(async ({ method }: any) => {
       if (method === 'eth_requestAccounts') return ['0xOLD_ACCOUNT'];
       return null;
     });
-    
+
     await act(async () => {
       await result.current.connect();
     });
-    
+
     expect(result.current.address).toBe('0xOLD_ACCOUNT');
     expect(localStorage.getItem('web3:address')).toBe('0xOLD_ACCOUNT');
-    
+
     // Simulate MetaMask account change
     currentAccount = '0xNEW_ACCOUNT';
-    
+
     await act(async () => {
       mockEthereum._emit('accountsChanged', ['0xNEW_ACCOUNT']);
     });
-    
+
     // BUG: This fails because handler uses stale provider
     // The address should update to the new account
     await waitFor(() => {
       expect(result.current.address).toBe('0xNEW_ACCOUNT');
     });
-    
+
     // localStorage should also sync with the new account
     expect(localStorage.getItem('web3:address')).toBe('0xNEW_ACCOUNT');
   });

@@ -16,7 +16,6 @@ vi.mock('../hooks/useUserInfo', () => ({
 // Mock contract module
 vi.mock('../lib/contract', () => ({
   getUserTokens: vi.fn(),
-  getUserTokensWithBalance: vi.fn(),
   getTokenDetails: vi.fn(),
   createToken: vi.fn(),
 }));
@@ -66,7 +65,7 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     });
 
     // Mock contract to return a token
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([1]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([1]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     // Act: Render dashboard
@@ -99,7 +98,7 @@ describe('Dashboard - MyTokens Integration (TDD RED)', () => {
     });
 
     // Mock contract to return no tokens
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
 
     // Act: Render dashboard
     render(<Dashboard />);

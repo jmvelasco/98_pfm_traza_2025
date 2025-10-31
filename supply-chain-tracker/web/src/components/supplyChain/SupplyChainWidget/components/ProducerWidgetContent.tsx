@@ -6,9 +6,6 @@ interface ProducerSectionProps {
 }
 
 export const ProducerSection = ({ data }: ProducerSectionProps) => {
-  console.log('🎨 [DEBUG] ProducerSection - Rendering with data:', data);
-  console.log('🎨 [DEBUG] ProducerSection - tokensCreated array:', data.tokensCreated);
-
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
@@ -36,7 +33,6 @@ export const ProducerSection = ({ data }: ProducerSectionProps) => {
           <h4 className="font-semibold mb-3">Tokens Creados</h4>
           <div className="space-y-2">
             {data.tokensCreated.map((token) => {
-              console.log('🎨 [DEBUG] ProducerSection - Rendering token:', token);
               return (
                 <div
                   key={token.tokenId.toString()}

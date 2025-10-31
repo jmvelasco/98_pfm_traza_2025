@@ -36,7 +36,6 @@ export function useProducerData(
     try {
       // Fetch user's created tokens
       const tokenIds = await getUserTokens(address);
-      console.log('🔍 [DEBUG] useProducerData - tokenIds from getUserTokens:', tokenIds);
 
       const tokensCreated: CreatedToken[] = [];
       let totalProductionToDate = BigInt(0);
@@ -44,21 +43,13 @@ export function useProducerData(
       for (const tokenId of tokenIds) {
         try {
           const tokenDetails = await getTokenDetails(tokenId, address);
-          console.log(`🔍 [DEBUG] useProducerData - Token ${tokenId} details:`, tokenDetails);
 
           if (!tokenDetails) {
-            console.log(`❌ [DEBUG] useProducerData - Token ${tokenId}: No details found`);
             continue;
           }
 
           // For producers, they should be the original creators (parentId = 0)
           if (tokenDetails.parentId === 0) {
-            console.log(
-              `✅ [DEBUG] useProducerData - Token ${tokenId} "${tokenDetails.name}" is raw material (parentId=0)`
-            );
-            console.log(
-              `📊 [DEBUG] useProducerData - Token ${tokenId} balance: ${tokenDetails.balance}, totalSupply: ${tokenDetails.totalSupply}`
-            );
             const currentStock = BigInt(tokenDetails.balance);
             const totalSupply = BigInt(tokenDetails.totalSupply);
             const transferredToDate = totalSupply - currentStock;
@@ -72,28 +63,14 @@ export function useProducerData(
               createdAt: new Date(tokenDetails.dateCreated * 1000), // Convert timestamp to Date
             };
 
-            console.log(`🚀 [DEBUG] useProducerData - Adding token to tokensCreated:`, tokenData);
             tokensCreated.push(tokenData);
 
             totalProductionToDate += totalSupply;
-          } else {
-            console.log(
-              `🔄 [DEBUG] useProducerData - Token ${tokenId} "${tokenDetails.name}" is NOT raw material (parentId=${tokenDetails.parentId}), skipping`
-            );
           }
-        } catch (tokenError) {
-          console.error(
-            `❌ [DEBUG] useProducerData - Error processing token ${tokenId}:`,
-            tokenError
-          );
+        } catch {
           continue;
         }
       }
-
-      console.log(
-        `📋 [DEBUG] useProducerData - Final tokensCreated array length: ${tokensCreated.length}`
-      );
-      console.log(`📋 [DEBUG] useProducerData - Final tokensCreated:`, tokensCreated);
 
       // Fetch pending transfers (outgoing from producer)
       const pendingTransfersData = await getPendingTransfersBySender(address);

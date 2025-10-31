@@ -28,7 +28,7 @@ vi.mock('../components/traceability/TraceabilityModal', () => ({
 
 // Mock contract helpers
 vi.mock('../lib/contract', () => ({
-  getUserTokensWithBalance: vi.fn(),
+  getUserTokens: vi.fn(),
   getTokenDetails: vi.fn(),
   getTokenLineage: vi.fn(),
   buildTokenTimeline: vi.fn(),
@@ -89,7 +89,7 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
     });
 
     // Mock contract functions
-    vi.mocked(contractHelpers.getUserTokensWithBalance).mockResolvedValue([123]);
+    vi.mocked(contractHelpers.getUserTokens).mockResolvedValue([123]);
     vi.mocked(contractHelpers.getTokenDetails).mockResolvedValue({
       id: 123,
       creator: '0x123abc',
@@ -257,7 +257,7 @@ describe('Consumer Dashboard - TraceabilityModal Integration', () => {
       const user = userEvent.setup();
 
       // Mock multiple tokens
-      vi.mocked(contractHelpers.getUserTokensWithBalance).mockResolvedValue([123, 456]);
+      vi.mocked(contractHelpers.getUserTokens).mockResolvedValue([123, 456]);
       vi.mocked(contractHelpers.getTokenDetails)
         .mockResolvedValueOnce({
           id: 123,
