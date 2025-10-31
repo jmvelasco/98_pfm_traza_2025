@@ -193,17 +193,34 @@ export default function MyTokens({
           }
         };
 
+        const isZeroBalance = token.balance === 0;
         return (
           <div
             key={token.id}
-            className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 min-w-0 flex flex-col"
+            className={`border rounded-xl p-5 min-w-0 flex flex-col transition-all duration-300
+              ${
+                isZeroBalance
+                  ? 'border-dashed border-gray-300 bg-gray-50 opacity-70 cursor-not-allowed'
+                  : 'border-gray-200 bg-white shadow-sm hover:shadow-lg hover:border-gray-300'
+              }
+            `}
+            title={
+              isZeroBalance
+                ? 'Este token tiene balance 0. No disponible para transferencias.'
+                : undefined
+            }
           >
             {/* Header with token name and ID badge */}
             <div className="flex items-start justify-between mb-4">
               <h3
-                className="text-xl font-bold text-gray-900 truncate flex-1 mr-2"
+                className={`text-xl font-bold truncate flex-1 mr-2 ${isZeroBalance ? 'text-gray-400' : 'text-gray-900'}`}
                 title={token.name}
               >
+                {isZeroBalance ? (
+                  <span className="mr-1" aria-label="Sin balance">
+                    🚫
+                  </span>
+                ) : null}
                 {token.name}
               </h3>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 shrink-0">
@@ -213,12 +230,19 @@ export default function MyTokens({
 
             {/* Main metrics in organized grid */}
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-gray-50 rounded-lg p-3">
-                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className={`rounded-lg p-3 ${isZeroBalance ? 'bg-gray-100' : 'bg-gray-50'}`}>
+                <dt
+                  className={`text-xs font-medium uppercase tracking-wider ${isZeroBalance ? 'text-gray-400' : 'text-gray-500'}`}
+                >
                   Balance
                 </dt>
-                <dd className="text-lg font-bold text-gray-900 mt-1">
+                <dd
+                  className={`text-lg font-bold mt-1 ${isZeroBalance ? 'text-gray-400' : 'text-gray-900'}`}
+                >
                   {token.balance.toLocaleString()}
+                  {isZeroBalance ? (
+                    <span className="ml-2 text-xs text-gray-400">(Sin stock)</span>
+                  ) : null}
                 </dd>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">

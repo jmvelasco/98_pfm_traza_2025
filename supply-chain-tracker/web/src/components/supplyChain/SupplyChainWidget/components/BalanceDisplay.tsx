@@ -16,7 +16,7 @@ interface BalanceItemProps {
   readonly label: string;
   readonly value: bigint;
   readonly icon: string;
-  readonly colorScheme: 'available' | 'pending-out' | 'pending-in' | 'total';
+  readonly colorScheme: 'available' | 'available-zero' | 'pending-out' | 'pending-in' | 'total';
   readonly compact?: boolean;
 }
 
@@ -30,6 +30,12 @@ const COLOR_SCHEMES = {
     background: 'bg-emerald-50',
     border: 'border-emerald-200',
     icon: 'text-emerald-600',
+  },
+  'available-zero': {
+    text: 'text-red-700',
+    background: 'bg-red-50',
+    border: 'border-red-200',
+    icon: 'text-red-600',
   },
   'pending-out': {
     text: 'text-amber-700',
@@ -53,6 +59,7 @@ const COLOR_SCHEMES = {
 
 const BALANCE_ICONS = {
   available: '✅',
+  'available-zero': '🚫',
   'pending-out': '📤',
   'pending-in': '📥',
   total: '📊',
@@ -245,6 +252,7 @@ export function BalanceDisplay({
   const baseClasses = compact
     ? 'bg-white p-3 rounded-lg border border-slate-200'
     : 'bg-gradient-to-br from-slate-50 to-white p-4 rounded-xl border border-slate-200 shadow-sm';
+  const isAvailableZero = balance.availableBalance === 0n;
 
   return (
     <div className={`${baseClasses} ${className}`}>
@@ -281,8 +289,8 @@ export function BalanceDisplay({
         <BalanceItem
           label="Available"
           value={balance.availableBalance}
-          icon={BALANCE_ICONS.available}
-          colorScheme="available"
+          icon={BALANCE_ICONS[isAvailableZero ? 'available-zero' : 'available']}
+          colorScheme={isAvailableZero ? 'available-zero' : 'available'}
           compact={compact}
         />
 
