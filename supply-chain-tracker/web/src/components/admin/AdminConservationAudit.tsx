@@ -1,4 +1,5 @@
 import type { ConservationRow } from '../../hooks/useAdminSupplyChain';
+import { BadgeList } from '../ui/BadgeList';
 
 interface AdminConservationAuditProps {
   conservationRows: ConservationRow[];
@@ -38,8 +39,8 @@ export function AdminConservationAudit({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="bg-white border-2 border-gray-200 rounded-lg shadow mb-6">
+      <div className="px-8 py-5 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900">Auditoría de Conservación de Tokens</h3>
         <p className="text-sm text-gray-600 mt-1">
           Verifica que la suma de balances + procesados = supply total para cada token
@@ -60,25 +61,25 @@ export function AdminConservationAudit({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Token
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Supply Total
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Balance Contabilizado
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cantidad Procesada
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   % Conservación
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Estado
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Distribución
                 </th>
               </tr>
@@ -97,45 +98,40 @@ export function AdminConservationAudit({
                     key={row.tokenName}
                     className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${!row.isConserved ? 'border-l-4 border-red-400' : ''}`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-8 py-6 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{row.tokenName}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-8 py-6 whitespace-nowrap text-right">
                       <div className="text-sm font-semibold text-gray-900">
                         {row.totalSupply.toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-8 py-6 whitespace-nowrap text-right">
                       <div className="text-sm text-gray-900">
                         {row.accountedBalance.toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-8 py-6 whitespace-nowrap text-right">
                       <div className="text-sm text-blue-600 font-medium">
                         {row.processedAmount.toLocaleString()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <td className="px-8 py-6 whitespace-nowrap text-right">
                       <div
                         className={`text-sm font-semibold ${conservationPercentage === 100 ? 'text-green-600' : 'text-red-600'}`}
                       >
                         {conservationPercentage}%
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-8 py-6 whitespace-nowrap text-center">
                       <span
                         className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full border ${conservationStatus.className}`}
                       >
                         {conservationStatus.text}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div
-                        className="text-sm text-gray-600 max-w-sm truncate"
-                        title={row.distribution}
-                      >
-                        {row.distribution}
-                      </div>
+                    <td className="px-8 py-6">
+                      <BadgeList data={row.distribution} type="distribution" />
                     </td>
                   </tr>
                 );
@@ -146,7 +142,7 @@ export function AdminConservationAudit({
       </div>
 
       {!isLoading && conservationRows.length > 0 && (
-        <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
+        <div className="px-8 py-4 border-t border-gray-200 bg-gray-50">
           <div className="flex justify-between text-sm text-gray-600">
             <div>
               Total tokens auditados:{' '}

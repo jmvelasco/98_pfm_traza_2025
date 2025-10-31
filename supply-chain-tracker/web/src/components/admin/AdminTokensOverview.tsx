@@ -1,4 +1,5 @@
 import type { AdminTokenRow } from '../../hooks/useAdminSupplyChain';
+import { BadgeList } from '../ui/BadgeList';
 
 interface AdminTokensOverviewProps {
   tokenRows: AdminTokenRow[];
@@ -40,8 +41,8 @@ export function AdminTokensOverview({ tokenRows, isLoading, error }: AdminTokens
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200">
+    <div className="bg-white border-2 border-gray-200 rounded-lg shadow mb-6">
+      <div className="px-8 py-5 border-b border-gray-200">
         <h3 className="text-lg font-semibold text-gray-900">Status de Tokens por Usuario</h3>
         <p className="text-sm text-gray-600 mt-1">
           Vista detallada de todos los balances de tokens por usuario activo
@@ -62,22 +63,22 @@ export function AdminTokensOverview({ tokenRows, isLoading, error }: AdminTokens
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Usuario
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Rol
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Token ID
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nombre Token
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Balance Actual
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-8 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Notas
                 </th>
               </tr>
@@ -88,33 +89,31 @@ export function AdminTokensOverview({ tokenRows, isLoading, error }: AdminTokens
                   key={`${row.userAddress}-${row.tokenId}`}
                   className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-8 py-6 whitespace-nowrap">
                     <div className="text-sm font-mono text-gray-900">
                       {formatAddress(row.userAddress)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-8 py-6 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(row.userRole)}`}
                     >
                       {row.userRole}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-8 py-6 whitespace-nowrap">
                     <div className="text-sm text-gray-900 font-mono">#{row.tokenId}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-8 py-6 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{row.tokenName}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-8 py-6 whitespace-nowrap text-right">
                     <div className="text-sm font-semibold text-gray-900">
                       {row.currentBalance.toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-600 max-w-xs truncate" title={row.notes}>
-                      {row.notes}
-                    </div>
+                  <td className="px-8 py-6">
+                    <BadgeList data={row.notes} type="notes" />
                   </td>
                 </tr>
               ))}
@@ -124,7 +123,7 @@ export function AdminTokensOverview({ tokenRows, isLoading, error }: AdminTokens
       </div>
 
       {!isLoading && tokenRows.length > 0 && (
-        <div className="px-6 py-3 border-t border-gray-200 bg-gray-50">
+        <div className="px-8 py-4 border-t border-gray-200 bg-gray-50">
           <div className="text-sm text-gray-600">
             Total: <span className="font-semibold">{tokenRows.length}</span> entradas de tokens
             activos
