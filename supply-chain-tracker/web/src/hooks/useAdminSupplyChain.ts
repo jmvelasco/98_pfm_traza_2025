@@ -54,9 +54,9 @@ export interface AdminSupplyChainData {
   transferRows: TransferHistoryRow[];
 }
 
-export function useAdminSupplyChain(enabled: boolean = true) {
+export function useAdminSupplyChain(enabled: boolean) {
   const [data, setData] = useState<AdminSupplyChainData | null>(null);
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAllData = useCallback(async () => {
@@ -72,7 +72,7 @@ export function useAdminSupplyChain(enabled: boolean = true) {
       // Obtener signer para funciones admin y provider para lectura
       const signer = await getAdminSigner();
       const adminContract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
-      
+
       const readProvider = await getReadProvider();
       const readContract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, readProvider);
 
@@ -96,7 +96,7 @@ export function useAdminSupplyChain(enabled: boolean = true) {
         });
       }
 
-            // 2. Obtener el total de tokens y obtener cada uno (función pública)
+      // 2. Obtener el total de tokens y obtener cada uno (función pública)
       const nextTokenId = Number(await readContract.nextTokenId());
       const tokens: Array<{
         id: number;
