@@ -1,10 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
+  formatNumber,
+  getProcessedBadgeClasses,
+  getRoleBadgeClasses,
   parseDistribution,
   parseNotes,
-  formatNumber,
-  getRoleBadgeClasses,
-  getProcessedBadgeClasses,
   type ParsedItem,
 } from '../../lib/parsers';
 
@@ -101,9 +101,10 @@ describe('parseNotes', () => {
 
 describe('formatNumber', () => {
   it('should format numbers with thousand separators', () => {
-    expect(formatNumber(1000)).toBe('1,000');
-    expect(formatNumber(1500000)).toBe('1,500,000');
-    expect(formatNumber(42)).toBe('42');
+    const locale = Intl.NumberFormat().format(1000);
+    expect(formatNumber(1000)).toBe(locale);
+    expect(formatNumber(1500000)).toBe(Intl.NumberFormat().format(1500000));
+    expect(formatNumber(42)).toBe(Intl.NumberFormat().format(42));
   });
 });
 

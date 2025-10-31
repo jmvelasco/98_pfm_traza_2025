@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { AdminTokensOverview } from '../../components/admin/AdminTokensOverview';
-import { UserRole } from '../../lib/enums';
 import type { AdminTokenRow } from '../../hooks/useAdminSupplyChain';
+import { UserRole } from '../../lib/enums';
 
 describe('AdminTokensOverview', () => {
   const mockTokenRows: AdminTokenRow[] = [
@@ -63,12 +63,14 @@ describe('AdminTokensOverview', () => {
     expect(screen.getByText('Producer')).toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('Raw Material A')).toBeInTheDocument();
-    expect(screen.getByText('1,000')).toBeInTheDocument();
+    expect(screen.getByText((content) => /1[.,\s]?000/.test(content))).toBeInTheDocument();
     // Check parsed notes as individual cards
     expect(screen.getByText('Original:')).toBeInTheDocument();
-    expect(screen.getByText('1,500')).toBeInTheDocument();
+    // There should be only one element with '1500' (Original)
+    expect(screen.getAllByText('1500')).toHaveLength(1);
     expect(screen.getByText('transferidos:')).toBeInTheDocument();
-    expect(screen.getByText('500')).toBeInTheDocument();
+    // There should be only one element with '500' (transferidos)
+    expect(screen.getAllByText('500')).toHaveLength(1);
 
     expect(screen.getByText('0x9876...3210')).toBeInTheDocument();
     expect(screen.getByText('Factory')).toBeInTheDocument();

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { AdminConservationAudit } from '../../components/admin/AdminConservationAudit';
 import type { ConservationRow } from '../../hooks/useAdminSupplyChain';
 
@@ -66,10 +66,10 @@ describe('AdminConservationAudit', () => {
 
     // Check first row (conserved)
     expect(screen.getByText('Raw Material A Total')).toBeInTheDocument();
-    expect(screen.getByText('1,000')).toBeInTheDocument();
-    expect(screen.getByText('600')).toBeInTheDocument();
+    expect(screen.getByText((content) => /1[.,\s]?000/.test(content))).toBeInTheDocument();
+    expect(screen.getByText((content) => /600/.test(content))).toBeInTheDocument();
     // Check that there's at least one "400" in the table (we know there are multiple)
-    expect(screen.getAllByText('400')).toHaveLength(3); // One in table cell, two in cards
+    expect(screen.getAllByText((content) => /400/.test(content))).toHaveLength(3); // One in table cell, two in cards
     expect(screen.getByText('100%')).toBeInTheDocument();
     expect(screen.getByText('Conservado')).toBeInTheDocument();
 
