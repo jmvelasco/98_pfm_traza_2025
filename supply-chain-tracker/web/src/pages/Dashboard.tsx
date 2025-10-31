@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
 import { UserManagement } from '../components/admin/UserManagement';
+import { AdminTokensOverview } from '../components/admin/AdminTokensOverview';
+import { AdminConservationAudit } from '../components/admin/AdminConservationAudit';
+import { AdminTransfersHistory } from '../components/admin/AdminTransfersHistory';
 import IncomingTransfers from '../components/tokenOps/IncomingTransfers';
 import MyTokens from '../components/tokenOps/MyTokens';
 import OutgoingTransfers from '../components/tokenOps/OutgoingTransfers';
@@ -8,6 +11,7 @@ import { TraceabilityModal } from '../components/traceability/TraceabilityModal'
 import Spinner from '../components/ui/Spiner';
 import { useUserInfo } from '../hooks/useUserInfo';
 import { useWallet } from '../hooks/useWallet';
+import { useAdminSupplyChain } from '../hooks/useAdminSupplyChain';
 import { UserRole, UserStatus } from '../lib/enums';
 
 export default function Dashboard() {
@@ -107,12 +111,47 @@ export default function Dashboard() {
     }
   };
 
-  // Admin Dashboard: Only show user management
+  // Admin Dashboard: User management + Supply Chain Audit
   if (role === UserRole.Admin) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminSupplyChain();
+
     return (
-      <div className="space-y-6">
+      <div className="space-y-8">
         <h1 className="text-3xl font-bold text-blue-200">Admin Dashboard</h1>
-        <UserManagement />
+
+        {/* User Management Section */}
+        <section>
+          <UserManagement />
+        </section>
+
+        {/* Supply Chain Audit Section */}
+        <section className="space-y-6">
+          <div className="border-t border-gray-300 pt-6">
+            <h2 className="text-2xl font-semibold text-blue-300 mb-6">Auditoría de Supply Chain</h2>
+
+            {/* Token Status by User */}
+            <AdminTokensOverview
+              tokenRows={adminData?.tokenRows || []}
+              isLoading={adminLoading}
+              error={adminError}
+            />
+
+            {/* Conservation Audit */}
+            <AdminConservationAudit
+              conservationRows={adminData?.conservationRows || []}
+              isLoading={adminLoading}
+              error={adminError}
+            />
+
+            {/* Transfer History */}
+            <AdminTransfersHistory
+              transferRows={adminData?.transferRows || []}
+              isLoading={adminLoading}
+              error={adminError}
+            />
+          </div>
+        </section>
       </div>
     );
   }
