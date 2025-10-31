@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
 import { useContractEvent } from '../../hooks/useContractEvent';
-import { getTokenDetails, getUserTokensWithBalance, type TokenDetails } from '../../lib/contract';
+import { getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
 import { mergeTokenDetails } from '../../lib/tokens';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
@@ -39,8 +39,8 @@ export default function MyTokens({
         setLoading(true);
         setError(null);
 
-        // Get token IDs owned by user (based on balance > 0)
-        const tokenIds = await getUserTokensWithBalance(userAddress);
+        // Get token IDs created by user (includes tokens with balance 0)
+        const tokenIds = await getUserTokens(userAddress);
         if (!mounted) return;
 
         // Fetch details for each token

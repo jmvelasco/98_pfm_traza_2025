@@ -19,7 +19,7 @@ import { useWallet } from '../../../../hooks/useWallet';
 import { useTransfersList } from '../../../../hooks/useTransfersList';
 import type { BalanceState, ProcessingEvent } from '../../../../types/supplyChainWidget';
 import { UserRole } from '../../../../lib/enums';
-import { getUserTokensWithBalance, getTokenDetails } from '../../../../lib/contract';
+import { getUserTokensWithBalance, getTokenDetails, getUserTokens } from '../../../../lib/contract';
 import { useState, useEffect, useCallback } from 'react';
 
 // =====================================================================================
@@ -383,7 +383,7 @@ export function useAllBalances(options: Omit<UseBalanceCalculationOptions, 'toke
       setTokensError(null);
 
       try {
-        const tokenIds = await getUserTokensWithBalance(address);
+        const tokenIds = await getUserTokens(address);
         const tokenDetails = await Promise.all(
           tokenIds.map(async (tokenId) => {
             const details = await getTokenDetails(tokenId, address);

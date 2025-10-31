@@ -7,7 +7,6 @@ import { buildToken } from './utils/builders';
 // Mock contract module
 vi.mock('../lib/contract', () => ({
   getUserTokens: vi.fn(),
-  getUserTokensWithBalance: vi.fn(),
   getTokenDetails: vi.fn(),
 }));
 
@@ -90,7 +89,7 @@ describe('MyTokens', () => {
 
   it('shows empty state if user owns no tokens', async () => {
     // Arrange: mock contract to return no tokens
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
 
     render(<MyTokens userAddress="0x123" />);
     await waitFor(() => {
@@ -100,7 +99,7 @@ describe('MyTokens', () => {
 
   it('shows list of owned tokens with metadata', async () => {
     // Arrange: mock contract to return mockTokens
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([1]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([1]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);
@@ -113,7 +112,7 @@ describe('MyTokens', () => {
   it('updates UI in real time when TokenCreated event is emitted for user', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);
@@ -134,7 +133,7 @@ describe('MyTokens', () => {
   it('does not update UI for TokenCreated events from other users', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0xABC" />);
@@ -153,7 +152,7 @@ describe('MyTokens', () => {
   it('avoids duplicate appends when the same TokenCreated fires multiple times', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetails);
 
     render(<MyTokens userAddress="0x123" />);
@@ -180,7 +179,7 @@ describe('MyTokens', () => {
   it('updates UI when TransferAccepted event fires for recipient', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetailsReceived);
     factoryMock.contract.getTransfer.mockResolvedValue({
       id: 1,
@@ -215,7 +214,7 @@ describe('MyTokens', () => {
   it('ignores TransferAccepted events where recipient is not current user', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     factoryMock.contract.getTransfer.mockResolvedValue({
       id: 1,
       tokenId: 42,
@@ -243,7 +242,7 @@ describe('MyTokens', () => {
   it('prevents duplicate tokens when TransferAccepted fires multiple times', async () => {
     // Arrange
     (window as any).ethereum = {};
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([]);
     vi.mocked(contractModule.getTokenDetails).mockResolvedValue(mockTokenDetailsReceived);
     factoryMock.contract.getTransfer.mockResolvedValue({
       id: 1,
@@ -277,7 +276,7 @@ describe('MyTokens', () => {
   it('when accepting a transfer of an existing token, the balance is updated in real-time', async () => {
     // ARRANGE
     // 1. User already owns token ID 1 with balance 100
-    vi.mocked(contractModule.getUserTokensWithBalance).mockResolvedValue([1]);
+    vi.mocked(contractModule.getUserTokens).mockResolvedValue([1]);
 
     const initialTokenDetails = {
       id: 1,

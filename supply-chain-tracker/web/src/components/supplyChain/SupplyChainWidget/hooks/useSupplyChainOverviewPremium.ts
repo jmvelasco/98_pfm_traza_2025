@@ -4,7 +4,7 @@ import {
   getPendingByRecipient,
   getPendingBySender,
   getTokenDetails,
-  getUserTokensWithBalance,
+  getUserTokens,
 } from '../../../../lib/contract';
 import { TransferStatus, UserRole } from '../../../../lib/enums';
 import type {
@@ -86,7 +86,7 @@ export const useSupplyChainOverviewPremium = () => {
   const calculateProducerData = useCallback(
     async (userAddress: string): Promise<ProducerWidgetData> => {
       try {
-        const tokenIds = await getUserTokensWithBalance(userAddress);
+        const tokenIds = await getUserTokens(userAddress);
         const tokensCreated = [];
         let totalProduction = 0;
 
@@ -173,7 +173,7 @@ export const useSupplyChainOverviewPremium = () => {
   const calculateFactoryData = useCallback(
     async (userAddress: string): Promise<FactoryWidgetData> => {
       try {
-        const tokenIds = await getUserTokensWithBalance(userAddress);
+        const tokenIds = await getUserTokens(userAddress);
         const rawMaterialsStock = [];
         const processedProducts = [];
         let totalProcessed = 0;

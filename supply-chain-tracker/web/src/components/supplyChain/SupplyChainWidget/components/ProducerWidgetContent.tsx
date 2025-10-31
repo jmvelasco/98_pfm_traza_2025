@@ -6,6 +6,9 @@ interface ProducerSectionProps {
 }
 
 export const ProducerSection = ({ data }: ProducerSectionProps) => {
+  console.log('🎨 [DEBUG] ProducerSection - Rendering with data:', data);
+  console.log('🎨 [DEBUG] ProducerSection - tokensCreated array:', data.tokensCreated);
+
   return (
     <div className="space-y-4">
       <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
@@ -32,32 +35,37 @@ export const ProducerSection = ({ data }: ProducerSectionProps) => {
         <div>
           <h4 className="font-semibold mb-3">Tokens Creados</h4>
           <div className="space-y-2">
-            {data.tokensCreated.map((token) => (
-              <div
-                key={token.tokenId.toString()}
-                className="bg-gray-50 p-3 rounded-lg border border-gray-200"
-              >
-                <h5 className="font-semibold text-gray-900">{token.name}</h5>
-                <div className="text-sm space-y-1 text-gray-800">
-                  <div>
-                    Producido:{' '}
-                    <span className="font-bold text-gray-900">{token.totalSupply.toString()}</span>
-                  </div>
-                  <div>
-                    Disponible:{' '}
-                    <span className="font-bold text-green-700">
-                      {token.remainingWithProducer.toString()}
-                    </span>
-                  </div>
-                  <div>
-                    Transferido:{' '}
-                    <span className="font-bold text-blue-700">
-                      {token.transferredToDate.toString()}
-                    </span>
+            {data.tokensCreated.map((token) => {
+              console.log('🎨 [DEBUG] ProducerSection - Rendering token:', token);
+              return (
+                <div
+                  key={token.tokenId.toString()}
+                  className="bg-gray-50 p-3 rounded-lg border border-gray-200"
+                >
+                  <h5 className="font-semibold text-gray-900">{token.name}</h5>
+                  <div className="text-sm space-y-1 text-gray-800">
+                    <div>
+                      Producido:{' '}
+                      <span className="font-bold text-gray-900">
+                        {token.totalSupply.toString()}
+                      </span>
+                    </div>
+                    <div>
+                      Disponible:{' '}
+                      <span className="font-bold text-green-700">
+                        {token.remainingWithProducer.toString()}
+                      </span>
+                    </div>
+                    <div>
+                      Transferido:{' '}
+                      <span className="font-bold text-blue-700">
+                        {token.transferredToDate.toString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
