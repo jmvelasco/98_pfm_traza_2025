@@ -59,7 +59,13 @@ However, during implementation, a dashboard-centric architecture emerged with:
 
 **Chosen Option**: Dashboard-Centric Architecture
 
-We adopt a unified dashboard approach where all token management, creation, and transfer operations are embedded as components within the role-specific dashboard, with real-time event-driven updates.
+**Migración y sincronización (31/10/2025):**
+
+- Los componentes PackageProducts y TransferToConsumer en el dashboard de Retailer están documentados como stubs en el código fuente (`src/components/tokenOps/`).
+- Incluyen comentarios de requisitos, estado MVP y notas de integración/cobertura pendiente.
+- Su implementación y cobertura de tests son prioridad en la siguiente fase.
+
+Adoptamos un enfoque de dashboard unificado donde todas las operaciones de gestión, creación y transferencia de tokens se integran como componentes dentro del dashboard específico de cada rol, con actualizaciones en tiempo real por eventos.
 
 ### Implementation Details
 

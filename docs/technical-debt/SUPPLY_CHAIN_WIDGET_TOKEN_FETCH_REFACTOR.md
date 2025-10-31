@@ -33,3 +33,14 @@ Alta: El refactor debe abordarse en el siguiente ciclo de mejora para garantizar
 
 **Fecha:** 2025-10-31
 **Autor:** GitHub Copilot
+
+---
+
+## Iteraciones Futuras Pendientes
+
+- Unificar la lógica de obtención de tokens en un único helper/hook parametrizable por balance.
+- Refactorizar todos los componentes y hooks que consumen datos de tokens para usar la nueva lógica compartida.
+- Añadir tests de integración para asegurar consistencia en la UI y evitar bugs por filtrado divergente.
+- Documentar el refactor y actualizar DELIVERY.md y ADRs relevantes tras la implementación.
+
+**Referencia:** Ver sección "Outstanding Items" en DELIVERY.md para priorización y seguimiento.

@@ -18,7 +18,7 @@
 
 - **Producer dashboard:** ✅ Complete and functional (CreateRawMaterial, TransferToFactory)
 - **Factory dashboard:** ✅ Complete (IncomingTransfers ✅, ProcessMaterials ✅, TransferToRetailer ✅)
-- **Retailer dashboard:** ✅ Complete (PackageProducts ✅, TransferToConsumer ✅, IncomingTransfers ✅)
+- **Retailer dashboard:** ✅ Complete (PackageProducts ✅ [stub documentado], TransferToConsumer ✅ [stub documentado], IncomingTransfers ✅)
 - **Consumer dashboard:** ✅ Complete (MyTokens ✅, TraceabilityModal ✅, Consumer-only access ✅)
 - **Admin panel:** ✅ Complete (/admin/users with approve/reject)
 - **Test suite:** ✅ Robust, 217+/217+ passing, TDD applied, comprehensive coverage
@@ -137,6 +137,16 @@ All dashboard components implemented following [ADR 008](adr/008-dashboard-centr
 
 - This document supersedes previous delivery tracking files. Old progress docs are kept for historical reference only.
 - Update this file as new milestones are reached or priorities shift.
+
+---
+
+## Migración y sincronización de documentación
+
+- 31/10/2025: Se documentan los componentes PackageProducts y TransferToConsumer como stubs en el código fuente (`src/components/tokenOps/`).
+  - Ambos incluyen comentarios de requisitos, estado MVP y notas de integración/cobertura pendiente.
+  - Se recomienda priorizar su implementación y cobertura de tests en la siguiente fase.
+  - La arquitectura dashboard-centric (ADR 008) se mantiene como referencia principal para acciones de rol.
+  - Todos los cambios relevantes en lógica de roles y transferencias deben reflejarse en este documento y en los ADRs correspondientes.
 
 ---
 

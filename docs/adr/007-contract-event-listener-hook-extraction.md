@@ -756,4 +756,9 @@ Our design is simpler (no ABI parsing, single contract) but follows same princip
 
 ---
 
+**Migración y sincronización (31/10/2025):**
+
+- Los componentes PackageProducts y TransferToConsumer están documentados como stubs y preparados para integrar el patrón de event listeners (`useContractEvent`) en la siguiente fase.
+- Se recomienda extender la abstracción de eventos a estos componentes una vez implementados, siguiendo el patrón ya aplicado en MyTokens y Transfer forms.
+
 **Status**: Ready for review and approval before proceeding with feature implementation.

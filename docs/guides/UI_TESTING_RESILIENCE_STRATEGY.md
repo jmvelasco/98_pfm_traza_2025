@@ -1,5 +1,32 @@
 # 🧪 UI Testing Resilience Strategy - Supply Chain Tracker
 
+## 🚦 Test Matcher Best Practices (Oct 2025)
+
+### Lessons Learned from Fragile Test Failures
+
+Recent failures in the Supply Chain Tracker test suite were caused by direct string matches on formatted numbers and ambiguous queries. These issues were resolved by refactoring tests to use locale-aware, regex-based, and flexible matchers. This approach should be adopted as a standard for all future UI tests.
+
+**Best Practices:**
+
+- **Prefer semantic queries:** Use `getByRole`, `getByLabelText`, and ARIA roles for core UI elements.
+- **For dynamic content (numbers, dates):**
+  - Use regex matchers: `screen.getByText((content) => /1[.,\s]?000/.test(content))`
+  - Avoid direct string matches for formatted values.
+  - Use locale-aware formatting in assertions if possible.
+- **For ambiguous or changing UI:**
+  - Use partial, case-insensitive, or custom matcher functions.
+  - Avoid relying on exact DOM structure or CSS classes in functional tests.
+- **For static, unambiguous text:**
+  - Direct string matches are acceptable.
+- **For critical UI elements:**
+  - Use `data-testid` only when semantic queries are not possible, and keep usage minimal.
+
+**Summary:**
+
+Tests should be resilient to UI changes, refactors, and locale differences. Always prefer robust, flexible matchers over fragile, format-dependent assertions. Document matcher choices in test files when deviating from best practices.
+
+---
+
 ## Guía de Testing para Cambios de UI y Estrategias de Robustez
 
 Esta guía documenta las mejores prácticas para crear tests resilientes que mantengan su valor ante cambios de UI, basada en el análisis del impacto del rediseño visual implementado en el proyecto Supply Chain Tracker.

@@ -11,6 +11,20 @@ export default function PackageProducts() {
   const [loading, setLoading] = useState(false);
   const [eligible, setEligible] = useState<TokenDetails[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  /**
+   * Stub: Componente PackageProducts
+   * Estado: MVP incompleto
+   * Requisitos:
+   *   - Permitir a Factory empaquetar productos derivados para Retailer
+   *   - Validar que solo tokens derivados pueden ser empaquetados
+   *   - Mostrar formulario con selección de tokens y cantidad
+   *   - Deshabilitar botón si campos inválidos
+   *   - Emitir evento de empaquetado y actualizar balances
+   *   - Mostrar mensajes de éxito/error en el DOM
+   * Notas:
+   *   - Falta lógica de integración con contract.ts
+   *   - Falta test de cobertura y validación de accesibilidad
+   */
 
   async function loadTokens() {
     if (!address) return;

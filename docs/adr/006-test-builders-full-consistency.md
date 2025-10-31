@@ -389,6 +389,10 @@ The 30-45 minute migration investment prevents 6+ months of accumulated confusio
 
 ## Conclusion
 
+**Migración y sincronización (31/10/2025):**
+
+- Se recomienda crear test builders para los componentes PackageProducts y TransferToConsumer una vez implementados, siguiendo la metodología TDD y cubriendo edge cases y validaciones de accesibilidad.
+
 **Recommended Action**: Migrate all 3 remaining test files to builders within current sprint.
 
 **Key Insight**: The initial "marginal value" assessment (15-20 lines saved) focused only on immediate metrics. Deep QA analysis reveals full consistency provides unmeasurable long-term value:

@@ -4,6 +4,8 @@
 
 Educational blockchain DApp for supply chain traceability built with **Solidity (Foundry) + React (Vite) + Ethers v6**. Implements role-based tokenized flow: Producer → Factory → Retailer → Consumer with admin approval workflow.
 
+The requirements are documented in `README.md`, always refer to it when in doubt.
+
 ## Architecture
 
 ### Two-Tier Monorepo Structure
@@ -51,7 +53,10 @@ cd supply-chain-tracker/web && npm run dev
 
 1. Edit `sc/src/SupplyChain.sol`
 2. Run `forge build` (from `sc/`)
-3. Redeploy: `forge script script/Deploy.s.sol:DeploySupplyChain --rpc-url http://localhost:8545 --broadcast`
+3. Redeploy: `forge script script/Deploy.s.sol:DeploySupplyChain \
+--rpc-url http://localhost:8545 \
+--private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+--broadcast`
 4. Regenerate frontend config: `npm run regen:contracts` (from `web/`)
 5. Update `web/src/lib/contract.ts` helpers if ABI changed
 
@@ -60,9 +65,10 @@ cd supply-chain-tracker/web && npm run dev
 Follow **one-test-at-a-time** RED→GREEN→COMMIT cycle (see `docs/guides/METODOLOGY_PROMPT.md`):
 
 - **Solidity**: `forge test` (27 tests; see `sc/test/SupplyChain.t.sol`)
-- **Frontend**: `npm test` (88 tests; Vitest + @testing-library/react)
+- **Frontend**: `npm run test` (88 tests; Vitest + @testing-library/react)
 - Use `.skip` to isolate tests; commit RED baseline before implementing
 - Mock `lib/contract.ts` functions in component tests, not ethers providers
+- Refer to `docs/guides/UI_TESTING_RESILIENCE_STRATEGY.md` to write resilient UI tests
 
 ## Code Conventions
 

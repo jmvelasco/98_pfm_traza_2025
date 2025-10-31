@@ -25,3 +25,14 @@ Media: No bloquea la funcionalidad ni la UI, pero debe corregirse para mantener 
 
 **Fecha:** 2025-10-31
 **Autor:** GitHub Copilot
+
+---
+
+## Iteraciones Futuras Pendientes
+
+- Tipar todos los handlers y eventos en `MyTokens.tsx` y componentes relacionados, eliminando el uso de `any`.
+- Revisar el resto de componentes para detectar posibles usos de `any` en lógica de eventos y corregirlos.
+- Añadir tests de tipado y cobertura para asegurar que no se reintroducen tipos inseguros.
+- Sincronizar la corrección con la documentación en DELIVERY.md y actualizar el estado de deuda técnica.
+
+**Referencia:** Ver sección "Outstanding Items" en DELIVERY.md para priorización y seguimiento.

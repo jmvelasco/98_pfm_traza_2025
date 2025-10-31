@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useWallet } from '../../hooks/useWallet';
 import { useContractEvent } from '../../hooks/useContractEvent';
+import { useWallet } from '../../hooks/useWallet';
 import type { TokenDetails } from '../../lib/contract';
 import {
+  getAvailableBalance,
   getTokenDetails,
   getUserTokensWithAvailableBalance,
   requestTransfer,
-  getAvailableBalance,
 } from '../../lib/contract';
 
 import ActionCard from '../ui/ActionCard';
@@ -18,6 +18,20 @@ type TokenDetailsWithAvailableBalance = TokenDetails & {
 };
 
 export default function TransferToConsumer() {
+  /**
+   * Stub: Componente TransferToConsumer
+   * Estado: MVP incompleto
+   * Requisitos:
+   *   - Permitir a Retailer transferir productos empaquetados a Consumer
+   *   - Validar que solo tokens empaquetados pueden ser transferidos
+   *   - Mostrar formulario con selección de tokens, dirección y cantidad
+   *   - Deshabilitar botón si campos inválidos
+   *   - Emitir evento de transferencia y actualizar balances
+   *   - Mostrar mensajes de éxito/error en el DOM
+   * Notas:
+   *   - Falta lógica de integración con contract.ts
+   *   - Falta test de cobertura y validación de accesibilidad
+   */
   const { address } = useWallet();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
