@@ -178,7 +178,7 @@ export default function MyTokens({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {tokens.map((token) => {
         let parsedFeatures: Record<string, unknown> = {};
         try {
@@ -194,48 +194,102 @@ export default function MyTokens({
         };
 
         return (
-          <div key={token.id} className="border rounded-lg p-4 bg-white shadow-sm">
-            <h3 className="text-lg text-orange-600 font-semibold mb-2">{token.name}</h3>
-            <div className="text-sm text-gray-600 space-y-1">
-              <p>
-                <span className="font-medium">Token ID:</span> {token.id}
-              </p>
-              <p>
-                <span className="font-medium">Balance:</span> {token.balance}
-              </p>
-              <p>
-                <span className="font-medium">Total Supply:</span> {token.totalSupply}
-              </p>
-              <p>
-                <span className="font-medium">Parent ID:</span>{' '}
-                {token.parentId === 0 ? 'Raw Material' : token.parentId}
-              </p>
-              {typeof parsedFeatures.content === 'string' && (
-                <p>
-                  <span className="font-medium">Content:</span> {parsedFeatures.content}
-                </p>
-              )}
-              {typeof parsedFeatures.country === 'string' && (
-                <p>
-                  <span className="font-medium">Country:</span> {parsedFeatures.country}
-                </p>
-              )}
-              {typeof parsedFeatures.type === 'string' && (
-                <p>
-                  <span className="font-medium">Type:</span> {parsedFeatures.type}
-                </p>
-              )}
+          <div
+            key={token.id}
+            className="border border-gray-200 rounded-xl p-5 bg-white shadow-sm hover:shadow-lg hover:border-gray-300 transition-all duration-300 min-w-0 flex flex-col"
+          >
+            {/* Header with token name and ID badge */}
+            <div className="flex items-start justify-between mb-4">
+              <h3
+                className="text-xl font-bold text-gray-900 truncate flex-1 mr-2"
+                title={token.name}
+              >
+                {token.name}
+              </h3>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 shrink-0">
+                #{token.id}
+              </span>
             </div>
+
+            {/* Main metrics in organized grid */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Balance
+                </dt>
+                <dd className="text-lg font-bold text-gray-900 mt-1">
+                  {token.balance.toLocaleString()}
+                </dd>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <dt className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Total Supply
+                </dt>
+                <dd className="text-lg font-bold text-gray-900 mt-1">
+                  {token.totalSupply.toLocaleString()}
+                </dd>
+              </div>
+            </div>
+
+            {/* Lineage indicator */}
+            <div className="mb-4">
+              <div className="flex items-center text-sm">
+                <span className="text-gray-500 font-medium mr-2">Origin:</span>
+                <span
+                  className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                    token.parentId === 0
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-blue-100 text-blue-800'
+                  }`}
+                >
+                  {token.parentId === 0 ? '🌱 Raw Material' : `📦 Derived from #${token.parentId}`}
+                </span>
+              </div>
+            </div>
+
+            {/* Additional features */}
+            {(typeof parsedFeatures.content === 'string' ||
+              typeof parsedFeatures.country === 'string' ||
+              typeof parsedFeatures.type === 'string') && (
+              <div className="space-y-2 mb-4">
+                <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                  Details
+                </h4>
+                <div className="space-y-1.5">
+                  {typeof parsedFeatures.type === 'string' && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-500 w-16">Type:</span>
+                      <span className="text-gray-900 font-medium">{parsedFeatures.type}</span>
+                    </div>
+                  )}
+                  {typeof parsedFeatures.content === 'string' && (
+                    <div className="text-sm">
+                      <span className="text-gray-900 font-medium">{parsedFeatures.content}</span>
+                    </div>
+                  )}
+                  {typeof parsedFeatures.country === 'string' && (
+                    <div className="flex items-center text-sm">
+                      <span className="text-gray-500 w-16">Country:</span>
+                      <span className="text-gray-900 font-medium">{parsedFeatures.country}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Only show trace button for Consumer role per analysis */}
             {isClickable && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="mt-auto pt-4 border-t border-gray-100">
                 <button
                   onClick={handleTraceClick}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                  className="w-full group relative overflow-hidden px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium shadow-sm hover:shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={!onTokenClick}
                 >
-                  🔍 Trace Product Journey
+                  <div className="flex items-center justify-center space-x-2">
+                    <span className="text-lg">🔍</span>
+                    <span className="text-sm font-semibold">Trace Product Journey</span>
+                  </div>
+                  <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-200"></div>
                 </button>
               </div>
             )}

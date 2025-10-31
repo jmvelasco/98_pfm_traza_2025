@@ -300,7 +300,7 @@ describe('MyTokens', () => {
 
     // Render component and wait for initial load
     render(<MyTokens userAddress="0x123" />);
-    await waitFor(() => expect(screen.getByText('Balance:')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Balance')).toBeInTheDocument());
 
     // Verify initial balance is displayed
     expect(screen.getByText('100')).toBeInTheDocument();
