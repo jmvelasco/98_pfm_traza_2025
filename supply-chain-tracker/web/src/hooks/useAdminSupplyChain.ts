@@ -45,12 +45,17 @@ export interface AdminSupplyChainData {
   transferRows: TransferHistoryRow[];
 }
 
-export function useAdminSupplyChain() {
+export function useAdminSupplyChain(enabled: boolean = true) {
   const [data, setData] = useState<AdminSupplyChainData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAllData = useCallback(async () => {
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -311,7 +316,7 @@ export function useAdminSupplyChain() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     fetchAllData();

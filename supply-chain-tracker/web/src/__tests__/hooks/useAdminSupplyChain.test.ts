@@ -52,10 +52,18 @@ describe('useAdminSupplyChain', () => {
     (SupplyChain__factory.connect as any).mockReturnValue(mockContract);
   });
 
-  it('should initialize with loading state', () => {
-    const { result } = renderHook(() => useAdminSupplyChain());
+  it('should initialize with loading state when enabled', () => {
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     expect(result.current.isLoading).toBe(true);
+    expect(result.current.data).toBe(null);
+    expect(result.current.error).toBe(null);
+  });
+
+  it('should not load when disabled', () => {
+    const { result } = renderHook(() => useAdminSupplyChain(false));
+
+    expect(result.current.isLoading).toBe(false);
     expect(result.current.data).toBe(null);
     expect(result.current.error).toBe(null);
   });
@@ -99,7 +107,7 @@ describe('useAdminSupplyChain', () => {
     mockContract.nextTransferId.mockResolvedValue(2n);
     mockContract.getTransfer.mockResolvedValue(mockTransferData);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -149,7 +157,7 @@ describe('useAdminSupplyChain', () => {
     const mockError = new Error('Contract error');
     mockContract.getAllUsers.mockRejectedValue(mockError);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -179,7 +187,7 @@ describe('useAdminSupplyChain', () => {
     mockContract.nextTokenId.mockResolvedValue(1n);
     mockContract.nextTransferId.mockResolvedValue(1n);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -224,7 +232,7 @@ describe('useAdminSupplyChain', () => {
 
     mockContract.nextTransferId.mockResolvedValue(1n);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -248,7 +256,7 @@ describe('useAdminSupplyChain', () => {
     mockContract.nextTokenId.mockResolvedValue(1n);
     mockContract.nextTransferId.mockResolvedValue(1n);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -264,7 +272,7 @@ describe('useAdminSupplyChain', () => {
     mockContract.nextTokenId.mockResolvedValue(1n);
     mockContract.nextTransferId.mockResolvedValue(1n);
 
-    const { result } = renderHook(() => useAdminSupplyChain());
+    const { result } = renderHook(() => useAdminSupplyChain(true));
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

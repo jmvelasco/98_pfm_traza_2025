@@ -18,6 +18,14 @@ export default function Dashboard() {
   const { address, isConnected } = useWallet();
   const { userInfo, loading, error } = useUserInfo(isConnected ? address : null);
 
+  // Admin supply chain data (always called to comply with Rules of Hooks)
+  const isAdmin = userInfo?.role === UserRole.Admin;
+  const {
+    data: adminData,
+    isLoading: adminLoading,
+    error: adminError,
+  } = useAdminSupplyChain(isAdmin);
+
   // State for TraceabilityModal (Consumer-only)
   const [isTraceabilityModalOpen, setIsTraceabilityModalOpen] = useState(false);
   const [selectedTokenId, setSelectedTokenId] = useState<number | null>(null);
@@ -113,9 +121,6 @@ export default function Dashboard() {
 
   // Admin Dashboard: User management + Supply Chain Audit
   if (role === UserRole.Admin) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data: adminData, isLoading: adminLoading, error: adminError } = useAdminSupplyChain();
-
     return (
       <div className="space-y-8">
         <h1 className="text-3xl font-bold text-blue-200">Admin Dashboard</h1>
