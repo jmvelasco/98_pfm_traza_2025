@@ -166,8 +166,8 @@ describe('TransferToConsumer Component', () => {
     await user.type(screen.getByLabelText(/amount/i), '20'); // More than balance
     await user.click(screen.getByRole('button', { name: /transfer/i }));
 
-    // Should show invalid amount error
-    expect(screen.getByText(/invalid amount/i)).toBeInTheDocument();
+    // Should show insufficient balance error
+    expect(screen.getByText(/insufficient balance/i)).toBeInTheDocument();
   });
 
   it('should successfully request a transfer', async () => {

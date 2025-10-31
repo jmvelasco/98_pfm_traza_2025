@@ -164,7 +164,7 @@ function TransferForm({ tokenId, balance }: TransferFormProps) {
       return;
     }
     if (amountNum > balance) {
-      setMessage('Invalid amount');
+      setMessage('Insufficient balance');
       return;
     }
 

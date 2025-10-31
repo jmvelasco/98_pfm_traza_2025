@@ -187,7 +187,7 @@ describe('TransferToConsumer - Available Balance Integration (RED Tests)', () =>
     // Should show error because 6 > available balance (5)
     // But will pass validation because 6 <= total balance (6)
     // This test will FAIL until we implement available balance validation
-    expect(screen.getByText(/invalid amount/i)).toBeInTheDocument();
+    expect(screen.getByText(/insufficient balance/i)).toBeInTheDocument();
     expect(requestTransfer).not.toHaveBeenCalled();
   });
 
