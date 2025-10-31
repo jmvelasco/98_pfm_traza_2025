@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { UserRole, TransferStatus } from '../../../../lib/enums';
 import {
   getUserTokens,
+  getUserTokensWithBalance,
   getTokenDetails,
   getPendingByRecipient,
   getPendingBySender,
@@ -38,8 +39,8 @@ export function useRetailerData(
     setError(null);
 
     try {
-      // Fetch user's owned tokens (inventory)
-      const tokenIds = await getUserTokens(address);
+      // Fetch user's owned tokens (inventory) - solo con balance > 0
+      const tokenIds = await getUserTokensWithBalance(address);
 
       const inventory: InventoryItem[] = [];
       const supplierSet = new Set<string>();

@@ -2,7 +2,12 @@ import { ethers } from 'ethers';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CONTRACT_CONFIG } from '../../config/contracts';
 import { useContractEvent } from '../../hooks/useContractEvent';
-import { getTokenDetails, getUserTokens, type TokenDetails } from '../../lib/contract';
+import {
+  getTokenDetails,
+  getUserTokens,
+  getUserTokensWithBalance,
+  type TokenDetails,
+} from '../../lib/contract';
 import { mergeTokenDetails } from '../../lib/tokens';
 import { SupplyChain__factory } from '../../types/factories/SupplyChain__factory';
 
@@ -39,12 +44,14 @@ export default function MyTokens({
         setLoading(true);
         setError(null);
 
-        // Get token IDs created by user (includes tokens with balance 0)
-        const tokenIds = await getUserTokens(userAddress);
-        if (!mounted) return;
+        const tokenIds: number[] = await getUserTokensWithBalance(userAddress);
+        const userTokenIds = await getUserTokens(userAddress);
 
+        if (!mounted) return;
         // Fetch details for each token
-        const details = await Promise.all(tokenIds.map((id) => getTokenDetails(id, userAddress)));
+        const details = await Promise.all(
+          [...tokenIds, ...userTokenIds].map((id) => getTokenDetails(id, userAddress))
+        );
         if (!mounted) return;
 
         // Filter out nulls and merge with any tokens already appended via events
