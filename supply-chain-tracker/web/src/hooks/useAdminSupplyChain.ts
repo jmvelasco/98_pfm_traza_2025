@@ -9,6 +9,15 @@ async function getReadProvider(): Promise<ethers.JsonRpcProvider> {
   return new ethers.JsonRpcProvider('http://localhost:8545');
 }
 
+// Helper para obtener signer autenticado (necesario para funciones onlyAdmin)
+async function getAdminSigner(): Promise<ethers.Signer> {
+  if (typeof window === 'undefined' || !window.ethereum) {
+    throw new Error('MetaMask not available');
+  }
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  return provider.getSigner();
+}
+
 export interface AdminTokenRow {
   userAddress: string;
   userRole: UserRole;
@@ -60,11 +69,15 @@ export function useAdminSupplyChain(enabled: boolean = true) {
     setError(null);
 
     try {
-      const provider = await getReadProvider();
-      const contract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, provider);
+      // Obtener signer para funciones admin y provider para lectura
+      const signer = await getAdminSigner();
+      const adminContract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, signer);
+      
+      const readProvider = await getReadProvider();
+      const readContract = SupplyChain__factory.connect(CONTRACT_CONFIG.address, readProvider);
 
-      // 1. Obtener todos los usuarios usando getAllUsers
-      const allUsersFromContract = await contract.getAllUsers();
+      // 1. Obtener todos los usuarios usando getAllUsers (requiere admin)
+      const allUsersFromContract = await adminContract.getAllUsers();
       const users: Array<{ id: number; address: string; role: UserRole; status: UserStatus }> = [];
 
       for (const user of allUsersFromContract) {
@@ -83,32 +96,32 @@ export function useAdminSupplyChain(enabled: boolean = true) {
         });
       }
 
-      // 2. Obtener todos los tokens
-      const nextTokenId = Number(await contract.nextTokenId());
+            // 2. Obtener el total de tokens y obtener cada uno (función pública)
+      const nextTokenId = Number(await readContract.nextTokenId());
       const tokens: Array<{
         id: number;
         creator: string;
         name: string;
         totalSupply: number;
+        features: string;
         parentId: number;
-        dateCreated: number;
+        dateCreated: string;
       }> = [];
 
       for (let i = 1; i < nextTokenId; i++) {
         try {
-          // getToken devuelve tupla: (id, creator, name, totalSupply, features, parentId, dateCreated)
-          const [id, creator, name, totalSupply, , parentId, dateCreated] =
-            await contract.getToken(i);
+          const tokenData = await readContract.getToken(i);
           tokens.push({
-            id: Number(id),
-            creator: creator,
-            name: name,
-            totalSupply: Number(totalSupply),
-            parentId: Number(parentId),
-            dateCreated: Number(dateCreated),
+            id: Number(tokenData[0]),
+            creator: tokenData[1],
+            name: tokenData[2],
+            totalSupply: Number(tokenData[3]),
+            features: tokenData[4],
+            parentId: Number(tokenData[5]),
+            dateCreated: new Date(Number(tokenData[6]) * 1000).toISOString(),
           });
-        } catch (e) {
-          console.warn(`Error fetching token ${i}:`, e);
+        } catch (err) {
+          console.warn(`[Admin] Error obteniendo token ${i}:`, err);
         }
       }
 
@@ -118,7 +131,7 @@ export function useAdminSupplyChain(enabled: boolean = true) {
       for (const user of users) {
         for (const token of tokens) {
           try {
-            const balance = Number(await contract.getTokenBalance(token.id, user.address));
+            const balance = Number(await readContract.getTokenBalance(token.id, user.address));
             if (balance > 0) {
               // Calcular notas detalladas
               let notes = '';
@@ -130,7 +143,7 @@ export function useAdminSupplyChain(enabled: boolean = true) {
 
                 // Contar rechazados si es el creador
                 const rejectedCount = await calculateRejectedTransfers(
-                  contract as unknown as ethers.Contract,
+                  readContract as unknown as ethers.Contract,
                   user.address,
                   token.id
                 );
@@ -265,12 +278,12 @@ export function useAdminSupplyChain(enabled: boolean = true) {
       }
 
       // 5. Obtener historial de transferencias
-      const nextTransferId = Number(await contract.nextTransferId());
+      const nextTransferId = Number(await readContract.nextTransferId());
       const transferRows: TransferHistoryRow[] = [];
 
       for (let i = 1; i < nextTransferId; i++) {
         try {
-          const transfer = await contract.getTransfer(i);
+          const transfer = await readContract.getTransfer(i);
           const token = tokens.find((t) => t.id === Number(transfer.tokenId));
           const fromUser = users.find(
             (u) => u.address.toLowerCase() === transfer.from.toLowerCase()
