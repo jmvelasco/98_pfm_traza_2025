@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useWallet } from '../../hooks/useWallet';
+import { useUserInfo } from '../../hooks/useUserInfo';
+import { RoleBadge } from '../supplyChain/SupplyChainWidget/components/RoleBadge';
 
 function shortAddress(addr: string) {
   return addr.slice(0, 6) + '…' + addr.slice(-4);
@@ -16,6 +18,7 @@ function formatBalance(balance: string): string {
 
 export function WalletConnect() {
   const { address, isConnected, networkName, connect, getBalance } = useWallet();
+  const { userInfo } = useUserInfo(address);
   const [balance, setBalance] = useState<string>('0.0');
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
 
@@ -41,45 +44,49 @@ export function WalletConnect() {
     return (
       <button
         onClick={onConnect}
-        className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+        className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-lg hover:from-cyan-700 hover:to-blue-700 text-sm font-medium shadow-md transition-all duration-300 hover:shadow-lg hover:scale-105"
       >
-        Connect
+        <span className="flex items-center gap-2">
+          <span>🔗</span>
+          Connect Wallet
+        </span>
       </button>
     );
   }
 
   return (
     <div className="flex items-center gap-3 text-sm">
-      {/* Network Badge */}
-      <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg font-medium">
-        {networkName ?? 'Unknown'}
+      {/* Network Badge - Cyber Theme */}
+      <span className="px-3 py-1.5 bg-gradient-to-r from-slate-100 to-zinc-100 text-slate-800 border border-slate-300 rounded-lg font-medium shadow-sm">
+        <span className="text-xs">⚡</span> {networkName ?? 'Unknown'}
       </span>
 
-      {/* Balance Display */}
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+      {/* Balance Display - Electric Blue Theme */}
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-300 rounded-lg shadow-sm">
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-          <span className="text-gray-600 font-medium">Balance:</span>
+          <span className="text-cyan-700 font-medium">Balance:</span>
         </div>
         {isLoadingBalance ? (
           <div className="flex items-center gap-1">
-            <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
-            <span className="text-blue-600 font-mono text-xs">Loading...</span>
+            <div className="w-4 h-4 border-2 border-cyan-300 border-t-cyan-600 rounded-full animate-spin"></div>
+            <span className="text-cyan-700 font-mono text-xs">Loading...</span>
           </div>
         ) : (
-          <span className="font-mono font-semibold text-blue-700">
+          <span className="font-mono font-semibold text-cyan-800 bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
             {formatBalance(balance)} ETH
           </span>
         )}
       </div>
 
-      {/* Address Display */}
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg">
-        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-        <span className="font-mono text-gray-700 font-medium">
+      {/* Address Display - Dark Tech Theme */}
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-slate-100 to-gray-100 border border-slate-300 rounded-lg shadow-sm">
+        <span className="font-mono text-slate-700 font-medium">
           {address ? shortAddress(address) : ''}
         </span>
       </div>
+
+      {/* Role Badge */}
+      {userInfo?.role && <RoleBadge role={userInfo.role} size="sm" />}
     </div>
   );
 }

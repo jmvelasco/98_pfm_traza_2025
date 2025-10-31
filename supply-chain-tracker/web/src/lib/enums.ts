@@ -29,3 +29,11 @@ export const STATUS_LABELS: Record<UserStatus, string> = {
   [UserStatus.Approved]: 'Approved',
   [UserStatus.Rejected]: 'Rejected',
 };
+
+export const TransferStatus = {
+  Pending: 'Pending',
+  Accepted: 'Accepted',
+  Rejected: 'Rejected',
+} as const;
+
+export type TransferStatus = (typeof TransferStatus)[keyof typeof TransferStatus];

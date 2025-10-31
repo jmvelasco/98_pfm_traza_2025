@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ethers } from 'ethers';
-import { UserRole } from '../lib/enums';
-import { CONTRACT_CONFIG } from '../config/contracts';
+import { UserRole } from '../../../../lib/enums';
+import { CONTRACT_CONFIG } from '../../../../config/contracts';
 
 export interface UserBalance {
   address: string;
