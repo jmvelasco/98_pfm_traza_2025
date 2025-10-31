@@ -68,17 +68,28 @@ describe('AdminConservationAudit', () => {
     expect(screen.getByText('Raw Material A Total')).toBeInTheDocument();
     expect(screen.getByText('1,000')).toBeInTheDocument();
     expect(screen.getByText('600')).toBeInTheDocument();
-    expect(screen.getByText('400')).toBeInTheDocument();
+    // Check that there's at least one "400" in the table (we know there are multiple)
+    expect(screen.getAllByText('400')).toHaveLength(3); // One in table cell, two in cards
     expect(screen.getByText('100%')).toBeInTheDocument();
     expect(screen.getByText('Conservado')).toBeInTheDocument();
+
+    // Check distribution cards for first row
+    expect(screen.getByText('Producer:')).toBeInTheDocument();
+    expect(screen.getByText('200')).toBeInTheDocument();
+    expect(screen.getByText('Factory:')).toBeInTheDocument();
+    expect(screen.getByText('Procesado:')).toBeInTheDocument();
 
     // Check second row (not conserved)
     expect(screen.getByText('Product B Total')).toBeInTheDocument();
     expect(screen.getByText('500')).toBeInTheDocument();
-    expect(screen.getByText('300')).toBeInTheDocument();
+    // Check that there are multiple "300" (one in table cell, one in card)
+    expect(screen.getAllByText('300')).toHaveLength(2);
     expect(screen.getByText('0')).toBeInTheDocument();
     expect(screen.getByText('60%')).toBeInTheDocument();
     expect(screen.getByText('No Conservado')).toBeInTheDocument();
+
+    // Check distribution cards for second row
+    expect(screen.getByText('Retailer:')).toBeInTheDocument();
   });
 
   it('should apply correct status colors', () => {

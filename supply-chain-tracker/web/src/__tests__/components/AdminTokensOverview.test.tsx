@@ -64,7 +64,11 @@ describe('AdminTokensOverview', () => {
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('Raw Material A')).toBeInTheDocument();
     expect(screen.getByText('1,000')).toBeInTheDocument();
-    expect(screen.getByText('Original: 1500, transferidos: 500')).toBeInTheDocument();
+    // Check parsed notes as individual cards
+    expect(screen.getByText('Original:')).toBeInTheDocument();
+    expect(screen.getByText('1,500')).toBeInTheDocument();
+    expect(screen.getByText('transferidos:')).toBeInTheDocument();
+    expect(screen.getByText('500')).toBeInTheDocument();
 
     expect(screen.getByText('0x9876...3210')).toBeInTheDocument();
     expect(screen.getByText('Factory')).toBeInTheDocument();

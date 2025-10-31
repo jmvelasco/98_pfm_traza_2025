@@ -1,15 +1,23 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { BadgeList } from '../../components/ui/BadgeList';
+import { BadgeList } from '../../../components/ui/BadgeList';
 
 describe('BadgeList', () => {
   describe('notes type', () => {
-    it('should render parsed notes as badges', () => {
+    it('should render parsed notes as cards', () => {
       render(<BadgeList data="Original: 1500, transferidos: 500" type="notes" />);
 
-      // Check badges are rendered
-      expect(screen.getByText('Original')).toBeInTheDocument();
-      expect(screen.getByText('transferidos')).toBeInTheDocument();
+      // Check card labels are rendered (they span multiple elements)
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'Original:';
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'transferidos:';
+        })
+      ).toBeInTheDocument();
 
       // Check values are formatted
       expect(screen.getByText('1,500')).toBeInTheDocument();
@@ -19,8 +27,10 @@ describe('BadgeList', () => {
     it('should handle empty notes gracefully', () => {
       render(<BadgeList data="" type="notes" />);
 
-      // Should show empty fallback
-      expect(screen.getByText('')).toBeInTheDocument();
+      // Should show empty fallback text
+      const fallbackElement = screen.getByTitle('');
+      expect(fallbackElement).toBeInTheDocument();
+      expect(fallbackElement).toHaveClass('text-sm', 'text-gray-600');
     });
 
     it('should fall back to original text for unparseable data', () => {
@@ -32,42 +42,67 @@ describe('BadgeList', () => {
   });
 
   describe('distribution type', () => {
-    it('should render parsed distribution as badges', () => {
+    it('should render parsed distribution as cards', () => {
       render(
         <BadgeList data="Producer: 200 + Factory: 400 + Procesado: 400" type="distribution" />
       );
 
-      // Check role badges
-      expect(screen.getByText('Producer')).toBeInTheDocument();
-      expect(screen.getByText('Factory')).toBeInTheDocument();
-      expect(screen.getByText('Procesado')).toBeInTheDocument();
+      // Check role labels (they span multiple elements with newlines)
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'Producer:';
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'Factory:';
+        })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'Procesado:';
+        })
+      ).toBeInTheDocument();
 
       // Check values
       expect(screen.getByText('200')).toBeInTheDocument();
-      expect(screen.getByText('400')).toBeInTheDocument();
+      // Factory: 400 should appear twice, so use getAllByText
+      const factoryValues = screen.getAllByText('400');
+      expect(factoryValues).toHaveLength(2);
     });
 
     it('should apply default card styles for regular items', () => {
       render(<BadgeList data="Producer: 100" type="distribution" />);
 
-      const cardContainer = screen.getByText('Producer:').closest('div');
+      // Find the Producer label element and traverse up to get the card container
+      const producerLabel = screen.getByText((_content, element) => {
+        return element?.textContent === 'Producer:';
+      });
+      const cardContainer = producerLabel.closest('div')?.parentElement;
       expect(cardContainer).toHaveClass('bg-gray-50', 'border-gray-200', 'rounded-lg');
     });
 
     it('should apply processed styles for processed items', () => {
       render(<BadgeList data="Procesado: 300" type="distribution" />);
 
-      const processedLabel = screen.getByText('Procesado:');
+      const processedLabel = screen.getByText((_content, element) => {
+        return element?.textContent === 'Procesado:';
+      });
       expect(processedLabel).toHaveClass('text-blue-700', 'italic');
 
-      const cardContainer = processedLabel.closest('div');
-      expect(cardContainer).toHaveClass('bg-blue-50', 'border-blue-200');
+      // Find the processed card container
+      const processedCard = processedLabel.closest('div')?.parentElement;
+      expect(processedCard).toHaveClass('bg-blue-50', 'border-blue-200');
     });
 
     it('should handle numbers with commas', () => {
       render(<BadgeList data="Producer: 1,500" type="distribution" />);
 
-      expect(screen.getByText('Producer')).toBeInTheDocument();
+      expect(
+        screen.getByText((_content, element) => {
+          return element?.textContent === 'Producer:';
+        })
+      ).toBeInTheDocument();
       expect(screen.getByText('1,500')).toBeInTheDocument();
     });
   });
@@ -76,8 +111,13 @@ describe('BadgeList', () => {
     it('should have responsive width classes', () => {
       render(<BadgeList data="Producer: 100" type="distribution" />);
 
-      const container = screen.getByText('Producer:').closest('div')?.parentElement;
+      // Find the main container (outermost div with space-y class)
+      const producerLabel = screen.getByText((_content, element) => {
+        return element?.textContent === 'Producer:';
+      });
+      const container = producerLabel.closest('div')?.parentElement?.parentElement;
       expect(container).toHaveClass(
+        'space-y-2.5',
         'min-w-[220px]',
         'max-w-[320px]',
         'md:max-w-[380px]',
@@ -90,7 +130,10 @@ describe('BadgeList', () => {
     it('should have proper spacing between items', () => {
       render(<BadgeList data="Producer: 100 + Factory: 200" type="distribution" />);
 
-      const container = screen.getByText('Producer:').closest('div')?.parentElement;
+      const producerLabel = screen.getByText((_content, element) => {
+        return element?.textContent === 'Producer:';
+      });
+      const container = producerLabel.closest('div')?.parentElement?.parentElement;
       expect(container).toHaveClass('space-y-2.5');
     });
 

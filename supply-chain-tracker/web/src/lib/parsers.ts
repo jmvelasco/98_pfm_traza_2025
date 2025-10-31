@@ -26,7 +26,8 @@ export function parseDistribution(distributionString: string): ParsedItem[] {
 
   for (const part of parts) {
     // Buscar patrón "Clave: Valor"
-    const match = part.match(/^(.+?):\s*(\d+(?:,\d+)*)$/);
+    // Regex mejorado para capturar números con comas correctamente
+    const match = part.match(/^(.+?):\s*(\d{1,3}(?:,\d{3})*|\d+)$/);
     if (match) {
       const label = match[1].trim();
       const valueString = match[2].replace(/,/g, ''); // Remover comas
@@ -60,28 +61,22 @@ export function parseNotes(notesString: string): ParsedItem[] {
 
   const items: ParsedItem[] = [];
 
-  // Split por ', ' y procesar cada parte
-  const parts = notesString.split(',').map((part) => part.trim());
+  // Estrategia: usar regex que capture ambos formatos y maneje números con comas
+  // Patrón combinado que busca "Label: Number" o "Label Number" seguido de coma o final de string
+  const combinedPattern = /([^,:]+?)(?::\s*|\s+)(\d{1,3}(?:,\d{3})*|\d+)(?=\s*,|\s*$)/g;
+  let match;
 
-  for (const part of parts) {
-    // Buscar patrón "Clave: Valor" o "Clave Valor"
-    const colonMatch = part.match(/^(.+?):\s*(\d+(?:,\d+)*)$/);
-    const spaceMatch = part.match(/^(.+?)\s+(\d+(?:,\d+)*)$/);
+  while ((match = combinedPattern.exec(notesString)) !== null) {
+    const label = match[1].trim();
+    const valueString = match[2].replace(/,/g, ''); // Remover comas de los números
+    const value = parseInt(valueString, 10);
 
-    const match = colonMatch || spaceMatch;
-
-    if (match) {
-      const label = match[1].trim();
-      const valueString = match[2].replace(/,/g, ''); // Remover comas
-      const value = parseInt(valueString, 10);
-
-      if (!isNaN(value)) {
-        items.push({
-          type: 'info',
-          label,
-          value,
-        });
-      }
+    if (!isNaN(value) && label) {
+      items.push({
+        type: 'info',
+        label,
+        value,
+      });
     }
   }
 
