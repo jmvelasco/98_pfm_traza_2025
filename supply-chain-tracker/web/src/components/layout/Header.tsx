@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom';
 import { WalletConnect } from '../wallet/WalletConnect';
 import { SupplyChainWidget } from '../supplyChain/SupplyChainWidget';
+import { useWeb3 } from '../../contexts/Web3Provider';
+import { useUserInfo } from '../../hooks/useUserInfo';
+import { UserRole } from '../../lib/enums';
 
 export default function Header() {
   // Header shows app title and wallet connect; role-based nav removed.
+  const { address } = useWeb3();
+  const { userInfo } = useUserInfo(address);
+
+  // Don't show Supply Chain Widget for Admin - they have their specialized dashboard
+  const shouldShowSupplyChainWidget = userInfo?.role !== UserRole.Admin;
 
   return (
     <header className="w-full border-b bg-white">
@@ -17,9 +25,11 @@ export default function Header() {
           <nav className="flex items-center gap-4 justify-end">
             <WalletConnect />
           </nav>
-          <div className="flex justify-end">
-            <SupplyChainWidget />
-          </div>
+          {shouldShowSupplyChainWidget && (
+            <div className="flex justify-end">
+              <SupplyChainWidget />
+            </div>
+          )}
         </div>
       </div>
     </header>
