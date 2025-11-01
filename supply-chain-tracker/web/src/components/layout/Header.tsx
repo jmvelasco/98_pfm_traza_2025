@@ -10,8 +10,8 @@ export default function Header() {
   const { address } = useWeb3();
   const { userInfo } = useUserInfo(address);
 
-  // Don't show Supply Chain Widget for Admin - they have their specialized dashboard
-  const shouldShowSupplyChainWidget = userInfo?.role !== UserRole.Admin;
+  // Only show widget if wallet is connected and not admin
+  const shouldShowSupplyChainWidget = !!address && userInfo?.role !== UserRole.Admin;
 
   return (
     <header className="w-full border-b bg-white">
