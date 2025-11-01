@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { WalletConnect } from '../wallet/WalletConnect';
-import { SupplyChainWidget } from '../supplyChain/SupplyChainWidget';
 import { useWeb3 } from '../../contexts/Web3Provider';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { UserRole } from '../../lib/enums';
+import { SupplyChainWidget } from '../supplyChain/SupplyChainWidget';
+import { WalletConnect } from '../wallet/WalletConnect';
 
 export default function Header() {
   // Header shows app title and wallet connect; role-based nav removed.

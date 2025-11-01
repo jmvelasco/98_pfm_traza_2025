@@ -1,36 +1,36 @@
-    it('should hide Supply Chain Widget when wallet is disconnected', () => {
-      // Setup disconnected wallet
-      (useWallet as ReturnType<typeof vi.fn>).mockReturnValue({
-        isConnected: false,
-        address: null,
-        connect: vi.fn(),
-        disconnect: vi.fn(),
-        balance: '0',
-        network: { name: 'localhost', chainId: 31337 },
-      });
-      (useWeb3 as ReturnType<typeof vi.fn>).mockReturnValue({
-        address: null,
-        isConnected: false,
-      });
-      (useUserInfo as ReturnType<typeof vi.fn>).mockReturnValue({
-        userInfo: null,
-        loading: false,
-      });
+it('should hide Supply Chain Widget when wallet is disconnected', () => {
+  // Setup disconnected wallet
+  (useWallet as ReturnType<typeof vi.fn>).mockReturnValue({
+    isConnected: false,
+    address: null,
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    balance: '0',
+    network: { name: 'localhost', chainId: 31337 },
+  });
+  (useWeb3 as ReturnType<typeof vi.fn>).mockReturnValue({
+    address: null,
+    isConnected: false,
+  });
+  (useUserInfo as ReturnType<typeof vi.fn>).mockReturnValue({
+    userInfo: null,
+    loading: false,
+  });
 
-      render(
-        <MemoryRouter>
-          <Header />
-        </MemoryRouter>
-      );
+  render(
+    <MemoryRouter>
+      <Header />
+    </MemoryRouter>
+  );
 
-      // Should NOT find Supply Chain button
-      expect(screen.queryByText('Supply Chain')).not.toBeInTheDocument();
-      // Should still show header title
-      expect(screen.getByText('Supply Chain Tracker')).toBeInTheDocument();
-    });
+  // Should NOT find Supply Chain button
+  expect(screen.queryByText('Supply Chain')).not.toBeInTheDocument();
+  // Should still show header title
+  expect(screen.getByText('Supply Chain Tracker')).toBeInTheDocument();
+});
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import Header from '../../../components/layout/Header';
 import { UserRole } from '../../../lib/enums';
 
