@@ -11,7 +11,7 @@ function isValidStatus(status: unknown): status is UserStatus {
 }
 
 export default function Home() {
-  const { address, isConnected, connect } = useWallet();
+  const { address, isConnected } = useWallet();
   const { userInfo, loading, error, refetch } = useUserInfo(isConnected ? address : null);
   const [selectedRole, setSelectedRole] = useState<UserRole>(ROLES[0].value);
   const [submitError, setSubmitError] = useState<string | null>(null);

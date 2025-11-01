@@ -42,7 +42,9 @@ describe('Home page registration', () => {
     vi.mocked(useWallet).mockReturnValue(createMockWalletState());
     renderWithRouter(<Home />);
     // Robust: check for the welcome heading and intro text
-    expect(screen.getByRole('heading', { name: /welcome to supply chain tracker/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: /welcome to supply chain tracker/i })
+    ).toBeInTheDocument();
     expect(screen.getByText(/track, verify, and manage products/i)).toBeInTheDocument();
   });
 
